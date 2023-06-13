@@ -161,3 +161,7 @@ fi
 if [[ -f "$HOME/.config/dotfiles-private/unix/init.sh" ]]; then
   source $HOME/.config/dotfiles-private/unix/init.sh
 fi
+
+if [[ -f "$HOME/.config/dotfiles-work/unix/init.sh" ]]; then
+  source $HOME/.config/dotfiles-work/unix/init.sh
+fi
