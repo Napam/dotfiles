@@ -1,0 +1,5 @@
+{
+  "Open Harvest and Youtube": "Start-Process -FilePath 'C:/Program Files/Google/Chrome/Application/chrome.exe' -ArgumentList 'youtube.com https://cvision.harvestapp.com/time'",
+  "Open Slack": "Start-Process -FilePath 'C:/Program Files/Slack/slack.exe'",
+  "Open Outlook": "Start-Process -FilePath 'C:/Program Files/Microsoft Office/root/Office16/OUTLOOK.EXE'"
+}

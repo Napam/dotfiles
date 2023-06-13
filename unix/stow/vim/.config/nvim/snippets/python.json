@@ -1,0 +1,14 @@
+{
+    "Debug print": {
+        "prefix": [".-deb"],
+        "body": ["print('LOG:\\x1b[33mDEBUG\\x1b[0m:', '${1}:', ${1})"]
+    },
+    "Highlight print": {
+        "prefix": [".-hig"],
+        "body": ["print('LOG:\\x1b[35mHIGHTLIGHT\\x1b[0m:', '${1}:', ${1})"]
+    },
+    "Info print": {
+        "prefix": [".-inf"],
+        "body": ["print('LOG:INFO:', '${1}:', ${1})"]
+    }
+}

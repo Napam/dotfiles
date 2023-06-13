@@ -1,0 +1,14 @@
+{
+  "Highlight console log": {
+    "prefix": [".-hig"],
+    "body": ["console.log('LOG:\\x1b[35mHIGHLIGHT\\x1b[37m:', '${1}:', ${1})"]
+  },
+  "Debug console log": {
+      "prefix": [".-deb"],
+      "body": ["console.log('LOG:\\x1b[33mDEBUG\\x1b[37m:', '${1}:', ${1})"]
+  },
+  "Info console log": {
+      "prefix": [".-inf"],
+      "body": ["console.log('LOG:\\x1b[36mINFO\\x1b[37m:', ${1})"]
+  }
+}
