@@ -126,7 +126,13 @@ export SCREENDIR=$HOME/.screen
 # Enable CTRL+Backspace to remove whole word
 bind '"\C-H":backward-kill-word'
 
-source $HOME/.shellutils.sh
+
+if [[ -d $HOME/.config/dotfiles ]]; then
+  source $HOME/.config/dotfiles/unix/shellutils.sh
+  source $HOME/.config/dotfiles/unix/shellenv.sh
+fi
+
+alias editrc='vim ~/.bashrc; source ~/.bashrc'
 
 __git_ps1() {
     git branch 2>/dev/null | sed -n 's/\* \(.*\)/ (\1)/p';
@@ -135,8 +141,6 @@ __git_ps1() {
 # Prompt text stuff
 export PS1="\[\e[31m\]\u@\h \[\e[36m\]\w\[\e[33m\] \$(echo \$(__git_ps1))>\[\e[0m\] "
 
-source $HOME/.shellenv.sh
-alias editrc='vim ~/.bashrc; source ~/.bashrc'
 
 [ -f ~/.fzf.bash ] && source ~/.fzf.bash
 
