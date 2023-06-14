@@ -62,6 +62,10 @@ export PATH="$HOME/.jbang/bin:$PATH"
 # Rust cargo
 source "$HOME/.cargo/env"
 
+# venvy
+export VENVY_SRC_DIR="$HOME/.local/src/venvy"
+[[ -s $VENVY_SRC_DIR ]] && source "$VENVY_SRC_DIR/venvy.sh"
+
 # kubectl editor
 export KUBE_EDITOR=lvim
 
@@ -70,3 +74,4 @@ export GREP_COLORS='ms=01;31:mc=01;31:sl=:cx=:fn=36:ln=32:bn=32:se=33'
 if command -v tmux &> /dev/null && [ -n "$PS1" ] && [[ ! "$TERM" =~ screen ]] && [[ ! "$TERM" =~ tmux ]] && [ -z "$TMUX" ]; then
   exec tmux
 fi
+
