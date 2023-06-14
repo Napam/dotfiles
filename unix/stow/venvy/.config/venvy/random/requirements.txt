@@ -1,0 +1,5 @@
+meny
+tqdm
+numpy
+pandas
+matplotlib
