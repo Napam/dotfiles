@@ -8,9 +8,6 @@ alias hostpwd='python3 -m http.server 7100'
 alias updatehosts='updatewslhosts && updatewinhosts'
 alias edithosts='sudo vim /etc/hosts'
 alias editwinhosts='sudo vim /mnt/c/Windows/System32/drivers/etc/hosts'
-alias editutils='vim $HOME/.config/dotfiles/unix/shellutils.sh && source $HOME/.config/dotfiles/unix/shellutils.sh'
-alias editenv='vim $HOME/.config/dotfiles/unix/shellenv.sh && source $HOME/.config/dotfiles/unix/shellenv.sh'
-alias editvimrc='vim $HOME/.vimrc'
 alias winpwd='wslpath -w $(pwd)'
 alias jh8='export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-amd64 && echo $JAVA_HOME'
 alias jh11='export JAVA_HOME=/usr/lib/jvm/java-1.11.0-openjdk-amd64 && echo $JAVA_HOME'
@@ -31,6 +28,12 @@ alias fixwin="sudo update-binfmts --disable cli"
 alias feh="feh --auto-reload"
 alias safeupgrade="sudo aptitude safe-upgrade"
 alias ansicolors='for i in {0..255}; do  printf "[38;5;${i}mcolor%-5i[0m" $i ; if ! (( ($i + 1 ) % 8 )); then echo ; fi ; done'
+
+# dotfile related aliases
+alias editutils='vim $HOME/.config/dotfiles/unix/shellutils.sh && source $HOME/.config/dotfiles/unix/shellutils.sh'
+alias editenv='vim $HOME/.config/dotfiles/unix/shellenv.sh && source $HOME/.config/dotfiles/unix/shellenv.sh'
+alias editvimrc='vim $HOME/.vimrc'
+alias gotodots='cd $HOME/.config/dotfiles'
 
 # Kubernetes aliases
 alias k='kubectl'
