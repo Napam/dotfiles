@@ -71,9 +71,6 @@ export KUBE_EDITOR=lvim
 
 export GREP_COLORS='ms=01;31:mc=01;31:sl=:cx=:fn=36:ln=32:bn=32:se=33'
 
-# Fix æ ø å stuff on the Mac
-# export LC_ALL=C
-
 if command -v tmux &> /dev/null && [ -n "$PS1" ] && [[ ! "$TERM" =~ screen ]] && [[ ! "$TERM" =~ tmux ]] && [ -z "$TMUX" ]; then
   exec tmux
 fi
