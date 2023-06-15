@@ -55,7 +55,7 @@ alias gdcs='git diff --compact-summary'
 alias gl='git log'
 alias gacm='git add . && git commit -m'
 alias gp='git pull'
-alias fgd='glol --color=always | fzf --ansi --reverse | xargs sh -c "git diff  \$0~1 \$0"'
+alias fgd="glol --color=always | fzf --ansi --reverse --multi 2 | sort -k 2,3 | awk '{print \$1}' | xargs sh -c 'git diff \$0\$([ ! \$1 ] && echo ~1 || echo \"\") \${1:-\$0}'"
 alias fgc='glol --color=always | fzf --ansi --reverse | xargs sh -c "git checkout \$0"'
 alias fgcrl='git reflog --color=always | fzf --ansi --reverse | xargs sh -c "git checkout \$0"'
 alias gspp='git stash && git pull && git stash pop'
