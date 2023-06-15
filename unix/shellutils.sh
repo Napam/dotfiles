@@ -33,7 +33,7 @@ alias ansicolors='for i in {0..255}; do  printf "[38;5;${i}mcolor%-5i[0m" $i ;
 alias editutils='vim $HOME/.config/dotfiles/unix/shellutils.sh && source $HOME/.config/dotfiles/unix/shellutils.sh'
 alias editenv='vim $HOME/.config/dotfiles/unix/shellenv.sh && source $HOME/.config/dotfiles/unix/shellenv.sh'
 alias editvimrc='vim $HOME/.vimrc'
-alias gotodots='cd $HOME/.config/dotfiles'
+alias dots='cd $HOME/.config/dotfiles'
 
 # Kubernetes aliases
 alias k='kubectl'
