@@ -38,8 +38,7 @@ export PATH="$PATH:$GOROOT:$GOPATH/bin"
 
 # Use LunarVim instead
 alias vim=lvim
-
-export EDITOR=vim
+export EDITOR=lvim
 
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
