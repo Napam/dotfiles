@@ -127,6 +127,8 @@ lvim.plugins = {
   { "simrat39/rust-tools.nvim" },
   { "nvim-neotest/neotest" },
   { "nvim-neotest/neotest-python" },
+  { "github/copilot.vim" },
+  { "tpope/vim-surround" },
 }
 
 ---- Custom options and such ----
