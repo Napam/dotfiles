@@ -74,7 +74,7 @@ function init_completions() {
   [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
   # Auto complete stuff
-  autoload -U compinit && compinit
+  autoload -Uz compinit && compinit
 
   # kubectl completion
   if command -v kubectl &> /dev/null; then
@@ -98,10 +98,12 @@ zvm_after_init_commands+=(init_completions)
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
 plugins=(
-  zsh-vi-mode
+  # zsh-vi-mode
 )
 
 source $ZSH/oh-my-zsh.sh
+
+init_completions
 
 # User configuration
 
