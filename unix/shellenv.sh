@@ -16,11 +16,6 @@ case "$(uname -sr)" in
      ;;
 esac
 
-#X11 stuff
-#export DISPLAY=$(awk '/nameserver / {print $2; exit}' /etc/resolv.conf 2>/dev/null):0
-#export DISPLAY=:0
-#export LIBGL_ALWAYS_INDIRECT=1
-
 # Programs in home local bin
 export PATH="$PATH:$HOME/.local/bin"
 
@@ -30,11 +25,6 @@ export LD_LIBRARY_PATH="/lib:/usr/lib:/usr/local/lib"
 # GO
 export GOPATH="$HOME/.go"
 export PATH="$PATH:$GOROOT:$GOPATH/bin"
-
-#Virtualenvwrapper settings:
-# export WORKON_HOME=$HOME/.virtualenvs
-# VIRTUALENVWRAPPER_PYTHON=/usr/bin/python3
-# source $HOME/.local/bin/virtualenvwrapper.sh
 
 # Use LunarVim instead
 alias vim=lvim
@@ -70,8 +60,9 @@ export KUBE_EDITOR=lvim
 
 export GREP_COLORS='ms=01;31:mc=01;31:sl=:cx=:fn=36:ln=32:bn=32:se=33'
 
-
-[[ -e $HOME/.zsh-vi-mode ]] && source $HOME/.zsh-vi-mode/zsh-vi-mode.plugin.zsh
+if [[ $ZSH_VERSION ]]; then
+  [[ -e $HOME/.zsh-vi-mode ]] && source $HOME/.zsh-vi-mode/zsh-vi-mode.plugin.zsh
+fi
 
 if command -v tmux &> /dev/null && [ -n "$PS1" ] && [[ ! "$TERM" =~ screen ]] && [[ ! "$TERM" =~ tmux ]] && [ -z "$TMUX" ]; then
   exec tmux

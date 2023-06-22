@@ -1,5 +1,23 @@
 # ~/.bashrc: executed by bash(1) for non-login shells.
 
+case "$(uname -sr)" in
+   Darwin*)
+     IS_MAC=1
+     ;;
+
+   Linux*Microsoft*)
+     IS_WSL=1
+     ;;
+
+   Linux*)
+     IS_LINUX=1
+     ;;
+
+   CYGWIN*|MINGW*|MINGW32*|MSYS*)
+     IS_WINDOWS=1
+     ;;
+esac
+
 # see /usr/share/doc/bash/examples/startup-files (in the package bash-doc)
 # for examples
 
@@ -74,8 +92,8 @@ unset color_prompt force_color_prompt
 # esac
 
 # enable color support of ls and also add handy aliases
-if [ -x /usr/bin/dircolors ]; then
-    test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
+if [[ -x /usr/bin/dircolors || $IS_MAC ]]; then
+    # test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
     alias ls='ls --color=auto'
     #alias dir='dir --color=auto'
     #alias vdir='vdir --color=auto'
