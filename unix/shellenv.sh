@@ -16,7 +16,7 @@ case "$(uname -sr)" in
      ;;
 esac
 
-if [[ -s /opt/homebrew/bin ]]; then
+if [[ -e /opt/homebrew/bin ]]; then
   export PATH=$PATH:/opt/homebrew/bin
 fi
 
@@ -28,7 +28,9 @@ export LD_LIBRARY_PATH="/lib:/usr/lib:/usr/local/lib"
 
 # GO
 export GOPATH="$HOME/.go"
-export PATH="$PATH:$GOROOT:$GOPATH/bin"
+if [[ -e $GOPATH ]]; then
+  export PATH=$PATH:$GOPATH
+fi
 
 # Use LunarVim instead
 alias vim=lvim

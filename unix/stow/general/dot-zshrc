@@ -71,7 +71,7 @@ ZSH_THEME="eastwood"
 
 function init_completions() {
   # fzf
-  [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+  [[ -f ~/.fzf.zsh ]] && source ~/.fzf.zsh
 
   # Auto complete stuff
   autoload -Uz compinit && compinit
