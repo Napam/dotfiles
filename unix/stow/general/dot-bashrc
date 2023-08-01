@@ -165,3 +165,4 @@ export PS1="\[\e[31m\]\u@\h \[\e[36m\]\w\[\e[33m\] \$(echo \$(__git_ps1))>\[\e[0
 if command -v kubectl &> /dev/null; then
   source <(kubectl completion bash)
 fi
+. "$HOME/.cargo/env"

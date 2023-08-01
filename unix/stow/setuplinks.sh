@@ -1,3 +1,3 @@
 #!/usr/bin/env sh
 
-stow -d . -t $HOME --dotfiles -v 2 */
+stow -d . -t $HOME --no-folding --dotfiles -v 2 */

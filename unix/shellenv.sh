@@ -16,6 +16,10 @@ case "$(uname -sr)" in
      ;;
 esac
 
+if [[ -s /opt/homebrew/bin ]]; then
+  export PATH=$PATH:/opt/homebrew/bin
+fi
+
 # Programs in home local bin
 export PATH="$PATH:$HOME/.local/bin"
 
@@ -49,7 +53,9 @@ alias j!=jbang
 export PATH="$HOME/.jbang/bin:$PATH"
 
 # Rust cargo
-source "$HOME/.cargo/env"
+if [[ -s $HOME/.cargo/env ]]; then
+  source "$HOME/.cargo/env"
+fi
 
 # venvy
 export VENVY_SRC_DIR="$HOME/.local/src/venvy"
