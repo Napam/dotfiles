@@ -44,7 +44,7 @@ export NVM_DIR="$HOME/.nvm"
 export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"
 
 if [[ -v IS_MAC ]]; then
-  export JAVA_HOME="/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home"
+  export JAVA_HOME="/Library/Java/JavaVirtualMachines/temurin-20.jdk/Contents/Home"
 else
   export JAVA_HOME="/usr/lib/jvm/java-1.17.0-openjdk-amd64"
 fi
@@ -57,6 +57,11 @@ export PATH="$HOME/.jbang/bin:$PATH"
 # Rust cargo
 if [[ -s $HOME/.cargo/env ]]; then
   source "$HOME/.cargo/env"
+fi
+
+# Flutter
+if [[ -s /opt/flutter ]]; then
+  export PATH="$PATH:/opt/flutter/bin"
 fi
 
 # venvy
