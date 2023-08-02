@@ -1,3 +1,6 @@
 #!/usr/bin/env sh
 
-stow -d . -t $HOME --no-folding --dotfiles -v 2 */
+mkdir -p .local
+mkdir -p .config
+
+stow -d . -t $HOME --dotfiles -v 2 */
