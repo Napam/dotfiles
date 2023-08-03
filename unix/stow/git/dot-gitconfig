@@ -1,6 +1,7 @@
 [user]
 	email = naphat@live.no
 	name = Naphat Amundsen
+	signingkey = ~/.ssh/id_rsa
 [core]
 	pager = less -F
 	editor = vim
@@ -15,3 +16,7 @@
 	date = human
 [safe]
 	directory = /usr/local/src/podman
+[gpg]
+	format = ssh
+[commit]
+	gpgsign = true
