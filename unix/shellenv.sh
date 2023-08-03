@@ -36,6 +36,7 @@ fi
 # Use LunarVim instead
 alias vim=lvim
 export EDITOR=lvim
+export GIT_EDITOR=lvim
 
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
