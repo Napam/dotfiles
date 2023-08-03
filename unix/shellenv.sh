@@ -16,8 +16,9 @@ case "$(uname -sr)" in
      ;;
 esac
 
+# Homebrew bin, should be in front of PATH such that brew install binaries comes before usr/bin stuff
 if [[ -e /opt/homebrew/bin ]]; then
-  export PATH=$PATH:/opt/homebrew/bin
+  export PATH="/opt/homebrew/bin:$PATH"
 fi
 
 # Programs in home local bin
