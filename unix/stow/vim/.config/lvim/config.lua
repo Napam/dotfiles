@@ -118,6 +118,11 @@ lvim.builtin.treesitter.auto_install = true
 
 ---- Aesthetics ----
 lvim.transparent_window = true
+lvim.colorscheme = "sonokai"
+
+lvim.autocommands = {
+  {"ColorScheme", {command="hi NvimTreeEndOfBuffer ctermbg=none guibg=none"}}
+}
 
 ---- Custom plugins ----
 lvim.plugins = {
@@ -137,7 +142,6 @@ lvim.plugins = {
 ---- Custom options and such ----
 vim.opt.relativenumber = true
 vim.opt.smartindent = true
-lvim.colorscheme = "sonokai"
 
 ---- Keybindings ----
 lvim.keys.normal_mode["<leader>o"] = "o<ESC>"
