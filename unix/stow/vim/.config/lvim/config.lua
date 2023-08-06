@@ -116,6 +116,9 @@ lvim.builtin.treesitter.auto_install = true
 --   end,
 -- })
 
+---- Aesthetics ----
+lvim.transparent_window = true
+
 ---- Custom plugins ----
 lvim.plugins = {
   { "sainnhe/sonokai" },
