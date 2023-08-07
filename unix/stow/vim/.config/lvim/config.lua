@@ -121,7 +121,8 @@ lvim.transparent_window = true
 lvim.colorscheme = "sonokai"
 
 lvim.autocommands = {
-    { "ColorScheme", { command = "hi NvimTreeEndOfBuffer ctermbg=none guibg=none" } }
+    { "ColorScheme", { command = "hi NvimTreeEndOfBuffer ctermbg=none guibg=none" } },
+    { "BufWinEnter", { command = ":set formatoptions-=cro" } }
 }
 
 ---- Custom plugins ----
@@ -144,8 +145,23 @@ lvim.plugins = {
     { "simrat39/rust-tools.nvim" },
     { "nvim-neotest/neotest" },
     { "nvim-neotest/neotest-python" },
-    { "github/copilot.vim" },
     { "tpope/vim-surround" },
+    {
+        "github/copilot.vim",
+        event = "VeryLazy",
+        config = function()
+            -- copilot assume mapped
+            vim.g.copilot_assume_mapped = true
+            vim.g.copilot_no_tab_map = true
+        end,
+    },
+    {
+        "hrsh7th/cmp-copilot",
+        config = function()
+            lvim.builtin.cmp.formatting.source_names["copilot"] = "( )"
+            table.insert(lvim.builtin.cmp.sources, 2, { name = "copilot" })
+        end,
+    },
     {
         "akinsho/flutter-tools.nvim",
         dependencies = "nvim-lua/plenary.nvim",
