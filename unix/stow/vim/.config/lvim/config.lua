@@ -135,8 +135,7 @@ lvim.plugins = {
             vim.g.mkdp_filetypes = {
                 "markdown" }
         end,
-        ft = {
-            "markdown" }
+        ft = { "markdown" }
     },
     { "weirongxu/plantuml-previewer.vim" },
     { "tyru/open-browser.vim" },
@@ -147,19 +146,14 @@ lvim.plugins = {
     { "nvim-neotest/neotest-python" },
     { "tpope/vim-surround" },
     {
-        "github/copilot.vim",
-        event = "VeryLazy",
+        "zbirenbaum/copilot-cmp",
+        event = "InsertEnter",
+        dependencies = { "zbirenbaum/copilot.lua" },
         config = function()
-            -- copilot assume mapped
-            vim.g.copilot_assume_mapped = true
-            vim.g.copilot_no_tab_map = true
-        end,
-    },
-    {
-        "hrsh7th/cmp-copilot",
-        config = function()
-            lvim.builtin.cmp.formatting.source_names["copilot"] = "( )"
-            table.insert(lvim.builtin.cmp.sources, 2, { name = "copilot" })
+            vim.defer_fn(function()
+                require("copilot").setup()     -- https://github.com/zbirenbaum/copilot.lua/blob/master/README.md#setup-and-configuration
+                require("copilot_cmp").setup() -- https://github.com/zbirenbaum/copilot-cmp/blob/master/README.md#configuration
+            end, 100)
         end,
     },
     {
