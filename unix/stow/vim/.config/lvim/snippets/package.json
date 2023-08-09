@@ -15,6 +15,14 @@
         "path": "./javascript.json"
       },
       {
+        "language": "typescript",
+        "path": "./javascript.json"
+      },
+      {
+        "language": "svelte",
+        "path": "./javascript.json"
+      },
+      {
         "language": "python",
         "path": "./python.json"
       },
