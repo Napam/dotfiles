@@ -199,6 +199,20 @@ lvim.keys.normal_mode["ø"] = ":Telescope harpoon marks<CR>"
 lvim.keys.normal_mode["Ø"] = ":lua require(\"harpoon.mark\").add_file()<CR>"
 require("telescope").load_extension('harpoon')
 
+---- Eslint ----
+local linters = require "lvim.lsp.null-ls.linters"
+linters.setup({
+    { command = 'eslint', filetypes = { "typescript", "javascript" } }
+})
+
+local formatters = require "lvim.lsp.null-ls.formatters"
+formatters.setup {
+  {
+    command = "prettier",
+    filetypes = { "typescript", "typescriptreact", "javascript" },
+  },
+}
+
 ---- LSP ----
 vim.list_extend(lvim.lsp.automatic_configuration.skipped_servers, { "ruff_lsp", "pylyzer", "dartls" })
 
