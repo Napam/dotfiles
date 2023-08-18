@@ -93,10 +93,11 @@ local mappings = {
     f = {
         name = "Find",
         f = { "<cmd>Telescope find_files<cr>", "Find files" },
-        r = { "<cmd>Telescope oldfiles<cr>", "Recent files" },
         g = { "<cmd>Telescope live_grep<cr>", "Find in files" },
         b = { "<cmd>Telescope buffers<cr>", "Find buffers" }
     },
+    r = { "<cmd>Telescope oldfiles<cr>", "Recent files" },
+    h = { "<cmd>noh<cr>", "Remove highlights" }
 }
 
 which_key.setup()
@@ -138,7 +139,6 @@ require("gitsigns").setup()
 -- Blankline
 require("indent_blankline").setup({
     show_current_context = true,
-    show_current_context_start = true,
 })
 
 -- Treesitter
@@ -160,6 +160,8 @@ local lsp = require('lsp-zero').preset({})
 
 lsp.on_attach(function(client, bufnr)
     lsp.default_keymaps({ buffer = bufnr })
+
+    vim.keymap.set('n', 'gr', '<cmd>Telescope lsp_references<cr>', { buffer = true })
 end)
 
 lsp.setup()
