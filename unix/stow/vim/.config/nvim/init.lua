@@ -68,60 +68,10 @@ require("lazy").setup({
 
 require "user.options"
 require "user.keymaps"
-
--- colorscheme
-vim.cmd [[
-    au ColorScheme * hi Normal ctermbg=none guibg=none
-    au ColorScheme * hi SignColumn ctermbg=none guibg=none
-    au ColorScheme * hi NormalNC ctermbg=none guibg=none
-    au ColorScheme * hi MsgArea ctermbg=none guibg=none
-    au ColorScheme * hi TelescopeBorder ctermbg=none guibg=none
-    au ColorScheme * hi NvimTreeNormal ctermbg=none guibg=none
-    au ColorScheme * hi NvimTreeEndOfBuffer ctermbg=none guibg=none
-]]
-
-vim.cmd "colorscheme sonokai"
-
--- which-key
-local which_key = require("which-key")
-local mappings = {
-    w = { "<cmd>wa<cr>", "Save all" },
-    q = { "<cmd>q<cr>", "Quit buffer" },
-    e = { "<cmd>NvimTreeToggle<cr>", "File explorer" },
-    c = { "<cmd>bd<cr>", "Close buffer" },
-    g = { "<cmd>LazyGit<cr>", "LazyGit" },
-    f = {
-        name = "Find",
-        f = { "<cmd>Telescope find_files<cr>", "Find files" },
-        g = { "<cmd>Telescope live_grep<cr>", "Find in files" },
-        b = { "<cmd>Telescope buffers<cr>", "Find buffers" }
-    },
-    r = { "<cmd>Telescope oldfiles<cr>", "Recent files" },
-    h = { "<cmd>noh<cr>", "Remove highlights" }
-}
-
-which_key.setup()
-which_key.register(mappings, { prefix = "<leader>" })
-
--- Nvimtree
-vim.g.loaded_netrw = 1
-vim.g.netrwPlugin = 1
-vim.opt.termguicolors = true
-
-local nvim_tree = require "nvim-tree"
-
-local function nv_on_attach(bufnr)
-    local function opts(desc)
-        return { desc = 'nvim-tree: ' .. desc, buffer = bufnr, noremap = true, silent = true, nowait = true }
-    end
-
-    local api = require "nvim-tree.api"
-    api.config.mappings.default_on_attach(bufnr)
-    vim.keymap.set('n', 'l', api.node.open.edit, opts("Open: Edit"))
-    vim.keymap.set('n', 'h', api.node.navigate.parent_close, opts("Close Directory"))
-end
-
-nvim_tree.setup({ on_attach = nv_on_attach })
+require "user.nvimtree"
+require "user.whichkey"
+require "user.colorscheme"
+require "user.lsp"
 
 -- Bufferline
 require("bufferline").setup({
@@ -137,9 +87,7 @@ require("Comment").setup()
 require("gitsigns").setup()
 
 -- Blankline
-require("indent_blankline").setup({
-    show_current_context = true,
-})
+require("indent_blankline").setup({ show_current_context = true })
 
 -- Treesitter
 require("nvim-treesitter.configs").setup({
@@ -152,16 +100,3 @@ require("nvim-treesitter.configs").setup({
 -- Illuminate
 require("illuminate").configure()
 
--- Lsp stuff
-require("mason").setup()
-require("mason-lspconfig").setup()
-
-local lsp = require('lsp-zero').preset({})
-
-lsp.on_attach(function(client, bufnr)
-    lsp.default_keymaps({ buffer = bufnr })
-
-    vim.keymap.set('n', 'gr', '<cmd>Telescope lsp_references<cr>', { buffer = true })
-end)
-
-lsp.setup()
