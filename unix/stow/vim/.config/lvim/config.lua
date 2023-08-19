@@ -1,14 +1,17 @@
 ---- Custom plugins ----
 lvim.plugins = {
     { "sainnhe/sonokai" },
-    { "weirongxu/plantuml-previewer.vim" },
     { "tyru/open-browser.vim" },
     { "aklt/plantuml-syntax" },
     { "ThePrimeagen/harpoon" },
     { "simrat39/rust-tools.nvim" },
-    { "nvim-neotest/neotest" },
-    { "nvim-neotest/neotest-python" },
     { "tpope/vim-surround" },
+    { "mfussenegger/nvim-dap-python" },
+
+    {
+        "weirongxu/plantuml-previewer.vim",
+        dependencies = "tyru/open-browser.vim"
+    },
     {
         "iamcco/markdown-preview.nvim",
         build = "cd app && npm install",
@@ -30,26 +33,7 @@ lvim.plugins = {
     },
     {
         "akinsho/flutter-tools.nvim",
-        dependencies = "nvim-lua/plenary.nvim",
-        config = function()
-            require("flutter-tools").setup {
-                lsp = {
-                    on_attach = require("lvim.lsp").common_on_attach
-                },
-                dev_log = {
-                    enabled = false,
-                    notify_errors = true
-                },
-                debugger = {
-                    enabled = true,
-                    run_via_dap = true,
-                    register_configurations = function(_)
-                        require("dap").configurations.dart = {}
-                        require("dap.ext.vscode").load_launchjs()
-                    end,
-                },
-            }
-        end,
+        dependencies = "nvim-lua/plenary.nvim"
     },
 }
 
@@ -103,19 +87,5 @@ lvim.keys.normal_mode["Ø"] = ":lua require(\"harpoon.mark\").add_file()<CR>"
 require("telescope").load_extension('harpoon')
 
 
----- Eslint ----
-local linters = require "lvim.lsp.null-ls.linters"
-linters.setup({
-    { command = 'eslint', filetypes = { "typescript", "javascript" } }
-})
-
-local formatters = require "lvim.lsp.null-ls.formatters"
-formatters.setup {
-    {
-        command = "prettier",
-        filetypes = { "typescript", "typescriptreact", "javascript" },
-    },
-}
-
----- LSP ----
-vim.list_extend(lvim.lsp.automatic_configuration.skipped_servers, { "ruff_lsp", "pylyzer", "dartls" })
+-- Imports
+require("user.lsp")
