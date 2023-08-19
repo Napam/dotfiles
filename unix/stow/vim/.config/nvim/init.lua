@@ -19,6 +19,7 @@ require("lazy").setup({
     "lukas-reineke/indent-blankline.nvim",
     "nvim-treesitter/nvim-treesitter",
     "mbbill/undotree",
+    "tpope/vim-surround",
     "RRethy/vim-illuminate",
     {
         "kdheepak/lazygit.nvim",
@@ -64,8 +65,10 @@ require("lazy").setup({
             { 'hrsh7th/cmp-nvim-lsp' }, -- Required
             { 'L3MON4D3/LuaSnip' },     -- Required
 
-            -- Snippets
-            { 'L3MON4D3/LuaSnip' },
+            { 'hrsh7th/cmp-nvim-lua' }, -- nvim lua stuff
+
+            { 'hrsh7th/cmp-buffer' },   -- needed this stuff to get luasnip to work, not sure if all is needed
+            { 'saadparwaiz1/cmp_luasnip' },
             { 'rafamadriz/friendly-snippets' },
         }
     }

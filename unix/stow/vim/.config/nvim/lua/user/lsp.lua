@@ -24,7 +24,14 @@ lsp.setup()
 
 local cmp = require("cmp")
 
+require("luasnip.loaders.from_vscode").load()
+
 cmp.setup({
+    sources = {
+        { name = "nvim_lsp" },
+        { name = "nvim_lua" },
+        { name = "luasnip" },
+    },
     mapping = {
         ['<CR>'] = cmp.mapping.confirm({ select = false }),
         ['<TAB>'] = cmp.mapping.select_next_item(),

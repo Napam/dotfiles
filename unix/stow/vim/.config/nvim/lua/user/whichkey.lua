@@ -10,6 +10,10 @@ local mappings = {
     },
     g = { "<cmd>LazyGit<cr>", "Git client" },
     h = { "<cmd>noh<cr>", "Remove highlights" },
+    l = {
+        name = "LSP",
+        f = { "<cmd>LspZeroFormat<cr>", "Format" }
+    },
     q = { "<cmd>q<cr>", "Quit buffer" },
     r = { "<cmd>Telescope oldfiles<cr>", "Recent files" },
     u = { "<cmd>UndotreeToggle<cr>", "Undo history" },
