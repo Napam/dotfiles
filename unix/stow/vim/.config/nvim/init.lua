@@ -18,6 +18,7 @@ require("lazy").setup({
     "lewis6991/gitsigns.nvim",
     "lukas-reineke/indent-blankline.nvim",
     "nvim-treesitter/nvim-treesitter",
+    "mbbill/undotree",
     "RRethy/vim-illuminate",
     {
         "kdheepak/lazygit.nvim",
@@ -27,6 +28,13 @@ require("lazy").setup({
     },
     {
         "nvim-tree/nvim-tree.lua",
+        lazy = false,
+        dependencies = {
+            "nvim-tree/nvim-web-devicons"
+        }
+    },
+    {
+        "nvim-lualine/lualine.nvim",
         lazy = false,
         dependencies = {
             "nvim-tree/nvim-web-devicons"
@@ -47,17 +55,14 @@ require("lazy").setup({
         branch = 'v2.x',
         dependencies = {
             -- LSP Support
-            { 'neovim/nvim-lspconfig' },
-            { 'williamboman/mason.nvim' },
-            { 'williamboman/mason-lspconfig.nvim' },
+            { 'neovim/nvim-lspconfig' },             -- Required
+            { 'williamboman/mason.nvim' },           -- Optional
+            { 'williamboman/mason-lspconfig.nvim' }, -- Optional
 
             -- Autocompletion
-            { 'hrsh7th/nvim-cmp' },
-            { 'hrsh7th/cmp-buffer' },
-            { 'hrsh7th/cmp-path' },
-            { 'saadparwaiz1/cmp_luasnip' },
-            { 'hrsh7th/cmp-nvim-lsp' },
-            { 'hrsh7th/cmp-nvim-lua' },
+            { 'hrsh7th/nvim-cmp' },     -- Required
+            { 'hrsh7th/cmp-nvim-lsp' }, -- Required
+            { 'L3MON4D3/LuaSnip' },     -- Required
 
             -- Snippets
             { 'L3MON4D3/LuaSnip' },
@@ -100,3 +105,5 @@ require("nvim-treesitter.configs").setup({
 -- Illuminate
 require("illuminate").configure()
 
+-- Lualine
+require("lualine").setup()
