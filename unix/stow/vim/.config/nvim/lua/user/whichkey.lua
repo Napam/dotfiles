@@ -14,7 +14,7 @@ local mappings = {
         name = "LSP",
         f = { "<cmd>LspZeroFormat<cr>", "Format" }
     },
-    q = { "<cmd>q<cr>", "Quit buffer" },
+    q = { "<cmd>q!<cr>", "Quit buffer" },
     r = { "<cmd>Telescope oldfiles<cr>", "Recent files" },
     u = { "<cmd>UndotreeToggle<cr>", "Undo history" },
     w = { "<cmd>wa<cr>", "Save all" },
