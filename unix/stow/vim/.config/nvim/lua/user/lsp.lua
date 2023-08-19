@@ -38,3 +38,21 @@ cmp.setup({
         ['<S-TAB>'] = cmp.mapping.select_prev_item(),
     }
 })
+
+local lspconfig = require('lspconfig')
+
+lspconfig.lua_ls.setup({
+    settings = {
+        Lua = {
+            diagnostics = {
+                globals = { "vim" }
+            },
+            workspace = {
+                library = {
+                    [vim.fn.expand("$VIMRUNTIME/lua")] = true,
+                    [vim.fn.stdpath("config") .. "/lua"] = true,
+                },
+            },
+        },
+    },
+})

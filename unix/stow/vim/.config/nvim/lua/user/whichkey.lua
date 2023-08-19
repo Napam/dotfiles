@@ -1,6 +1,7 @@
 local which_key = require("which-key")
 local mappings = {
     c = { "<cmd>bd<cr>", "Close buffer" },
+    C = { "<cmd>edit ~/.config/nvim/init.lua<cr>", "Open config" },
     e = { "<cmd>NvimTreeToggle<cr>", "File explorer" },
     f = {
         name = "Find",
@@ -8,7 +9,11 @@ local mappings = {
         g = { "<cmd>Telescope live_grep<cr>", "Find in files" },
         b = { "<cmd>Telescope buffers<cr>", "Find buffers" }
     },
-    g = { "<cmd>LazyGit<cr>", "Git client" },
+    g = {
+        name = "Git",
+        g = { "<cmd>LazyGit<cr>", "Git client" },
+        r = { "<cmd>Gitsigns reset_hunk<cr>", "Reset hunk" },
+    },
     h = { "<cmd>noh<cr>", "Remove highlights" },
     l = {
         name = "LSP",
