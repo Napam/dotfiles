@@ -1,1 +1,2 @@
-vim.cmd("set wrap linebreak")
+vim.opt.wrap = true
+vim.opt.linebreak = true
