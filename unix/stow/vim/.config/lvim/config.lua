@@ -79,10 +79,12 @@ lvim.keys.normal_mode["<S-h>"] = ":BufferLineCyclePrev<CR>"
 lvim.keys.normal_mode["<leader>F"] = ":Telescope live_grep<CR>"
 lvim.lsp.buffer_mappings.normal_mode["gr"] = { "<cmd>Telescope lsp_references<cr>", "Go to Definiton" }
 lvim.builtin.terminal.open_mapping = "<c-t>"
+lvim.builtin.which_key.mappings["lR"] = { "<cmd>LspRestart<cr>", "Lsp Restart" }
+lvim.builtin.which_key.mappings["Q"] = { "<cmd>qa!<cr>", "Quit all" }
 
 
 -- Harpoon
-lvim.keys.normal_mode["ø"] = ":Telescope harpoon marks<CR>"
+lvim.keys.normal_mode["ø"] = "<cmd>lua require('harpoon.ui').toggle_quick_menu()<CR>"
 lvim.keys.normal_mode["Ø"] = ":lua require(\"harpoon.mark\").add_file()<CR>"
 require("telescope").load_extension('harpoon')
 
