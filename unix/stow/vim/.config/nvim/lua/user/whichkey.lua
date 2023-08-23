@@ -22,7 +22,8 @@ local mappings = {
     q = { "<cmd>q!<cr>", "Quit buffer" },
     r = { "<cmd>Telescope oldfiles<cr>", "Recent files" },
     u = { "<cmd>UndotreeToggle<cr>", "Undo history" },
-    w = { "<cmd>wa<cr>", "Save all" },
+    w = { "<cmd>w<cr>", "Save" },
+    W = { "<cmd>wa<cr>", "Save all" },
 }
 
 which_key.setup()
