@@ -57,6 +57,7 @@ alias gdh1='git diff HEAD~1'
 alias gdh3='git diff HEAD~3'
 alias gdcs='git diff --compact-summary'
 alias gl='git log'
+alias gri='git rebase -i'
 alias gacm='git add . && git commit -m'
 alias gp='git pull'
 alias fgd="glol --color=always | fzf --ansi --reverse --multi 2 | sort -k 2,3 | awk '{print \$1}' | xargs sh -c 'git diff \$0\$([ ! \$1 ] && echo ~1 || echo \"\") \${1:-\$0}'"
