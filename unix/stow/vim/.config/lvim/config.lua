@@ -8,10 +8,13 @@ lvim.plugins = {
 	{ "tpope/vim-surround" },
 	{ "mfussenegger/nvim-dap-python" },
 
-	-- {
-	-- 	"kristijanhusak/vim-dadbod-ui",
-	-- 	dependencies = { "tpope/vim-dadbod", "kristijanhusak/vim-dadbod-completion" },
-	-- },
+	{
+		"kristijanhusak/vim-dadbod-ui",
+		dependencies = {
+			"tpope/vim-dadbod",
+			-- "kristijanhusak/vim-dadbod-completion" shits fucked,
+		},
+	},
 
 	{
 		"weirongxu/plantuml-previewer.vim",
@@ -86,10 +89,10 @@ lvim.builtin.which_key.mappings["Q"] = { "<cmd>qa!<cr>", "Quit all" }
 -- 	{ pattern = { "dbui" }, command = ":nmap <buffer> l <Plug>(DBUI_SelectLineVsplit)" }
 -- )
 
-vim.api.nvim_create_autocmd("FileType", {
-	pattern = { "sql", "mysql", "plsql" },
-	command = "lua require('cmp').setup.buffer({ sources = {{ name = 'vim-dadbod-completion' }} })",
-})
+-- vim.api.nvim_create_autocmd("FileType", {
+-- 	pattern = { "sql", "mysql", "plsql" },
+-- 	command = "lua require('cmp').setup.buffer({ sources = {{ name = 'vim-dadbod-completion' }} })",
+-- })
 
 -- Harpoon
 lvim.keys.normal_mode["ø"] = "<cmd>lua require('harpoon.ui').toggle_quick_menu()<CR>"
