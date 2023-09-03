@@ -12,7 +12,7 @@ lvim.plugins = {
 		"kristijanhusak/vim-dadbod-ui",
 		dependencies = {
 			"tpope/vim-dadbod",
-			-- "kristijanhusak/vim-dadbod-completion" shits fucked,
+			-- "kristijanhusak/vim-dadbod-completion",
 		},
 	},
 
@@ -84,14 +84,14 @@ lvim.builtin.which_key.mappings["lR"] = { "<cmd>LspRestart<cr>", "Lsp Restart" }
 lvim.builtin.which_key.mappings["Q"] = { "<cmd>qa!<cr>", "Quit all" }
 
 -- Dadbod
--- vim.api.nvim_create_autocmd(
--- 	"FileType",
--- 	{ pattern = { "dbui" }, command = ":nmap <buffer> l <Plug>(DBUI_SelectLineVsplit)" }
--- )
+vim.api.nvim_create_autocmd(
+	"FileType",
+	{ pattern = { "dbui" }, command = ":nmap <buffer> l <Plug>(DBUI_SelectLineVsplit)" }
+)
 
 -- vim.api.nvim_create_autocmd("FileType", {
 -- 	pattern = { "sql", "mysql", "plsql" },
--- 	command = "lua require('cmp').setup.buffer({ sources = {{ name = 'vim-dadbod-completion' }} })",
+-- 	command = ":lua require('cmp').setup.buffer({ sources = {{ name = 'vim-dadbod-completion' }} })",
 -- })
 
 -- Harpoon
