@@ -8,10 +8,10 @@ lvim.plugins = {
 	{ "tpope/vim-surround" },
 	{ "mfussenegger/nvim-dap-python" },
 
-	{
-		"kristijanhusak/vim-dadbod-ui",
-		dependencies = { "tpope/vim-dadbod", "kristijanhusak/vim-dadbod-completion" },
-	},
+	-- {
+	-- 	"kristijanhusak/vim-dadbod-ui",
+	-- 	dependencies = { "tpope/vim-dadbod", "kristijanhusak/vim-dadbod-completion" },
+	-- },
 
 	{
 		"weirongxu/plantuml-previewer.vim",
@@ -81,10 +81,10 @@ lvim.builtin.which_key.mappings["lR"] = { "<cmd>LspRestart<cr>", "Lsp Restart" }
 lvim.builtin.which_key.mappings["Q"] = { "<cmd>qa!<cr>", "Quit all" }
 
 -- Dadbod
-vim.api.nvim_create_autocmd(
-	"FileType",
-	{ pattern = { "dbui" }, command = ":nmap <buffer> l <Plug>(DBUI_SelectLineVsplit)" }
-)
+-- vim.api.nvim_create_autocmd(
+-- 	"FileType",
+-- 	{ pattern = { "dbui" }, command = ":nmap <buffer> l <Plug>(DBUI_SelectLineVsplit)" }
+-- )
 
 vim.api.nvim_create_autocmd("FileType", {
 	pattern = { "sql", "mysql", "plsql" },
