@@ -35,6 +35,7 @@ alias editutils='vim $HOME/.config/dotfiles/unix/shellutils.sh && source $HOME/.
 alias editenv='vim $HOME/.config/dotfiles/unix/shellenv.sh && source $HOME/.config/dotfiles/unix/shellenv.sh'
 alias editvimrc='vim $HOME/.vimrc'
 alias dots='cd $HOME/.config/dotfiles'
+alias conf='cd $HOME/.config'
 
 # Kubernetes aliases
 alias k='kubectl'
