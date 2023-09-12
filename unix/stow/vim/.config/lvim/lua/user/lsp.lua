@@ -1,4 +1,5 @@
 local cmp = require("cmp")
+local lsp = require("lvim.lsp")
 
 vim.list_extend(lvim.lsp.automatic_configuration.skipped_servers, {
   "ruff_lsp",
@@ -17,6 +18,14 @@ formatters.setup({
   { command = "shfmt", filetypes = { "sh", "zsh" } },
   { command = "prettier", filetypes = { "css", "javascript", "javascriptreact", "typescript", "typescriptreact" } },
   { command = "sqlfmt", filetypes = { "sql" } },
+})
+
+require("lvim.lsp.manager").setup("denols", {
+  root_dir = require("lspconfig.util").root_pattern("deno.json", "deno.jsonc")
+})
+
+require("lvim.lsp.manager").setup( "tsserver", {
+  root_dir = require('lspconfig.util').root_pattern("package.json"), single_file_support = false
 })
 
 -- Rust

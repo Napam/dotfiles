@@ -166,3 +166,11 @@ fi
 if [[ -f "$HOME/.config/dotfiles-work/unix/init.sh" ]]; then
   source $HOME/.config/dotfiles-work/unix/init.sh
 fi
+
+# pnpm
+export PNPM_HOME="/Users/naphat/Library/pnpm"
+case ":$PATH:" in
+  *":$PNPM_HOME:"*) ;;
+  *) export PATH="$PNPM_HOME:$PATH" ;;
+esac
+# pnpm end

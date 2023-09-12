@@ -61,6 +61,15 @@ if [[ -s $HOME/.cargo/env ]]; then
   source "$HOME/.cargo/env"
 fi
 
+# pnpm
+if [[ $IS_MAC ]]; then
+  export PNPM_HOME="/Users/naphat/Library/pnpm"
+  case ":$PATH:" in
+    *":$PNPM_HOME:"*) ;;
+    *) export PATH="$PNPM_HOME:$PATH" ;;
+  esac
+fi
+
 # Flutter
 if [[ -s /opt/flutter ]]; then
   export PATH="$PATH:/opt/flutter/bin"
