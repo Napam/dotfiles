@@ -68,7 +68,7 @@ alias gspp='git stash && git pull && git stash pop'
 alias cdgr='cd $(git rev-parse --show-toplevel)'
 alias fga='git ls-files -m -o --exclude-standard | fzf --print0 -m | xargs -0 -t -o git add'
 alias lgit='lazygit'
-alias git-delete-squashed='TARGET_BRANCH=main && git checkout -q $TARGET_BRANCH && git for-each-ref refs/heads/ "--format=%(refname:short)" | while read branch; do mergeBase=$(git merge-base $TARGET_BRANCH $branch) && [[ $(git cherry $TARGET_BRANCH $(git commit-tree $(git rev-parse $branch\^{tree}) -p $mergeBase -m _)) == "-"* ]] && git branch -D $branch; done'
+alias git-delete-squashed='TARGET_BRANCH=${TARGET_BRANCH:-main} && git checkout -q $TARGET_BRANCH && git for-each-ref refs/heads/ "--format=%(refname:short)" | while read branch; do mergeBase=$(git merge-base $TARGET_BRANCH $branch) && [[ $(git cherry $TARGET_BRANCH $(git commit-tree $(git rev-parse $branch\^{tree}) -p $mergeBase -m _)) == "-"* ]] && git branch -D $branch; done'
 
 # Custom functions
 _targetfzf () {
