@@ -79,6 +79,10 @@ fi
 export VENVY_SRC_DIR="$HOME/.local/src/venvy"
 [[ -s $VENVY_SRC_DIR ]] && source "$VENVY_SRC_DIR/venvy.sh"
 
+if command -v pass &> /dev/null; then
+  source "$HOME/.config/dotfiles/unix/pass-completion.zsh"
+fi
+
 # kubectl editor
 export KUBE_EDITOR=lvim
 
