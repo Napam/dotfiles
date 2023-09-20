@@ -71,184 +71,184 @@ alias lgit='lazygit'
 alias git-delete-squashed='TARGET_BRANCH=${TARGET_BRANCH:-main} && git checkout -q $TARGET_BRANCH && git for-each-ref refs/heads/ "--format=%(refname:short)" | while read branch; do mergeBase=$(git merge-base $TARGET_BRANCH $branch) && [[ $(git cherry $TARGET_BRANCH $(git commit-tree $(git rev-parse $branch\^{tree}) -p $mergeBase -m _)) == "-"* ]] && git branch -D $branch; done'
 
 # Custom functions
-_targetfzf () {
-    local command=${1}
-    local filetype=${2}
-    local searchdir=${3:-$PWD}
-    shift 3
+_targetfzf() {
+	local command=${1}
+	local filetype=${2}
+	local searchdir=${3:-$PWD}
+	shift 3
 
-    local showAll=0
-    while getopts 'a' option; do
-        case $option in
-            a) showAll=1;;
-            *) echo 'Wrong usage'; return 1;;
-        esac
-    done
-    shift $(($OPTIND-1))
+	local showAll=0
+	while getopts 'a' option; do
+		case $option in
+		a) showAll=1 ;;
+		*)
+			echo 'Wrong usage'
+			return 1
+			;;
+		esac
+	done
+	shift $(($OPTIND - 1))
 
-    local query=${1:-''}
+	local query=${1:-''}
 
-    if [[ $showAll == 1 ]]; then
-        local target=$(find $searchdir -type $filetype | fzf -i -1 -q "$query")
-    else
-        local target=$(find $searchdir -path "*/.*" -prune -o -type $filetype -print | fzf -i -1 -q "$query")
-    fi
+	if [[ $showAll == 1 ]]; then
+		local target=$(find $searchdir -type $filetype | fzf -i -1 -q "$query")
+	else
+		local target=$(find $searchdir -path "*/.*" -prune -o -type $filetype -print | fzf -i -1 -q "$query")
+	fi
 
-    if [[ ! $target ]]; then
-        return 0
-    fi
+	if [[ ! $target ]]; then
+		return 0
+	fi
 
-    eval "$command \"$target\""
+	eval "$command \"$target\""
 }
 
-gstrim () {
-    local changedFiles=($(git diff --name-only --diff-filter=AMC | xargs))
-    if [[ ! $changedFiles ]]; then
-        echo "No changes detected, will not trim anything"
-        return
-    fi
+gstrim() {
+	local changedFiles=($(git diff --name-only --diff-filter=AMC | xargs))
+	if [[ ! $changedFiles ]]; then
+		echo "No changes detected, will not trim anything"
+		return
+	fi
 
-    for file in $changedFiles; do
-      $(gnuify sed) -i 's/[[:space:]]*$//' $file
-        echo "Trimmed $file"
-    done
+	for file in $changedFiles; do
+		$(gnuify sed) -i 's/[[:space:]]*$//' $file
+		echo "Trimmed $file"
+	done
 }
 
-grepvim () {
-    if [[ $# -lt 1 ]]; then
-        echo "No pattern specified"
-        echo "Usage: grepvim PATTERN"
-        return 1
-    fi
+grepvim() {
+	if [[ $# -lt 1 ]]; then
+		echo "No pattern specified"
+		echo "Usage: grepvim PATTERN"
+		return 1
+	fi
 
+	local target=$(grep -rn --binary-files=without-match --color=always -E $1 | fzf --ansi)
+	if [[ ! $target ]]; then
+		return 0
+	fi
 
-    local target=$(grep -rn --binary-files=without-match --color=always -E $1 | fzf --ansi)
-    if [[ ! $target ]]; then
-        return 0
-    fi
-
-    echo $target | tr : ' ' | xargs bash -c 'lvim +$1 $0'
+	echo $target | tr : ' ' | xargs bash -c 'lvim +$1 $0'
 }
 
-readwhich () {
-    readlink -f $(which $1)
+readwhich() {
+	readlink -f $(which $1)
 }
 
-writehook () {
-    if [[ $# -lt 2 ]]; then
-        echo "insufficient number of arguments"
-        echo "usage: writehook fileDirOrRegex task"
-        echo "example: writehook '*.txt' 'echo This will run when you save to any .txt file in .'"
-        return
-    fi
-    local whereToWatch=$1
-    local onWriteCommand=$2
+writehook() {
+	if [[ $# -lt 2 ]]; then
+		echo "insufficient number of arguments"
+		echo "usage: writehook fileDirOrRegex task"
+		echo "example: writehook '*.txt' 'echo This will run when you save to any .txt file in .'"
+		return
+	fi
+	local whereToWatch=$1
+	local onWriteCommand=$2
 
-    local watchCmd
-    local watchIn
-    local useRegex=0
-    if [ -f $whereToWatch ]; then
-        watchCmd="echo $whereToWatch | entr -rpz echo /_"
-        watchIn="$whereToWatch"
-        useRegex=0
-    else
-        watchCmd="find . -type d -name node_modules -prune -false -o -type f -regex \"$whereToWatch\" | entr -rpz echo /_"
-        watchIn="."
-        useRegex=1
-    fi
+	local watchCmd
+	local watchIn
+	local useRegex=0
+	if [ -f $whereToWatch ]; then
+		watchCmd="echo $whereToWatch | entr -rpz echo /_"
+		watchIn="$whereToWatch"
+		useRegex=0
+	else
+		watchCmd="find . -type d -name node_modules -prune -false -o -type f -regex \"$whereToWatch\" | entr -rpz echo /_"
+		watchIn="."
+		useRegex=1
+	fi
 
-    local beforeRunMessage="Will watch for changes in \e[32m$watchIn\e[0m"
-    if [ $useRegex -eq 1 ]; then
-        beforeRunMessage="${beforeRunMessage} for files that matches \e[33m$1\e[0m"
-    fi
-    echo -e $beforeRunMessage
+	local beforeRunMessage="Will watch for changes in \e[32m$watchIn\e[0m"
+	if [ $useRegex -eq 1 ]; then
+		beforeRunMessage="${beforeRunMessage} for files that matches \e[33m$1\e[0m"
+	fi
+	echo -e $beforeRunMessage
 
-    while true; do
-        target=($(eval $watchCmd))
-        if [ ! $? -eq 0 ]; then
-            return $?
-        fi
+	while true; do
+		target=($(eval $watchCmd))
+		if [ ! $? -eq 0 ]; then
+			return $?
+		fi
 
-        echo -e "\e[33mDetected modification in \e[32m$target\e[0m"
-        eval "$(echo $onWriteCommand | sed "s|{?}|$target|")"
-    done
+		echo -e "\e[33mDetected modification in \e[32m$target\e[0m"
+		eval "$(echo $onWriteCommand | sed "s|{?}|$target|")"
+	done
 }
 
-gnuify () {
-  # Adapter function for MacOS
-  # Attemps to use gnu variants if available
-  # Example gnuify sed returns gsed
-  #
-  # You can install gnu variants through homebrew
-  if command -v g$1 > /dev/null; then
-    echo g$1
-  else
-    echo $1
-  fi
+gnuify() {
+	# Adapter function for MacOS
+	# Attemps to use gnu variants if available
+	# Example gnuify sed returns gsed
+	#
+	# You can install gnu variants through homebrew
+	if command -v g$1 >/dev/null; then
+		echo g$1
+	else
+		echo $1
+	fi
 }
 
-registerforreflection () {
-    # Explanation for '0,/PATTERN/! b;//i\TEXT'
-    # 0,/PATTTERN/ specifies a range of which sed can do stuff
-    # The ending "!" says "not", thus 0,/PATTERN/! selectes everything not in the range
-    # The b is an uncoditional branch, which means "don't do anything" when there is nothing else specified
-    # The ; is just a delimiter for a script
-    # Thus 0,/PATTERN/! b; means for everything not in the range 0,/PATTERN/, don't do anything
-    # The //i\TEXT adds the line "TEXT" over whatever was the previous regex (which is the last line in the range)
-    for file in $(find . -type f -name "*.java"); do
-        name=$(basename $file .java)
-        $(gnuify sed) -i -E -e '0,/(class|enum) '$name'/! b;//i\@RegisterForReflection' -e '0,/package/! b;//a\\nimport io.quarkus.runtime.annotations.RegisterForReflection;' $file
-    done
+registerforreflection() {
+	# Explanation for '0,/PATTERN/! b;//i\TEXT'
+	# 0,/PATTTERN/ specifies a range of which sed can do stuff
+	# The ending "!" says "not", thus 0,/PATTERN/! selectes everything not in the range
+	# The b is an uncoditional branch, which means "don't do anything" when there is nothing else specified
+	# The ; is just a delimiter for a script
+	# Thus 0,/PATTERN/! b; means for everything not in the range 0,/PATTERN/, don't do anything
+	# The //i\TEXT adds the line "TEXT" over whatever was the previous regex (which is the last line in the range)
+	for file in $(find . -type f -name "*.java"); do
+		name=$(basename $file .java)
+		$(gnuify sed) -i -E -e '0,/(class|enum) '$name'/! b;//i\@RegisterForReflection' -e '0,/package/! b;//a\\nimport io.quarkus.runtime.annotations.RegisterForReflection;' $file
+	done
 }
 
-registerforreflection2 () {
-    # Explanation for '0,/PATTERN/! b;//i\TEXT'
-    # 0,/PATTTERN/ specifies a range of which sed can do stuff
-    # The ending "!" says "not", thus 0,/PATTERN/! for everything not in the range
-    # The b is an uncoditional branch, which when it is alone it will act as a "don't do anything"
-    # The ; is just a delimiter for a script
-    # Thus 0,/PATTERN/! b; means for everything not in the range 0,/PATTERN/, don't do anything
-    # The //i\TEXT a line "TEXT" over whatever was the previous regex (which is the last line in the range)
+registerforreflection2() {
+	# Explanation for '0,/PATTERN/! b;//i\TEXT'
+	# 0,/PATTTERN/ specifies a range of which sed can do stuff
+	# The ending "!" says "not", thus 0,/PATTERN/! for everything not in the range
+	# The b is an uncoditional branch, which when it is alone it will act as a "don't do anything"
+	# The ; is just a delimiter for a script
+	# Thus 0,/PATTERN/! b; means for everything not in the range 0,/PATTERN/, don't do anything
+	# The //i\TEXT a line "TEXT" over whatever was the previous regex (which is the last line in the range)
 
-    find . -type f -name "*.java" -exec sed -i -e '0,/class $(basename {} .java)/! b;//i\@RegisterForReflection' -e '0,/package/! b;//a\\nimport io.quarkus.runtime.annotations.RegisterForReflection;' {} \;
+	find . -type f -name "*.java" -exec sed -i -e '0,/class $(basename {} .java)/! b;//i\@RegisterForReflection' -e '0,/package/! b;//a\\nimport io.quarkus.runtime.annotations.RegisterForReflection;' {} \;
 }
-
 
 ccat() {
-    pygmentize -g -O style=monokai $1 | cat -n
+	pygmentize -g -O style=monokai $1 | cat -n
 }
 
 jcat() {
-    python3 -m json.tool $1 | pygmentize -O style=monokai -l json
+	python3 -m json.tool $1 | pygmentize -O style=monokai -l json
 }
 
 xcat() {
-    xmllint --format - $1 | pygmentize -O style=monokai -l xml
+	xmllint --format - $1 | pygmentize -O style=monokai -l xml
 }
 
 daystony() {
-    local datecmd=$(gnuify date)
-    nydate=$(expr $($datecmd +%Y) + 1)/01/01;
-    ndays=$(expr '(' $($datecmd -d $nydate +%s) - $($datecmd +%s) + 86399 ')' / 86400);
-    echo "Days to new year: $ndays";
+	local datecmd=$(gnuify date)
+	nydate=$(expr $($datecmd +%Y) + 1)/01/01
+	ndays=$(expr '(' $($datecmd -d $nydate +%s) - $($datecmd +%s) + 86399 ')' / 86400)
+	echo "Days to new year: $ndays"
 }
 
 splitlines() {
-    local cumstring=""
-    local lines=0
+	local cumstring=""
+	local lines=0
 
-    while IFS= read -r line; do
-        ((lines++))
-        if [[ -n "$cumstring" ]]; then
-            cumstring+=$'\n'
-        fi
-        cumstring+="$line"
-    done
+	while IFS= read -r line; do
+		((lines++))
+		if [[ -n "$cumstring" ]]; then
+			cumstring+=$'\n'
+		fi
+		cumstring+="$line"
+	done
 
-    local middle=$((lines/2))
+	local middle=$((lines / 2))
 
-    echo "$(head -n $middle <<< $cumstring)"
-    echo
-    echo "$(tail -n $middle <<< $cumstring)"
+	echo "$(head -n $middle <<<$cumstring)"
+	echo
+	echo "$(tail -n $middle <<<$cumstring)"
 }
-
