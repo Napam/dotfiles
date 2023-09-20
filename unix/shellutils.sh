@@ -233,3 +233,22 @@ daystony() {
     echo "Days to new year: $ndays";
 }
 
+splitlines() {
+    local cumstring=""
+    local lines=0
+
+    while IFS= read -r line; do
+        ((lines++))
+        if [[ -n "$cumstring" ]]; then
+            cumstring+=$'\n'
+        fi
+        cumstring+="$line"
+    done
+
+    local middle=$((lines/2))
+
+    echo "$(head -n $middle <<< $cumstring)"
+    echo
+    echo "$(tail -n $middle <<< $cumstring)"
+}
+
