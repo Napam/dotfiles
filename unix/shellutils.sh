@@ -246,9 +246,9 @@ splitlines() {
 		cumstring+="$line"
 	done
 
-	local middle=$((lines / 2))
+  local middle=$(( (lines + 1) / 2 ))
 
 	echo "$(head -n $middle <<<$cumstring)"
 	echo
-	echo "$(tail -n $middle <<<$cumstring)"
+  echo "$(tail -n +$((middle +1)) <<<$cumstring)"
 }
