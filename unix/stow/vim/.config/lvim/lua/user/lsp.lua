@@ -1,5 +1,6 @@
 local cmp = require("cmp")
 local lsp = require("lvim.lsp")
+local manager = require("lvim.lsp.manager")
 
 vim.list_extend(lvim.lsp.automatic_configuration.skipped_servers, {
   "ruff_lsp",
@@ -9,24 +10,27 @@ vim.list_extend(lvim.lsp.automatic_configuration.skipped_servers, {
 })
 
 ---- Eslint ----
-require("lvim.lsp.manager").setup("eslint")
+manager.setup("eslint")
 
 ---- Formatters ----
 local formatters = require("lvim.lsp.null-ls.formatters")
 formatters.setup({
   { command = "stylua", filetypes = { "lua" } },
   { command = "shfmt", filetypes = { "sh", "zsh" } },
-  { command = "prettier", filetypes = { "css", "javascript", "javascriptreact", "typescript", "typescriptreact" } },
+  { command = "prettier", filetypes = { "css", "javascript", "javascriptreact", "typescript", "typescriptreact", "graphql" } },
   { command = "sqlfmt", filetypes = { "sql" } },
 })
 
-require("lvim.lsp.manager").setup("denols", {
+manager.setup("denols", {
   root_dir = require("lspconfig.util").root_pattern("deno.json", "deno.jsonc")
 })
 
-require("lvim.lsp.manager").setup( "tsserver", {
+manager.setup( "tsserver", {
   root_dir = require('lspconfig.util').root_pattern("package.json"), single_file_support = false
 })
+
+-- GraphQL
+manager.setup("graphql")
 
 -- Rust
 local mason_path = vim.fn.glob(vim.fn.stdpath("data") .. "/mason/")
