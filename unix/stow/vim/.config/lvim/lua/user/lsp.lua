@@ -16,21 +16,31 @@ manager.setup("eslint")
 local formatters = require("lvim.lsp.null-ls.formatters")
 formatters.setup({
   { command = "stylua", filetypes = { "lua" } },
-  { command = "shfmt", filetypes = { "sh", "zsh" } },
-  { command = "prettier", filetypes = { "css", "javascript", "javascriptreact", "typescript", "typescriptreact", "graphql" } },
+  { command = "shfmt",  filetypes = { "sh", "zsh" } },
+  {
+    command = "prettier",
+    filetypes = {
+      "css",
+      "javascript",
+      "javascriptreact",
+      "typescript",
+      "typescriptreact",
+      "graphql" }
+  },
   { command = "sqlfmt", filetypes = { "sql" } },
 })
 
+-- Need these two so deno and node plays together nicely
 manager.setup("denols", {
   root_dir = require("lspconfig.util").root_pattern("deno.json", "deno.jsonc")
 })
 
-manager.setup( "tsserver", {
+manager.setup("tsserver", {
   root_dir = require('lspconfig.util').root_pattern("package.json"), single_file_support = false
 })
 
--- GraphQL
-manager.setup("graphql")
+-- GraphQL: apparently not needed, just ensure that graphql or equivalent exist in project root
+-- manager.setup("graphql")
 
 -- Rust
 local mason_path = vim.fn.glob(vim.fn.stdpath("data") .. "/mason/")
@@ -125,5 +135,3 @@ vim.api.nvim_create_autocmd("FileType", {
     })
   end,
 })
-
-

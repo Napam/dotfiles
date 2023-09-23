@@ -83,10 +83,7 @@ lvim.builtin.terminal.open_mapping = "<c-t>"
 lvim.builtin.which_key.mappings["lR"] = { "<cmd>LspRestart<cr>", "Lsp Restart" }
 lvim.builtin.which_key.mappings["Q"] = { "<cmd>qa!<cr>", "Quit all" }
 
--- Don't copy to clipboard when deleting and such
-lvim.keys.normal_mode["d"] = '"_d'
-lvim.keys.normal_mode["c"] = '"_d'
-lvim.keys.normal_mode["x"] = '"_d'
+-- Don't copy to clipboard when pasting
 lvim.keys.visual_mode["p"] = '"_dP'
 
 vim.api.nvim_create_autocmd(
