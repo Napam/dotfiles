@@ -25,7 +25,9 @@ keymap("n", "<C-j>", "<C-w>j", opts)
 keymap("n", "<C-k>", "<C-w>k", opts)
 keymap("n", "<C-l>", "<C-w>l", opts)
 
--- keymap("n", "<leader>e", ":Lex 30<cr>", opts)
+-- Move current line up and down
+keymap("n", "<A-j>", ":m .+1<CR>==", opts)
+keymap("n", "<A-k>", ":m .-2<CR>==", opts)
 
 -- Resize with arrows
 keymap("n", "<C-Up>", ":resize +2<CR>", opts)
@@ -38,7 +40,7 @@ keymap("n", "<S-l>", ":bnext<CR>", opts)
 keymap("n", "<S-h>", ":bprevious<CR>", opts)
 
 -- Insert --
--- Press jk fast to enter
+-- Press jk fast to change to normal mode
 keymap("i", "jk", "<ESC>", opts)
 
 -- Visual --

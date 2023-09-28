@@ -22,6 +22,7 @@
   "nvim-treesitter": { "branch": "master", "commit": "cc2f94ed1dfa008c23e16bbd17f56b967ceb6740" },
   "nvim-web-devicons": { "branch": "master", "commit": "45d0237c427baba8cd05e0ab26d30e2ee58c2c82" },
   "plenary.nvim": { "branch": "master", "commit": "9ce85b0f7dcfe5358c0be937ad23e456907d410b" },
+  "project.nvim": { "branch": "main", "commit": "8c6bad7d22eef1b71144b401c9f74ed01526a4fb" },
   "sonokai": { "branch": "master", "commit": "17308ee6d9c764bfc1e0fa97213e7a99701b4144" },
   "telescope-fzf-native.nvim": { "branch": "main", "commit": "6c921ca12321edaa773e324ef64ea301a1d0da62" },
   "telescope.nvim": { "branch": "master", "commit": "84d53dfdbefbdf84e861a288abc71ef8ccafd04e" },

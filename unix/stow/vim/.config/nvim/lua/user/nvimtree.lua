@@ -15,4 +15,12 @@ local function nv_on_attach(bufnr)
   vim.keymap.set('n', 'h', api.node.navigate.parent_close, opts("Close Directory"))
 end
 
-nvim_tree.setup({ on_attach = nv_on_attach })
+nvim_tree.setup({
+  on_attach = nv_on_attach,
+  sync_root_with_cwd = true,
+  respect_buf_cwd = true,
+  update_focused_file = {
+    enable = true,
+    update_root = true
+  },
+})
