@@ -101,7 +101,7 @@ require("Comment").setup()
 require("gitsigns").setup()
 
 -- Blankline
-require("indent_blankline").setup({})
+require("ibl").setup({})
 
 -- Treesitter
 require("nvim-treesitter.configs").setup({
@@ -116,14 +116,3 @@ require("illuminate").configure()
 
 -- Lualine
 require("lualine").setup()
-
--- Formatter
--- local null_ls = require("null-ls")
-
--- null_ls.setup({
--- 	sources = {
--- 		null_ls.builtins.formatting.stylua,
--- 		null_ls.builtins.formatting.black,
--- 		null_ls.builtins.formatting.prettier,
--- 	},
--- })
