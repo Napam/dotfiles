@@ -25,6 +25,7 @@ formatters.setup({
       "javascriptreact",
       "typescript",
       "typescriptreact",
+      "svelte",
       "graphql" }
   },
   { command = "sqlfmt", filetypes = { "sql" } },
