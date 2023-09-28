@@ -132,7 +132,7 @@ grepvim() {
 		return 0
 	fi
 
-	echo $target | tr : ' ' | xargs bash -c 'lvim +$1 $0'
+	echo $target | tr : ' ' | xargs bash -c 'nvim +$1 $0'
 }
 
 readwhich() {

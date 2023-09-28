@@ -34,9 +34,9 @@ if [[ -e $GOPATH ]]; then
 fi
 
 # Use LunarVim instead
-alias vim=lvim
-export EDITOR=lvim
-export GIT_EDITOR=lvim
+alias vim=nvim
+export EDITOR=nvim
+export GIT_EDITOR=nvim
 
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"                   # This loads nvm
@@ -84,7 +84,7 @@ if command -v pass &>/dev/null; then
 fi
 
 # kubectl editor
-export KUBE_EDITOR=lvim
+export KUBE_EDITOR=nvim
 
 export GREP_COLORS='ms=01;31:mc=01;31:sl=:cx=:fn=36:ln=32:bn=32:se=33'
 
