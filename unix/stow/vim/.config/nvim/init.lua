@@ -134,6 +134,11 @@ require("project_nvim").setup({
 
 -- Illuminate
 require("illuminate").configure({
+  providers = {
+    "lsp",
+    "treesitter",
+    "regex",
+  },
+  delay = 120,
   under_cursor = true
 })
-
