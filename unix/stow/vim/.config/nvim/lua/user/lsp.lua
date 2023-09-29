@@ -12,7 +12,7 @@ require("mason-lspconfig").setup({
   },
 })
 
-local lsp = require("lsp-zero").preset({})
+local lsp = require("lsp-zero").preset("recommended")
 lsp.on_attach(function(_, bufnr)
   local opts = { buffer = bufnr }
   lsp.default_keymaps(opts)
@@ -44,6 +44,7 @@ cmp.setup({
     { name = "luasnip" },
   },
   mapping = {
+    ['<C-Space>'] = cmp.mapping.complete(),
     ["<CR>"] = cmp.mapping.confirm({ select = false }),
     ["<TAB>"] = cmp.mapping.select_next_item(),
     ["<S-TAB>"] = cmp.mapping.select_prev_item(),
