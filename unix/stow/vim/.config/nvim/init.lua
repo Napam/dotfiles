@@ -83,6 +83,25 @@ require("lazy").setup({
       { "rafamadriz/friendly-snippets" },
     },
   },
+
+  -- Copilot
+  {
+    "zbirenbaum/copilot-cmp",
+    event = "InsertEnter",
+    dependencies = { "zbirenbaum/copilot.lua" },
+    config = function()
+      vim.defer_fn(function()
+        require("copilot").setup()
+        require("copilot_cmp").setup()
+      end, 100)
+    end,
+  },
+
+  -- Autopairs
+  {
+    'windwp/nvim-autopairs',
+    event = "InsertEnter",
+  }
 })
 
 require("user.options")
@@ -142,3 +161,6 @@ require("illuminate").configure({
   delay = 120,
   under_cursor = true
 })
+
+-- Autopairs
+require('nvim-autopairs').setup({})
