@@ -11,3 +11,4 @@ vim.opt.expandtab = true
 
 vim.opt.list = true
 vim.opt.clipboard = "unnamedplus"
+vim.opt.wrap = false
