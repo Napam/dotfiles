@@ -21,6 +21,7 @@ require("lazy").setup({
   "nvim-treesitter/nvim-treesitter",
   "sainnhe/sonokai",
   "tpope/vim-surround",
+  "RRethy/vim-illuminate",
   "ahmedkhalf/project.nvim",
   {
     "jose-elias-alvarez/null-ls.nvim",
@@ -90,6 +91,7 @@ require("user.nvimtree")
 require("user.whichkey")
 require("user.colorscheme")
 require("user.lsp")
+require("user.autocommands")
 
 -- Bufferline
 require("bufferline").setup({
@@ -129,3 +131,9 @@ require("project_nvim").setup({
   detection_methods = { "pattern" },
   patterns = { ".git", "_darcs", ".hg", ".bzr", ".svn", "Makefile", "package.json", "pom.xml" },
 })
+
+-- Illuminate
+require("illuminate").configure({
+  under_cursor = true
+})
+
