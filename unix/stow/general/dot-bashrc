@@ -150,7 +150,7 @@ if [[ -d $HOME/.config/dotfiles ]]; then
   source $HOME/.config/dotfiles/unix/shellenv.sh
 fi
 
-alias editrc='vim ~/.bashrc; source ~/.bashrc'
+alias editrc='vim $(realpath $HOME/.bashrc); source $HOME/.bashrc'
 
 __git_ps1() {
     git branch 2>/dev/null | sed -n 's/\* \(.*\)/ (\1)/p';

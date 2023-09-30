@@ -137,7 +137,7 @@ if [[ -d $HOME/.config/dotfiles ]]; then
   source $HOME/.config/dotfiles/unix/shellenv.sh
 fi
 
-alias editrc='vim ~/.zshrc; source ~/.zshrc'
+alias editrc='vim $(realpath $HOME/.zshrc); source $HOME/.zshrc'
 
 PROMPT_BASE='%F{121}[%~]%f$ '
 PROMPT='$(git_custom_status)${PROMPT_BASE}'

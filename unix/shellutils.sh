@@ -34,7 +34,7 @@ alias passc='pass -c'
 # dotfile related aliases
 alias editutils='vim $HOME/.config/dotfiles/unix/shellutils.sh && source $HOME/.config/dotfiles/unix/shellutils.sh'
 alias editenv='vim $HOME/.config/dotfiles/unix/shellenv.sh && source $HOME/.config/dotfiles/unix/shellenv.sh'
-alias editvimrc='vim $HOME/.vimrc'
+alias editvimrc='vim $HOME/.config/nvim/init.lua'
 alias dots='cd $HOME/.config/dotfiles'
 alias conf='cd $HOME/.config'
 
