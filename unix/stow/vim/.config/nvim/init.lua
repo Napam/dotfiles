@@ -120,6 +120,7 @@ require("user.whichkey")
 require("user.colorscheme")
 require("user.lsp")
 require("user.autocommands")
+require("user.commands")
 
 -- Bufferline
 require("bufferline").setup({

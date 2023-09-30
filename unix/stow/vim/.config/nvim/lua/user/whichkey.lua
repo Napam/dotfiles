@@ -1,6 +1,6 @@
 local which_key = require("which-key")
 local mappings = {
-  c = { "<cmd>bd<cr>", "Close buffer" },
+  c = { "<cmd>BufferKill<cr>", "Close buffer" },
   C = { "<cmd>edit ~/.config/nvim/init.lua<cr>", "Open config" },
   e = { "<cmd>NvimTreeToggle<cr>", "File explorer" },
   f = {
