@@ -42,14 +42,20 @@ null_ls.setup({
   },
 })
 
-
 require("luasnip.loaders.from_vscode").load()
 
+
+local cmp_window = require "cmp.config.window"
 cmp.setup({
+  window = {
+    completion = cmp_window.bordered(),
+    documentation = cmp_window.bordered(),
+  },
   sources = {
     { name = "nvim_lsp" },
     { name = "copilot" },
     { name = "luasnip" },
+    { name = "treesitter" },
   },
   mapping = {
     ['<C-Space>'] = cmp.mapping.complete(),
