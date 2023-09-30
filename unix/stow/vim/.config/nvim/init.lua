@@ -16,13 +16,20 @@ require("lazy").setup({
   "akinsho/bufferline.nvim",
   "folke/which-key.nvim",
   "lewis6991/gitsigns.nvim",
-  "lukas-reineke/indent-blankline.nvim",
   "mbbill/undotree",
   "nvim-treesitter/nvim-treesitter",
   "sainnhe/sonokai",
   "tpope/vim-surround",
-  "RRethy/vim-illuminate",
   "ahmedkhalf/project.nvim",
+  {
+    "RRethy/vim-illuminate",
+    event = "User FileOpened"
+  },
+  {
+    "lukas-reineke/indent-blankline.nvim",
+    main = "ibl",
+    event = "User FileOpened"
+  },
   {
     "jose-elias-alvarez/null-ls.nvim",
     dependencies = {
@@ -88,7 +95,7 @@ require("lazy").setup({
     cmd = "Copilot",
     event = "InsertEnter",
     config = function()
-      require("copilot").setup({})
+      require("copilot").setup()
     end,
   },
 
@@ -128,7 +135,16 @@ require("Comment").setup()
 require("gitsigns").setup()
 
 -- Blankline
-require("ibl").setup({})
+require("ibl").setup({
+  indent = {
+    char = "▏"
+  },
+  scope = {
+    enabled = true,
+    show_start = false,
+    char = "▎"
+  }
+})
 
 -- Treesitter
 require("nvim-treesitter.configs").setup({
