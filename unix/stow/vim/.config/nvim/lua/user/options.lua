@@ -1,4 +1,3 @@
-vim.opt.autoindent = true -- auto indents :)
 vim.opt.clipboard = "unnamedplus" -- access system clipboard
 vim.opt.conceallevel = 0 -- so that `` is visible in markdown files
 vim.opt.cursorline = true -- highlight current line
