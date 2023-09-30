@@ -24,7 +24,8 @@ require("mason-lspconfig").setup({
     "denols",
     "graphql",
     "svelte",
-    "eslint"
+    "eslint",
+    "tailwindcss"
   },
   handlers = {
     lsp_zero.default_setup
