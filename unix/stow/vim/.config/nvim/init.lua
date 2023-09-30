@@ -64,7 +64,7 @@ require("lazy").setup({
   -- Lsp and autcompletion
   {
     "VonHeikemen/lsp-zero.nvim",
-    branch = "v2.x",
+    branch = "v3.x",
     dependencies = {
       -- LSP Support
       { "neovim/nvim-lspconfig" },
@@ -74,8 +74,6 @@ require("lazy").setup({
       -- Autocompletion
       { "hrsh7th/nvim-cmp" },
       { "hrsh7th/cmp-nvim-lsp" },
-      { "hrsh7th/cmp-nvim-lua" },
-      { "hrsh7th/cmp-buffer" },
 
       -- Snippets
       { "L3MON4D3/LuaSnip" },
@@ -86,15 +84,19 @@ require("lazy").setup({
 
   -- Copilot
   {
-    "zbirenbaum/copilot-cmp",
+    "zbirenbaum/copilot.lua",
+    cmd = "Copilot",
     event = "InsertEnter",
-    dependencies = { "zbirenbaum/copilot.lua" },
     config = function()
-      vim.defer_fn(function()
-        require("copilot").setup()
-        require("copilot_cmp").setup()
-      end, 100)
+      require("copilot").setup({})
     end,
+  },
+
+  {
+    "zbirenbaum/copilot-cmp",
+    config = function()
+      require("copilot_cmp").setup()
+    end
   },
 
   -- Autopairs

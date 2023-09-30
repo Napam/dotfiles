@@ -1,3 +1,15 @@
+local cmp = require("cmp")
+local lsp_zero = require("lsp-zero").preset("recommended")
+lsp_zero.on_attach(function(_, bufnr)
+  local opts = { buffer = bufnr }
+  lsp_zero.default_keymaps(opts)
+
+  vim.keymap.set("n", "gr", "<cmd>Telescope lsp_references<cr>", opts)
+  vim.keymap.set("n", "gd", "<cmd>lua vim.lsp.buf.definition()<cr>", opts)
+end)
+
+lsp_zero.setup()
+
 require("mason").setup()
 require("mason-lspconfig").setup({
   ensure_installed = {
@@ -9,19 +21,15 @@ require("mason-lspconfig").setup({
     "rust_analyzer",
     "tsserver",
     "yamlls",
+    "denols",
+    "graphql",
+    "svelte",
+    "eslint"
   },
+  handlers = {
+    lsp_zero.default_setup
+  }
 })
-
-local lsp = require("lsp-zero").preset("recommended")
-lsp.on_attach(function(_, bufnr)
-  local opts = { buffer = bufnr }
-  lsp.default_keymaps(opts)
-
-  vim.keymap.set("n", "gr", "<cmd>Telescope lsp_references<cr>", opts)
-  vim.keymap.set("n", "gd", "<cmd>lua vim.lsp.buf.definition()<cr>", opts)
-end)
-
-lsp.setup()
 
 local null_ls = require("null-ls")
 
@@ -33,22 +41,25 @@ null_ls.setup({
   },
 })
 
-local cmp = require("cmp")
 
 require("luasnip.loaders.from_vscode").load()
 
 cmp.setup({
   sources = {
     { name = "nvim_lsp" },
-    { name = "nvim_lua" },
+    { name = "copilot" },
     { name = "luasnip" },
   },
   mapping = {
     ['<C-Space>'] = cmp.mapping.complete(),
-    ["<CR>"] = cmp.mapping.confirm({ select = false }),
+    ["<CR>"] = cmp.mapping.confirm({
+      behavior = cmp.ConfirmBehavior.Replace,
+      select = false
+    }),
     ["<TAB>"] = cmp.mapping.select_next_item(),
     ["<S-TAB>"] = cmp.mapping.select_prev_item(),
   },
+  formatting = lsp_zero.cmp_format()
 })
 
 local lspconfig = require("lspconfig")

@@ -1,14 +1,17 @@
+vim.opt.autoindent = true -- auto indents :)
+vim.opt.clipboard = "unnamedplus" -- access system clipboard
+vim.opt.conceallevel = 0 -- so that `` is visible in markdown files
+vim.opt.cursorline = true -- highlight current line
+vim.opt.expandtab = true -- convert tabs to spaces
+vim.opt.ignorecase = true -- ignore case in search patterns
+vim.opt.list = true -- show listchars, such as whitespace
 vim.opt.number = true
 vim.opt.relativenumber = true
-
-vim.opt.signcolumn = "yes"
-vim.opt.swapfile = false
-vim.opt.termguicolors = true
-vim.opt.tabstop = 4
-vim.opt.softtabstop = 4
 vim.opt.shiftwidth = 4
-vim.opt.expandtab = true
-
-vim.opt.list = true
-vim.opt.clipboard = "unnamedplus"
+vim.opt.signcolumn = "yes" -- always show signcolumns or you will get janky stuff
+vim.opt.softtabstop = 4
+vim.opt.swapfile = false
+vim.opt.tabstop = 4
+vim.opt.termguicolors = true
+vim.opt.updatetime = 100
 vim.opt.wrap = false
