@@ -6,3 +6,10 @@ vim.api.nvim_create_autocmd('TextYankPost', {
     vim.highlight.on_yank { higroup = 'Search', timeout = 100 }
   end,
 })
+
+vim.api.nvim_create_autocmd({ 'BufRead', 'BufNewFile' }, {
+  pattern = { '.zshrc', '.bashrc', '*.zsh', '*.bash', 'dot-zshrc', 'dot-bashrc' },
+  callback = function()
+    vim.bo.filetype = 'sh'
+  end,
+})

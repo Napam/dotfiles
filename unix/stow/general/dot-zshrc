@@ -130,8 +130,6 @@ init_completions
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
-
-
 ################# CUSTOM #####################
 
 if [[ -d $HOME/.config/dotfiles ]]; then

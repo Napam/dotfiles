@@ -1,4 +1,4 @@
-[*.sh]
+[{*.{sh,zsh},dot-zshrc,dot-bashrc,.zshrc,.bashrc}]
 # like -i=4
 indent_style = space
 indent_size = 2
