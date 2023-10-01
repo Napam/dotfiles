@@ -22,6 +22,11 @@ require("lazy").setup({
   "tpope/vim-surround",
   "ahmedkhalf/project.nvim",
   {
+    -- Lazy loaded by Comment.nvim pre_hook
+    "JoosepAlviste/nvim-ts-context-commentstring",
+    lazy = true,
+  },
+  {
     "RRethy/vim-illuminate",
     event = "User FileOpened"
   },
@@ -130,7 +135,14 @@ require("bufferline").setup({
 })
 
 -- Comment
-require("Comment").setup()
+require("Comment").setup({
+  pre_hook = function(...)
+    local loaded, ts_comment = pcall(require, "ts_context_commentstring.integrations.comment_nvim")
+    if loaded and ts_comment then
+      return ts_comment.create_pre_hook()(...)
+    end
+  end,
+})
 
 -- Git signs
 require("gitsigns").setup()
@@ -156,6 +168,16 @@ require("nvim-treesitter.configs").setup({
   indent = {
     enable = true,
     disable = { "yaml", "python" },
+  },
+  ensure_installed = {
+    "comment",
+    "markdown_inline",
+    "regex",
+    "typescript",
+    "python",
+    "bash",
+    "javascript",
+    "html",
   },
 })
 
