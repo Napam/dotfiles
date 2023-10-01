@@ -32,6 +32,14 @@ require("mason-lspconfig").setup({
   }
 })
 
+require('lspconfig').denols.setup({
+  root_dir = require("lspconfig.util").root_pattern("deno.json", "deno.jsonc")
+})
+
+require('lspconfig').tsserver.setup({
+  root_dir = require('lspconfig.util').root_pattern("package.json"), single_file_support = false
+})
+
 local null_ls = require("null-ls")
 
 null_ls.setup({
