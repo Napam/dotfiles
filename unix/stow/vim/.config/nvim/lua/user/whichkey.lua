@@ -13,6 +13,7 @@ local mappings = {
     name = "Git",
     g = { "<cmd>LazyGit<cr>", "Git client" },
     r = { "<cmd>Gitsigns reset_hunk<cr>", "Reset hunk" },
+    b = { "<cmd>Gitsigns blame_line<cr>", "Line blame" },
   },
   h = { "<cmd>noh<cr>", "Remove highlights" },
   l = {
