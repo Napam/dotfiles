@@ -17,10 +17,14 @@ require("lazy").setup({
   "folke/which-key.nvim",
   "lewis6991/gitsigns.nvim",
   "mbbill/undotree",
-  "nvim-treesitter/nvim-treesitter",
   "sainnhe/sonokai",
   "tpope/vim-surround",
   "ahmedkhalf/project.nvim",
+  {
+    "nvim-treesitter/nvim-treesitter",
+    build = ":TSUpdate",
+    event = { "BufReadPre", "BufNewFile" },
+  },
   {
     -- Lazy loaded by Comment.nvim pre_hook
     "JoosepAlviste/nvim-ts-context-commentstring",
@@ -178,6 +182,15 @@ require("nvim-treesitter.configs").setup({
     "bash",
     "javascript",
     "html",
+  },
+  incremental_selection = {
+    enable = true,
+    keymaps = {
+      init_selection = "<C-space>",
+      node_incremental = "<C-space>",
+      scope_incremental =false,
+      node_decremental ="<bs>",
+    },
   },
 })
 
