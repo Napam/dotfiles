@@ -20,6 +20,7 @@ require("lazy").setup({
   "sainnhe/sonokai",
   "tpope/vim-surround",
   "ahmedkhalf/project.nvim",
+  "mg979/vim-visual-multi",
   {
     "nvim-treesitter/nvim-treesitter",
     build = ":TSUpdate",
@@ -188,8 +189,8 @@ require("nvim-treesitter.configs").setup({
     keymaps = {
       init_selection = "<C-space>",
       node_incremental = "<C-space>",
-      scope_incremental =false,
-      node_decremental ="<bs>",
+      scope_incremental = false,
+      node_decremental = "<bs>",
     },
   },
 })
