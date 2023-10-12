@@ -1,9 +1,9 @@
 vim.opt.clipboard = "unnamedplus" -- access system clipboard
-vim.opt.conceallevel = 0 -- so that `` is visible in markdown files
-vim.opt.cursorline = true -- highlight current line
-vim.opt.expandtab = true -- convert tabs to spaces
-vim.opt.ignorecase = true -- ignore case in search patterns
-vim.opt.list = true -- show listchars, such as whitespace
+vim.opt.conceallevel = 0          -- so that `` is visible in markdown files
+vim.opt.cursorline = false         -- highlight current line
+vim.opt.expandtab = true          -- convert tabs to spaces
+vim.opt.ignorecase = true         -- ignore case in search patterns
+vim.opt.list = true               -- show listchars, such as whitespace
 vim.opt.number = true
 vim.opt.relativenumber = true
 vim.opt.shiftwidth = 4
