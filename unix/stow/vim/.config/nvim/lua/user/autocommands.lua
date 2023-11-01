@@ -13,3 +13,11 @@ vim.api.nvim_create_autocmd({ 'BufRead', 'BufNewFile' }, {
     vim.bo.filetype = 'sh'
   end,
 })
+
+
+vim.api.nvim_create_autocmd({ 'BufRead', 'BufNewFile' }, {
+  pattern = { '*.tfvars' },
+  callback = function()
+    vim.bo.filetype = 'terraform'
+  end,
+})
