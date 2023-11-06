@@ -31,6 +31,7 @@ alias feh="feh --auto-reload"
 alias safeupgrade="sudo aptitude safe-upgrade"
 alias ansicolors='for i in {0..255}; do  printf "[38;5;${i}mcolor%-5i[0m" $i ; if ! (( ($i + 1 ) % 8 )); then echo ; fi ; done'
 alias passc='pass -c'
+alias repos='cd $HOME/repos'
 
 # dotfile related aliases
 alias editutils='vim $HOME/.config/dotfiles/unix/shellutils.sh && source $HOME/.config/dotfiles/unix/shellutils.sh'
