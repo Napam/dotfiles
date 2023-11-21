@@ -1,0 +1,16 @@
+session_name: Work
+windows:
+  - window_name: Work
+    layout: main-horizontal
+    options:
+      main-pane-height: 80
+    shell_command_before:
+      - cd ~/work/projects/wg-flow # run as a first command in all panes
+    panes:
+      - vim
+      - shell_command:
+        - cd functions
+        - npm run dev
+      - shell_command:
+        - cd web
+        - npm run dev:local
