@@ -75,6 +75,9 @@ alias git-delete-squashed='TARGET_BRANCH=${TARGET_BRANCH:-main} && git checkout 
 alias gdots='git -C $HOME/.config/dotfiles'
 alias ldots='lazygit -p $HOME/.config/dotfiles'
 
+# Tmux
+alias tmuxwork='tmuxp load $HOME/.config/tmuxp/work.yaml'
+
 # Custom functions
 _targetfzf() {
   local command=${1}
