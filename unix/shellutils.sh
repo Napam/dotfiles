@@ -77,6 +77,7 @@ alias ldots='lazygit -p $HOME/.config/dotfiles'
 
 # Tmux
 alias tmuxwork='tmuxp load $HOME/.config/tmuxp/work.yaml'
+alias tmuxapato='tmuxp load $HOME/.config/tmuxp/apato.yaml'
 
 # Custom functions
 _targetfzf() {

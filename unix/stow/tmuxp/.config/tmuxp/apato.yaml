@@ -1,0 +1,16 @@
+session_name: Apato
+windows:
+  - window_name: Apato
+    layout: main-horizontal
+    options:
+      main-pane-height: 60
+    shell_command_before:
+      - cd ~/repos/apato
+    panes:
+      - vim
+      - shell_command:
+        - cd supabase/functions
+        - deno task clean-run
+      - shell_command:
+        - cd web
+        - npm run dev
