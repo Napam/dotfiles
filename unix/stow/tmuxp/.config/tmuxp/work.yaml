@@ -10,7 +10,7 @@ windows:
       - vim
       - shell_command:
         - cd functions
-        - npm run dev
+        - runfunctions
       - shell_command:
         - cd web
         - npm run dev:local
