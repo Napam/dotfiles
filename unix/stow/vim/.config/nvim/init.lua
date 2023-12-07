@@ -20,6 +20,7 @@ require("lazy").setup({
   "sainnhe/sonokai",
   "tpope/vim-surround",
   "ahmedkhalf/project.nvim",
+  "tpope/vim-fugitive",
   "mg979/vim-visual-multi",
   {
     "iamcco/markdown-preview.nvim",
