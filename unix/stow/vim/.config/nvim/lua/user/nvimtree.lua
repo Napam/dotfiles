@@ -21,6 +21,7 @@ nvim_tree.setup({
   respect_buf_cwd = true,
   view = {
     relativenumber = true,
+    adaptive_size = true
   },
   update_focused_file = {
     enable = true,

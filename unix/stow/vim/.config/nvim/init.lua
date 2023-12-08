@@ -21,6 +21,7 @@ require("lazy").setup({
   "tpope/vim-surround",
   "ahmedkhalf/project.nvim",
   "tpope/vim-fugitive",
+  "stevearc/oil.nvim",
   "mg979/vim-visual-multi",
   {
     "iamcco/markdown-preview.nvim",
@@ -232,3 +233,6 @@ require("illuminate").configure({
 
 -- Autopairs
 require('nvim-autopairs').setup({})
+
+-- Oil
+require('oil').setup({})
