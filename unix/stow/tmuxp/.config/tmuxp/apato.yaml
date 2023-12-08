@@ -9,8 +9,10 @@ windows:
     panes:
       - vim
       - shell_command:
-        - cd supabase/functions
-        - deno task clean-run
+          - cd supabase/functions
+          - open -a Docker
+          - sleep 10
+          - deno task clean-run
       - shell_command:
-        - cd web
-        - npm run dev
+          - cd web
+          - npm run dev-local
