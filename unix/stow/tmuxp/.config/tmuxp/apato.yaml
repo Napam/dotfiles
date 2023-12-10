@@ -12,7 +12,7 @@ windows:
           - cd supabase/functions
           - open -a Docker
           - sleep 10
-          - deno task clean-run
+          - ./start
       - shell_command:
           - cd web
           - npm run dev-local
