@@ -162,11 +162,11 @@ writehook() {
   local watchIn
   local useRegex=0
   if [ -f $whereToWatch ]; then
-    watchCmd="echo $whereToWatch | entr -rpz echo /_"
+    watchCmd="echo $whereToWatch | entr -rpzd echo /_"
     watchIn="$whereToWatch"
     useRegex=0
   else
-    watchCmd="find . -type d -name node_modules -prune -false -o -type f -regex \"$whereToWatch\" | entr -rpz echo /_"
+    watchCmd="find . -type d -name node_modules -prune -false -o -type f -regex \"$whereToWatch\" | entr -rpzd echo /_"
     watchIn="."
     useRegex=1
   fi
@@ -180,7 +180,7 @@ writehook() {
   while true; do
     target=($(eval $watchCmd))
     if [ ! $? -eq 0 ]; then
-      return $?
+      continue
     fi
 
     echo -e "\e[33mDetected modification in \e[32m$target\e[0m"
