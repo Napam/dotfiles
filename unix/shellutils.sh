@@ -34,7 +34,7 @@ alias passc='pass -c'
 alias repos='cd $HOME/repos'
 
 # Firebase
-alias prettyfire='while read -r line; do if [[ $line =~ "^>  {\"" ]]; then echo ${line#">  "} | jq -C ; else echo $line; fi; done'
+alias prettyfire='while read -r line; do if [[ $line =~ "^(> *)?{\"" ]]; then echo -E ${line#">  "} | jq -C ; else echo $line; fi; done'
 
 # dotfile related aliases
 alias editutils='vim $HOME/.config/dotfiles/unix/shellutils.sh && source $HOME/.config/dotfiles/unix/shellutils.sh'
