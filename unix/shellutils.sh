@@ -264,3 +264,18 @@ splitlines() {
   echo
   echo "$(tail -n +$((middle + 1)) <<< $cumstring)"
 }
+
+gitclean() {
+  todelete=$(git branch -v | awk '$3~/\[gone\]/ {print $1}')
+  if [ -z "$todelete" ]; then
+    printf "No branches to delete\n"
+  else
+    printf "Are you sure you want to delete:\n\e[33m$todelete\e[0m\n(y/n): "
+    read confirm
+    if [[ $confirm == [yY] || $confirm == [yY][eE][sS] ]]; then
+      printf "$todelete" | xargs -r git branch -f
+    else
+      printf "Operation cancelled\n"
+    fi
+  fi
+}
