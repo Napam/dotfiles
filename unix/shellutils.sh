@@ -129,14 +129,14 @@ gstrim() {
   done
 }
 
-grepvim() {
+rgvim() {
   if [[ $# -lt 1 ]]; then
     echo "No pattern specified"
-    echo "Usage: grepvim PATTERN"
+    echo "Usage: rgvim PATTERN"
     return 1
   fi
 
-  local target=$(grep -rn --binary-files=without-match --color=always -E $1 | fzf --ansi)
+  local target=$(rg -uu --vimgrep --color always $1 | fzf --ansi)
   if [[ ! $target ]]; then
     return 0
   fi
