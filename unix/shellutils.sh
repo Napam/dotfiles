@@ -273,7 +273,7 @@ gitclean() {
     printf "Are you sure you want to delete:\n\e[33m$todelete\e[0m\n(y/n): "
     read confirm
     if [[ $confirm == [yY] || $confirm == [yY][eE][sS] ]]; then
-      printf "$todelete" | xargs -r git branch -f
+      printf "$todelete" | xargs -r git branch -D
     else
       printf "Operation cancelled\n"
     fi
