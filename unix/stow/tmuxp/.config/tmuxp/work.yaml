@@ -5,12 +5,17 @@ windows:
     options:
       main-pane-height: 80
     shell_command_before:
-      - cd ~/work/projects/wg-flow # run as a first command in all panes
+      - cd ~/work/projects/wg-flow
     panes:
       - vim
       - shell_command:
-        - cd functions
-        - npm run dev | prettyfire
+          - cd functions
+          - npm run dev | prettyfire
       - shell_command:
-        - cd web
-        - npm run dev:local
+          - cd web
+          - npm run dev:local
+  - window_name: Work storybook
+    shell_command_before:
+      - cd ~/work/projects/wg-flow/web
+    panes:
+      - npm run storybook

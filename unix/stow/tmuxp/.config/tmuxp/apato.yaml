@@ -2,6 +2,7 @@ session_name: Apato
 windows:
   - window_name: Apato
     layout: main-horizontal
+    focus: true
     options:
       main-pane-height: 60
     shell_command_before:
@@ -16,3 +17,8 @@ windows:
       - shell_command:
           - cd web
           - npm run dev-local
+  - window_name: Apato ladle server
+    shell_command_before:
+      - cd ~/repos/apato/web
+    panes:
+      - npm run ladle
