@@ -266,6 +266,9 @@ splitlines() {
 }
 
 gitclean() {
+  echo "Pruning stale tracking branches"
+  git remote prune origin
+
   todelete=$(git branch -v | awk '$3~/\[gone\]/ {print $1}')
   if [ -z "$todelete" ]; then
     printf "No branches to delete\n"
