@@ -3,3 +3,4 @@ numpy==1.26.2
 opencv-python==4.8.1.78
 scikit-image==0.22.0
 scipy==1.11.4
+CairoSVG==2.7.1
