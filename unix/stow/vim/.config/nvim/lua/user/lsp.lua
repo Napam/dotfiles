@@ -1,4 +1,5 @@
 local cmp = require("cmp")
+local cmp_nvim_lsp = require("cmp_nvim_lsp")
 local lsp_zero = require("lsp-zero").preset("recommended")
 lsp_zero.on_attach(function(_, bufnr)
   local opts = { buffer = bufnr }
@@ -38,6 +39,10 @@ require('lspconfig').denols.setup({
 
 require('lspconfig').tsserver.setup({
   root_dir = require('lspconfig.util').root_pattern("package.json"), single_file_support = false
+})
+
+require('lspconfig').clangd.setup({
+  cmd = { "clangd", "--offset-encoding=utf-16" }
 })
 
 local null_ls = require("null-ls")
