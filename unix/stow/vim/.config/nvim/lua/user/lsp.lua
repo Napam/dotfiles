@@ -1,5 +1,4 @@
 local cmp = require("cmp")
-local cmp_nvim_lsp = require("cmp_nvim_lsp")
 local lsp_zero = require("lsp-zero").preset("recommended")
 lsp_zero.on_attach(function(_, bufnr)
   local opts = { buffer = bufnr }
@@ -43,6 +42,19 @@ require('lspconfig').tsserver.setup({
 
 require('lspconfig').clangd.setup({
   cmd = { "clangd", "--offset-encoding=utf-16" }
+})
+
+require('lspconfig').tailwindcss.setup({
+  settings = {
+    tailwindCSS = {
+      experimental = {
+        classRegex = {
+          '\\w+Class=\\{?[\'"]([^\'"]*)\\}?',
+          { "(?:twMerge|twJoin)\\(([^;]*)[\\);]", "[`'\"`]([^'\"`;]*)[`'\"`]" },
+        }
+      }
+    }
+  }
 })
 
 local null_ls = require("null-ls")
