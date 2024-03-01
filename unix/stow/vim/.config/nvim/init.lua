@@ -23,6 +23,7 @@ require("lazy").setup({
   "tpope/vim-fugitive",
   "stevearc/oil.nvim",
   "mg979/vim-visual-multi",
+  "j-hui/fidget.nvim",
   {
     "iamcco/markdown-preview.nvim",
     cmd = { "MarkdownPreviewToggle", "MarkdownPreview", "MarkdownPreviewStop" },
@@ -253,3 +254,6 @@ vim.g.mkdp_preview_options = {
   disable_filename = 1,
   toc = {}
 }
+
+-- Fidget
+require('fidget').setup({})
