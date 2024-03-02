@@ -51,6 +51,7 @@ require('lspconfig').tailwindcss.setup({
         classRegex = {
           '\\w+Class=\\{?[\'"]([^\'"]*)\\}?',
           { "(?:twMerge|twJoin)\\(([^;]*)[\\);]", "[`'\"`]([^'\"`;]*)[`'\"`]" },
+          "(?:\\b(?:const|let|var)\\s+)?[\\w$_]*(?:[Ss]tyles|[Cc]lasses|[Cc]lassnames|[Cc]lass)[\\w\\d]*\\s*(?:=|\\+=)\\s*['\"`]([^'\"`]*)['\"`]"
         }
       }
     }
