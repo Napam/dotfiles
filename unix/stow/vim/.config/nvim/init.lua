@@ -25,6 +25,13 @@ require("lazy").setup({
   "mg979/vim-visual-multi",
   "j-hui/fidget.nvim",
   {
+    "ThePrimeagen/harpoon",
+    branch = "harpoon2",
+    dependencies = {
+      "nvim-lua/plenary.nvim",
+    },
+  },
+  {
     "iamcco/markdown-preview.nvim",
     cmd = { "MarkdownPreviewToggle", "MarkdownPreview", "MarkdownPreviewStop" },
     ft = { "markdown" },
@@ -240,6 +247,8 @@ require('oil').setup({})
 
 
 -- Markdown preview
+vim.g.mkdp_auto_close = 0
+vim.g.mkdp_refresh_slow = 1
 vim.g.mkdp_preview_options = {
   mkit = {},
   katex = {},
@@ -257,3 +266,7 @@ vim.g.mkdp_preview_options = {
 
 -- Fidget
 require('fidget').setup({})
+
+
+-- Harpoon
+require('harpoon'):setup({})

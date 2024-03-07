@@ -1,4 +1,6 @@
 local which_key = require("which-key")
+local harpoon = require('harpoon')
+
 local mappings = {
   c = { "<cmd>BufferKill<cr>", "Close buffer" },
   C = { "<cmd>edit ~/.config/nvim/init.lua<cr>", "Open config" },
@@ -20,7 +22,25 @@ local mappings = {
     j = { "<cmd>Gitsigns next_hunk<cr>", "Next hunk" },
     k = { "<cmd>Gitsigns prev_hunk<cr>", "Previous hunk" },
   },
-  h = { "<cmd>noh<cr>", "Remove highlights" },
+  h = {
+    name = "Harpoon",
+    l = { function() harpoon.ui:toggle_quick_menu(harpoon:list()) end, "List" },
+    a = { function() harpoon:list():append() end, "Append current file" },
+    j = { function() harpoon:list():next() end, "Harpoon next" },
+    k = { function() harpoon:list():prev() end, "Harpoon previous" },
+    ["1"] = {
+      function() harpoon:list():select(1) end, "Harpoon 1"
+    },
+    ["2"] = {
+      function() harpoon:list():select(2) end, "Harpoon 2"
+    },
+    ["3"] = {
+      function() harpoon:list():select(3) end, "Harpoon 3"
+    },
+    ["4"] = {
+      function() harpoon:list():select(4) end, "Harpoon 4"
+    },
+  },
   l = {
     name = "LSP",
     a = { "<cmd>lua vim.lsp.buf.code_action()<cr>", "Code action" },

@@ -36,6 +36,9 @@ keymap("n", "<S-h>", ":bprevious<CR>", opts)
 -- leader o to enter new line below without going into insert mode
 keymap("n", "<leader>o", "o<ESC>", opts)
 
+-- remove highlight
+keymap("n", "<A-h>", "<CMD>noh<CR>", opts)
+
 -- Insert --
 -- Press jk fast to change to normal mode
 keymap("i", "jk", "<ESC>", opts)
