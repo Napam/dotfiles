@@ -40,6 +40,9 @@ local mappings = {
     ["4"] = {
       function() harpoon:list():select(4) end, "Harpoon 4"
     },
+    ["5"] = {
+      function() harpoon:list():select(5) end, "Harpoon 5"
+    },
   },
   l = {
     name = "LSP",
