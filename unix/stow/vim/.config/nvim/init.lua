@@ -25,6 +25,7 @@ require("lazy").setup({
   "mg979/vim-visual-multi",
   "j-hui/fidget.nvim",
   "stevearc/conform.nvim",
+  -- "mfussenegger/nvim-lint", not really using any linters explicitly at the moment as I'm using LSP
   {
     "ThePrimeagen/harpoon",
     branch = "harpoon2",
@@ -185,7 +186,7 @@ require("nvim-treesitter.configs").setup({
   },
   indent = {
     enable = true,
-    disable = { "yaml", "python" },
+    disable = { "yaml" },
   },
   ensure_installed = {
     "comment",

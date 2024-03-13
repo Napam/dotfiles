@@ -10,6 +10,14 @@ end)
 
 lsp_zero.setup()
 
+vim.diagnostic.config({
+  float = {
+    source = true,
+    border = "single",
+    focusable = true,
+  },
+})
+
 require("mason").setup()
 require("mason-lspconfig").setup({
   ensure_installed = {
@@ -63,15 +71,44 @@ require("conform").setup({
   formatters_by_ft = {
     sh = { "shfmt" },
     zsh = { "shfmt" },
-    bash = { "shfmt" },
     lua = { "stylua" },
-    python = { "black" },
+    sql = { "sqlfluff" },
+    bash = { "shfmt" },
+    python = { "ruff" },
     javascript = { "prettier" },
     typescript = { "prettier" },
     typescriptreact = { "prettier" },
     javascriptreact = { "prettier" },
   },
+
+  formatters = {
+    sqlfluff = {
+      meta = {
+        url = "https://github.com/sqlfluff/sqlfluff",
+        description = "A modular SQL linter and auto-formatter with support for multiple dialects and templated code.",
+      },
+      command = "sqlfluff",
+      args = { "fix", "--dialect=postgres", "-" },
+      stdin = true,
+      cwd = require("conform.util").root_file({
+        ".sqlfluff",
+        "pep8.ini",
+        "pyproject.toml",
+        "setup.cfg",
+        "tox.ini",
+      }),
+      require_cwd = false,
+    },
+  },
 })
+
+-- Not really using linters explicitly as I'm using LSP
+-- require("lint").linters_by_ft = {
+--   javascript = { "eslint" },
+--   typescript = { "eslint" },
+--   typescriptreact = { "eslint" },
+--   javascriptreact = { "eslint" },
+-- }
 
 require("luasnip.loaders.from_vscode").load()
 
