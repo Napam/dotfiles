@@ -47,7 +47,7 @@ local mappings = {
   l = {
     name = "LSP",
     a = { "<cmd>lua vim.lsp.buf.code_action()<cr>", "Code action" },
-    f = { "<cmd>LspZeroFormat<cr>", "Format" },
+    f = { function() require("conform").format({ bufnr = vim.api.nvim_get_current_buf(), lsp_fallback = true }) end, "Format" },
     j = { "<cmd>lua vim.diagnostic.goto_next()<cr>", "Next problem" },
     k = { "<cmd>lua vim.diagnostic.goto_prev()<cr>", "Previous problem" },
     l = { "<cmd>lua vim.diagnostic.open_float()<cr>", "Show problem" },

@@ -24,6 +24,7 @@ require("lazy").setup({
   "stevearc/oil.nvim",
   "mg979/vim-visual-multi",
   "j-hui/fidget.nvim",
+  "stevearc/conform.nvim",
   {
     "ThePrimeagen/harpoon",
     branch = "harpoon2",
@@ -55,12 +56,6 @@ require("lazy").setup({
     "lukas-reineke/indent-blankline.nvim",
     main = "ibl",
     event = "User FileOpened"
-  },
-  {
-    "jose-elias-alvarez/null-ls.nvim",
-    dependencies = {
-      "nvim-lua/plenary.nvim",
-    },
   },
   {
     "kdheepak/lazygit.nvim",
