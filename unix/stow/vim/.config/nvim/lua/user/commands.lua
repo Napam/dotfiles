@@ -4,7 +4,6 @@ local bo = vim.bo
 local function buffer_kill()
   local kill_command = "bd!"
 
-
   local bufnr = api.nvim_get_current_buf()
 
   -- Get list of windows IDs with the buffer to close

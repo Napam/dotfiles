@@ -36,7 +36,9 @@ require("lazy").setup({
     "iamcco/markdown-preview.nvim",
     cmd = { "MarkdownPreviewToggle", "MarkdownPreview", "MarkdownPreviewStop" },
     ft = { "markdown" },
-    build = function() vim.fn["mkdp#util#install"]() end,
+    build = function()
+      vim.fn["mkdp#util#install"]()
+    end,
   },
   {
     "nvim-treesitter/nvim-treesitter",
@@ -50,12 +52,12 @@ require("lazy").setup({
   },
   {
     "RRethy/vim-illuminate",
-    event = "User FileOpened"
+    event = "User FileOpened",
   },
   {
     "lukas-reineke/indent-blankline.nvim",
     main = "ibl",
-    event = "User FileOpened"
+    event = "User FileOpened",
   },
   {
     "kdheepak/lazygit.nvim",
@@ -81,7 +83,7 @@ require("lazy").setup({
     "nvim-telescope/telescope.nvim",
     dependencies = {
       "nvim-lua/plenary.nvim",
-      { 'nvim-telescope/telescope-fzf-native.nvim', build = 'make' }
+      { "nvim-telescope/telescope-fzf-native.nvim", build = "make" },
     },
   },
   {
@@ -124,14 +126,14 @@ require("lazy").setup({
     "zbirenbaum/copilot-cmp",
     config = function()
       require("copilot_cmp").setup()
-    end
+    end,
   },
 
   -- Autopairs
   {
-    'windwp/nvim-autopairs',
+    "windwp/nvim-autopairs",
     event = "InsertEnter",
-  }
+  },
 })
 
 require("user.options")
@@ -166,13 +168,13 @@ require("gitsigns").setup()
 -- Blankline
 require("ibl").setup({
   indent = {
-    char = "▏"
+    char = "▏",
   },
   scope = {
     enabled = true,
     show_start = false,
-    char = "▎"
-  }
+    char = "▎",
+  },
 })
 
 -- Treesitter
@@ -231,15 +233,14 @@ require("illuminate").configure({
     "regex",
   },
   delay = 120,
-  under_cursor = true
+  under_cursor = true,
 })
 
 -- Autopairs
-require('nvim-autopairs').setup({})
+require("nvim-autopairs").setup({})
 
 -- Oil
-require('oil').setup({})
-
+require("oil").setup({})
 
 -- Markdown preview
 vim.g.mkdp_auto_close = 0
@@ -250,18 +251,17 @@ vim.g.mkdp_preview_options = {
   uml = {},
   maid = {},
   disable_sync_scroll = 0,
-  sync_scroll_type = 'middle',
+  sync_scroll_type = "middle",
   hide_yaml_meta = 1,
   sequence_diagrams = {},
   flowchart_diagrams = {},
   content_editable = false,
   disable_filename = 1,
-  toc = {}
+  toc = {},
 }
 
 -- Fidget
-require('fidget').setup({})
-
+require("fidget").setup({})
 
 -- Harpoon
-require('harpoon'):setup({})
+require("harpoon"):setup({})

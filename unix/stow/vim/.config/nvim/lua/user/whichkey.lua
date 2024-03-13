@@ -1,5 +1,5 @@
 local which_key = require("which-key")
-local harpoon = require('harpoon')
+local harpoon = require("harpoon")
 
 local mappings = {
   c = { "<cmd>BufferKill<cr>", "Close buffer" },
@@ -24,30 +24,70 @@ local mappings = {
   },
   h = {
     name = "Harpoon",
-    l = { function() harpoon.ui:toggle_quick_menu(harpoon:list()) end, "List" },
-    a = { function() harpoon:list():append() end, "Append current file" },
-    j = { function() harpoon:list():next() end, "Harpoon next" },
-    k = { function() harpoon:list():prev() end, "Harpoon previous" },
+    l = {
+      function()
+        harpoon.ui:toggle_quick_menu(harpoon:list())
+      end,
+      "List",
+    },
+    a = {
+      function()
+        harpoon:list():append()
+      end,
+      "Append current file",
+    },
+    j = {
+      function()
+        harpoon:list():next()
+      end,
+      "Harpoon next",
+    },
+    k = {
+      function()
+        harpoon:list():prev()
+      end,
+      "Harpoon previous",
+    },
     ["1"] = {
-      function() harpoon:list():select(1) end, "Harpoon 1"
+      function()
+        harpoon:list():select(1)
+      end,
+      "Harpoon 1",
     },
     ["2"] = {
-      function() harpoon:list():select(2) end, "Harpoon 2"
+      function()
+        harpoon:list():select(2)
+      end,
+      "Harpoon 2",
     },
     ["3"] = {
-      function() harpoon:list():select(3) end, "Harpoon 3"
+      function()
+        harpoon:list():select(3)
+      end,
+      "Harpoon 3",
     },
     ["4"] = {
-      function() harpoon:list():select(4) end, "Harpoon 4"
+      function()
+        harpoon:list():select(4)
+      end,
+      "Harpoon 4",
     },
     ["5"] = {
-      function() harpoon:list():select(5) end, "Harpoon 5"
+      function()
+        harpoon:list():select(5)
+      end,
+      "Harpoon 5",
     },
   },
   l = {
     name = "LSP",
     a = { "<cmd>lua vim.lsp.buf.code_action()<cr>", "Code action" },
-    f = { function() require("conform").format({ bufnr = vim.api.nvim_get_current_buf(), lsp_fallback = true }) end, "Format" },
+    f = {
+      function()
+        require("conform").format({ bufnr = vim.api.nvim_get_current_buf(), lsp_fallback = true })
+      end,
+      "Format",
+    },
     j = { "<cmd>lua vim.diagnostic.goto_next()<cr>", "Next problem" },
     k = { "<cmd>lua vim.diagnostic.goto_prev()<cr>", "Previous problem" },
     l = { "<cmd>lua vim.diagnostic.open_float()<cr>", "Show problem" },

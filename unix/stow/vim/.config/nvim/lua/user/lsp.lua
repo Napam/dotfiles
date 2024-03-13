@@ -25,40 +25,41 @@ require("mason-lspconfig").setup({
     "graphql",
     "svelte",
     "eslint",
-    "tailwindcss"
+    "tailwindcss",
   },
   handlers = {
-    lsp_zero.default_setup
-  }
+    lsp_zero.default_setup,
+  },
 })
 
-require('lspconfig').denols.setup({
-  root_dir = require("lspconfig.util").root_pattern("deno.json", "deno.jsonc")
+require("lspconfig").denols.setup({
+  root_dir = require("lspconfig.util").root_pattern("deno.json", "deno.jsonc"),
 })
 
-require('lspconfig').tsserver.setup({
-  root_dir = require('lspconfig.util').root_pattern("package.json"), single_file_support = false
+require("lspconfig").tsserver.setup({
+  root_dir = require("lspconfig.util").root_pattern("package.json"),
+  single_file_support = false,
 })
 
-require('lspconfig').clangd.setup({
-  cmd = { "clangd", "--offset-encoding=utf-16" }
+require("lspconfig").clangd.setup({
+  cmd = { "clangd", "--offset-encoding=utf-16" },
 })
 
-require('lspconfig').tailwindcss.setup({
+require("lspconfig").tailwindcss.setup({
   settings = {
     tailwindCSS = {
       experimental = {
         classRegex = {
-          '\\w+Class=\\{?[\'"]([^\'"]*)\\}?',
+          "\\w+Class=\\{?['\"]([^'\"]*)\\}?",
           { "(?:twMerge|twJoin)\\(([^;]*)[\\);]", "[`'\"`]([^'\"`;]*)[`'\"`]" },
-          "(?:\\b(?:const|let|var)\\s+)?[\\w$_]*(?:[Ss]tyles|[Cc]lasses|[Cc]lassnames|[Cc]lass)[\\w\\d]*\\s*(?:=|\\+=)\\s*['\"`]([^'\"`]*)['\"`]"
-        }
-      }
-    }
-  }
+          "(?:\\b(?:const|let|var)\\s+)?[\\w$_]*(?:[Ss]tyles|[Cc]lasses|[Cc]lassnames|[Cc]lass)[\\w\\d]*\\s*(?:=|\\+=)\\s*['\"`]([^'\"`]*)['\"`]",
+        },
+      },
+    },
+  },
 })
 
-require('conform').setup({
+require("conform").setup({
   formatters_by_ft = {
     sh = { "shfmt" },
     zsh = { "shfmt" },
@@ -69,13 +70,12 @@ require('conform').setup({
     typescript = { "prettier" },
     typescriptreact = { "prettier" },
     javascriptreact = { "prettier" },
-  }
+  },
 })
 
 require("luasnip.loaders.from_vscode").load()
 
-
-local cmp_window = require "cmp.config.window"
+local cmp_window = require("cmp.config.window")
 cmp.setup({
   window = {
     completion = cmp_window.bordered(),
@@ -88,15 +88,15 @@ cmp.setup({
     { name = "treesitter" },
   },
   mapping = {
-    ['<C-Space>'] = cmp.mapping.complete(),
+    ["<C-Space>"] = cmp.mapping.complete(),
     ["<CR>"] = cmp.mapping.confirm({
       behavior = cmp.ConfirmBehavior.Replace,
-      select = false
+      select = false,
     }),
     ["<TAB>"] = cmp.mapping.select_next_item(),
     ["<S-TAB>"] = cmp.mapping.select_prev_item(),
   },
-  formatting = lsp_zero.cmp_format()
+  formatting = lsp_zero.cmp_format(),
 })
 
 local lspconfig = require("lspconfig")
