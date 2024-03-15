@@ -75,6 +75,7 @@ require("conform").setup({
     sql = { "sqlfluff" },
     bash = { "shfmt" },
     python = { "ruff" },
+    markdown = { "prettier" },
     javascript = { "prettier" },
     typescript = { "prettier" },
     typescriptreact = { "prettier" },
