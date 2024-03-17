@@ -81,35 +81,33 @@ require("conform").setup({
     typescriptreact = { "prettierd" },
     javascriptreact = { "prettierd" },
   },
-
-  formatters = {
-    sqlfluff = {
-      meta = {
-        url = "https://github.com/sqlfluff/sqlfluff",
-        description = "A modular SQL linter and auto-formatter with support for multiple dialects and templated code.",
-      },
-      command = "sqlfluff",
-      args = { "fix", "--dialect=postgres", "-" },
-      stdin = true,
-      cwd = require("conform.util").root_file({
-        ".sqlfluff",
-        "pep8.ini",
-        "pyproject.toml",
-        "setup.cfg",
-        "tox.ini",
-      }),
-      require_cwd = false,
-    },
-  },
 })
 
--- Not really using linters explicitly as I'm using LSP
--- require("lint").linters_by_ft = {
---   javascript = { "eslint" },
---   typescript = { "eslint" },
---   typescriptreact = { "eslint" },
---   javascriptreact = { "eslint" },
--- }
+require("conform").formatters.sqlfluff = {
+  args = {
+    "format",
+    "--dialect=postgres",
+    "-",
+  },
+}
+
+-- JS stuff is done using eslint-lsp
+-- Python stuff is done using ruff-lsp
+require("lint").linters_by_ft = {
+  sql = { "sqlfluff" },
+}
+
+require("lint").linters.sqlfluff.args = {
+  "lint",
+  "--format=json",
+  "--dialect=postgres",
+}
+
+vim.api.nvim_create_autocmd({ "BufWritePost" }, {
+  callback = function()
+    require("lint").try_lint()
+  end,
+})
 
 require("luasnip.loaders.from_vscode").load()
 

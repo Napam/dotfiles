@@ -25,7 +25,7 @@ require("lazy").setup({
   "mg979/vim-visual-multi",
   "j-hui/fidget.nvim",
   "stevearc/conform.nvim",
-  -- "mfussenegger/nvim-lint", not really using any linters explicitly at the moment as I'm using LSP
+  "mfussenegger/nvim-lint",
   {
     "ThePrimeagen/harpoon",
     branch = "harpoon2",
