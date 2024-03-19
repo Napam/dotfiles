@@ -1,0 +1,14 @@
+[{*.{sh,zsh},dot-zshrc,dot-bashrc,.zshrc,.bashrc}]
+# like -i=4
+indent_style = space
+indent_size = 8
+
+# --language-variant
+shell_variant      = bash
+binary_next_line   = true
+# --case-indent
+switch_case_indent = true
+space_redirects    = true
+keep_padding       = true
+# --func-next-line
+function_next_line = false
