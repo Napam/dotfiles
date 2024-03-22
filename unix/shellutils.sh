@@ -77,6 +77,8 @@ alias lgit='lazygit'
 alias git-delete-squashed='TARGET_BRANCH=${TARGET_BRANCH:-main} && git checkout -q $TARGET_BRANCH && git for-each-ref refs/heads/ "--format=%(refname:short)" | while read branch; do mergeBase=$(git merge-base $TARGET_BRANCH $branch) && [[ $(git cherry $TARGET_BRANCH $(git commit-tree $(git rev-parse $branch\^{tree}) -p $mergeBase -m _)) == "-"* ]] && git branch -D $branch; done'
 alias gdots='git -C $HOME/.config/dotfiles'
 alias ldots='lazygit -p $HOME/.config/dotfiles'
+alias gb='git for-each-ref --color=always --sort=-committerdate refs/heads --format="%(authordate:short) %(color:red)%(objectname:short) %(color:yellow)%(refname:short)%(color:reset) (%(color:green)%(committerdate:relative)%(color:reset)) %(authorname)"'
+alias gbm='gb | grep Naphat'
 
 # Tmux
 alias tmuxwork='tmuxp load $HOME/.config/tmuxp/work.yaml'
