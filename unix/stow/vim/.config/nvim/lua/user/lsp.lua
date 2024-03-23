@@ -67,6 +67,8 @@ require("lspconfig").tailwindcss.setup({
   },
 })
 
+require("lspconfig").sqls.setup({ on_attach = require("sqls").on_attach })
+
 require("conform").setup({
   formatters_by_ft = {
     sh = { "shfmt" },
@@ -135,9 +137,7 @@ cmp.setup({
   formatting = lsp_zero.cmp_format(),
 })
 
-local lspconfig = require("lspconfig")
-
-lspconfig.lua_ls.setup({
+require("lspconfig").lua_ls.setup({
   settings = {
     Lua = {
       diagnostics = {

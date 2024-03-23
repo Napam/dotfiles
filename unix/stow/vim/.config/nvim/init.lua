@@ -26,6 +26,7 @@ require("lazy").setup({
   "j-hui/fidget.nvim",
   "stevearc/conform.nvim",
   "mfussenegger/nvim-lint",
+  "nanotee/sqls.nvim",
   {
     "ThePrimeagen/harpoon",
     branch = "harpoon2",
