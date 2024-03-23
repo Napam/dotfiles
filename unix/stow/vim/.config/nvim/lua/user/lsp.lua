@@ -105,7 +105,7 @@ require("lint").linters.sqlfluff.args = {
   "--dialect=postgres",
 }
 
-vim.api.nvim_create_autocmd({ "BufWritePost" }, {
+vim.api.nvim_create_autocmd({ "BufReadPost", "BufWritePost" }, {
   callback = function()
     require("lint").try_lint()
   end,
