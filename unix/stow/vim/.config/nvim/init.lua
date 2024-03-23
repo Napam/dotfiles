@@ -199,6 +199,9 @@ require("nvim-treesitter.configs").setup({
     "javascript",
     "html",
   },
+  ignore_install = {
+    "tmux",
+  },
   incremental_selection = {
     enable = true,
     keymaps = {
