@@ -39,6 +39,9 @@ keymap("n", "<leader>o", "o<ESC>", opts)
 -- remove highlight
 keymap("n", "<A-h>", "<CMD>noh<CR>", opts)
 
+keymap("n", "<C-u>", "<C-u>zz", opts)
+keymap("n", "<C-d>", "<C-d>zz", opts)
+
 -- Insert --
 -- Press jk fast to change to normal mode
 keymap("i", "jk", "<ESC>", opts)
