@@ -221,6 +221,15 @@ require("lualine").setup()
 
 -- Telescope
 require("telescope").load_extension("fzf")
+require("telescope").setup({
+  defaults = {
+    mappings = {
+      n = {
+        ["q"] = require("telescope.actions").close,
+      },
+    },
+  },
+})
 
 -- Project nvim
 require("project_nvim").setup({
