@@ -16,6 +16,10 @@ case "$(uname -sr)" in
     ;;
 esac
 
+export HISTFILE="~/.zsh_history"
+export HISTSIZE=420000
+export SAVEHIST=$HISTSIZE
+
 # Homebrew bin, should be in front of PATH such that brew install binaries comes before usr/bin stuff
 if [[ -e /opt/homebrew/bin ]]; then
   export PATH="/opt/homebrew/bin:$PATH"
