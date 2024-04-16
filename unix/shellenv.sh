@@ -16,7 +16,7 @@ case "$(uname -sr)" in
     ;;
 esac
 
-export HISTFILE="~/.zsh_history"
+export HISTFILE="$HOME/.zsh_history"
 export HISTSIZE=420000
 export SAVEHIST=$HISTSIZE
 
