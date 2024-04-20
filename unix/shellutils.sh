@@ -1,3 +1,6 @@
+# Basic aliases
+alias ls='ls --color=auto'
+
 # Custom aliases
 alias update='sudo apt-get update -y && sudo apt-get upgrade -y && sudo apt-get dist-upgrade -y'
 alias paste.exe='powershell.exe Get-Clipboard'
