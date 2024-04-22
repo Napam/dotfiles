@@ -62,6 +62,9 @@ init_completions
 
 alias editrc='vim $(realpath $HOME/.zshrc); source $HOME/.zshrc'
 
+# Enables dynamic prompt by evaluating the PROMPT env var
+setopt prompt_subst
+
 PROMPT_BASE='%F{121}[%~]%f$ '
 PROMPT='$(git_custom_status)${PROMPT_BASE}'
 
