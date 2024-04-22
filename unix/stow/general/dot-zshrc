@@ -22,6 +22,7 @@ function init_completions() {
 
   # fzf
   [[ -f ~/.fzf.zsh ]] && source ~/.fzf.zsh
+  [[ -e $HOME/.local/src/fzf-tab ]] && source "$HOME/.local/src/fzf-tab/fzf-tab.plugin.zsh"
 }
 
 function git_current_branch() {
