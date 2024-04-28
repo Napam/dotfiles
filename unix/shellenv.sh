@@ -16,13 +16,15 @@ case "$(uname -sr)" in
     ;;
 esac
 
-export HISTFILE="$HOME/.zsh_history"
-export HISTSIZE=420000
-export SAVEHIST=$HISTSIZE
+if [[ $ZSH_VERSION ]]; then
+  export HISTFILE="$HOME/.zsh_history"
+  export HISTSIZE=420000
+  export SAVEHIST=$HISTSIZE
 
-export CLICOLOR=1
-export LSCOLORS=gxFxCxDxBxegedabagaced
-export LS_COLORS='di=1;36:ln=35:so=32:pi=33:ex=31:bd=34;46:cd=34;43:su=30;41:sg=30;46:tw=30;42:ow=30;43'
+  export CLICOLOR=1
+  export LSCOLORS=gxFxCxDxBxegedabagaced
+  export LS_COLORS='di=1;36:ln=35:so=32:pi=33:ex=31:bd=34;46:cd=34;43:su=30;41:sg=30;46:tw=30;42:ow=30;43'
+fi
 
 # Homebrew bin, should be in front of PATH such that brew install binaries comes before usr/bin stuff
 if [[ -e /opt/homebrew/bin ]]; then
@@ -41,14 +43,13 @@ if [[ -e $GOPATH ]]; then
   export PATH=$PATH:$GOPATH
 fi
 
-# Use LunarVim instead
+# Use nvim instead
 alias vim=nvim
 export EDITOR=nvim
 export GIT_EDITOR=nvim
 
 export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"                   # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" # This loads nvm bash_completion
+[[ -s "$NVM_DIR/nvm.sh" ]] && source "$NVM_DIR/nvm.sh"
 
 # yarn bin to path
 export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"
@@ -65,9 +66,7 @@ alias j!=jbang
 export PATH="$HOME/.jbang/bin:$PATH"
 
 # Rust cargo
-if [[ -s $HOME/.cargo/env ]]; then
-  source "$HOME/.cargo/env"
-fi
+[[ -s $HOME/.cargo/env ]] && source "$HOME/.cargo/env"
 
 # pnpm
 if [[ $IS_MAC ]]; then
@@ -79,16 +78,17 @@ if [[ $IS_MAC ]]; then
 fi
 
 # Flutter
-if [[ -s /opt/flutter ]]; then
-  export PATH="$PATH:/opt/flutter/bin"
-fi
+[[ -s /opt/flutter ]] && export PATH="$PATH:/opt/flutter/bin"
 
 # venvy
 export VENVY_SRC_DIR="$HOME/.local/src/venvy"
 [[ -s $VENVY_SRC_DIR ]] && source "$VENVY_SRC_DIR/venvy.sh"
 
-if command -v pass &> /dev/null; then
-  source "$HOME/.config/dotfiles/unix/pass-completion.zsh"
+# fzf
+if [[ $ZSH_VERSION ]]; then
+  [[ -e $HOME/.fzf.zsh ]] && source $HOME/.fzf.zsh
+elif [[ $BASH_VERSION ]]; then
+  [[ -e $HOME/.fzf.zsh ]] && source $HOME/.fzf.bash
 fi
 
 # kubectl editor
@@ -96,6 +96,7 @@ export KUBE_EDITOR=nvim
 
 export GREP_COLORS='ms=01;31:mc=01;31:sl=:cx=:fn=36:ln=32:bn=32:se=33'
 
+# zsh-vi-mode
 if [[ $ZSH_VERSION ]]; then
   [[ -e $HOME/.zsh-vi-mode ]] && source $HOME/.zsh-vi-mode/zsh-vi-mode.plugin.zsh
 fi

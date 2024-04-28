@@ -5,8 +5,11 @@ function init_completions() {
   # Auto complete stuff
   autoload -Uz compinit && compinit
   zstyle ':completion:*' menu select
-  zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
+  zstyle ':completion:*' list-colors '${(s.:.)LS_COLORS}'
   zstyle ':completion:*' matcher-list 'm:{[:lower:][:upper:]-_}={[:upper:][:lower:]_-}' 'r:|=*' 'l:|=* r:|=*'
+
+  # fix mac
+  bindkey "ç" fzf-cd-widget
 
   # kubectl completion
   if command -v kubectl &> /dev/null; then
@@ -18,12 +21,19 @@ function init_completions() {
     source <(k3d completion zsh)
   fi
 
-  # fix mac
-  bindkey "ç" fzf-cd-widget
+  # pass
+  if command -v pass &> /dev/null; then
+    source "$HOME/.config/dotfiles/unix/pass-completion.zsh"
+  fi
 
-  # fzf
-  [[ -f ~/.fzf.zsh ]] && source ~/.fzf.zsh
+  # fzf-tab
   [[ -e $HOME/.local/src/fzf-tab ]] && source "$HOME/.local/src/fzf-tab/fzf-tab.plugin.zsh"
+
+  # venvy
+  [[ -s $HOME/.local/src/venvy ]] && source "$HOME/.local/src/venvy/completions/init.sh"
+
+  # nvm
+  [[ -s "$NVM_DIR/bash_completion" ]] && source "$NVM_DIR/bash_completion"
 }
 
 function git_current_branch() {
@@ -78,7 +88,6 @@ if [[ -f "$HOME/.local/src/kube-ps1/kube-ps1.sh" ]]; then
   KUBE_PS1_CTX_COLOR='154'
   KUBE_PS1_NS_COLOR='154'
   KUBE_PS1_DIVIDER='%F{154}|'
-  # PROMPT='$(git_custom_status)$(kube_ps1)%{$fg[cyan]%}[%~% ]%{$reset_color%}%B$%b '
   PROMPT='$(git_custom_status)$(kube_ps1)${PROMPT_BASE}'
 
   KUBE_PS1_SYMBOL_ENABLE='false'
