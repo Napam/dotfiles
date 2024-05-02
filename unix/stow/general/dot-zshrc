@@ -26,6 +26,11 @@ function init_completions() {
     source "$HOME/.config/dotfiles/unix/pass-completion.zsh"
   fi
 
+  # fzf
+  if command -v fzf &> /dev/null; then
+    eval "$(fzf --zsh)"
+  fi
+
   # fzf-tab
   [[ -e $HOME/.local/src/fzf-tab ]] && source "$HOME/.local/src/fzf-tab/fzf-tab.plugin.zsh"
 

@@ -84,13 +84,6 @@ fi
 export VENVY_SRC_DIR="$HOME/.local/src/venvy"
 [[ -s $VENVY_SRC_DIR ]] && source "$VENVY_SRC_DIR/venvy.sh"
 
-# fzf
-if [[ $ZSH_VERSION ]]; then
-  [[ -e $HOME/.fzf.zsh ]] && source $HOME/.fzf.zsh
-elif [[ $BASH_VERSION ]]; then
-  [[ -e $HOME/.fzf.zsh ]] && source $HOME/.fzf.bash
-fi
-
 # kubectl editor
 export KUBE_EDITOR=nvim
 
