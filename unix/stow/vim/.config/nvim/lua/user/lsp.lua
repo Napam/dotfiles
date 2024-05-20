@@ -1,22 +1,41 @@
 local cmp = require("cmp")
-local lsp_zero = require("lsp-zero").preset("recommended")
-lsp_zero.on_attach(function(_, bufnr)
-  local opts = { buffer = bufnr }
-  lsp_zero.default_keymaps(opts)
+local lspconfig = require("lspconfig")
+local conform = require("conform")
+local nvimlint = require("lint")
 
-  vim.keymap.set("n", "gr", "<cmd>Telescope lsp_references<cr>", opts)
-  vim.keymap.set("n", "gd", "<cmd>lua vim.lsp.buf.definition()<cr>", opts)
-end)
+local border_style = "single"
 
-lsp_zero.setup()
+vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, {
+  border = border_style,
+})
+
+vim.lsp.handlers["textDocument/signatureHelp"] = vim.lsp.with(vim.lsp.handlers.signature_help, {
+  border = border_style,
+})
+
+vim.api.nvim_create_autocmd("LspAttach", {
+  desc = "LSP stuff",
+  callback = function(event)
+    local opts = { buffer = event.buf }
+    vim.keymap.set("n", "K", "<cmd>lua vim.lsp.buf.hover()<cr>", opts)
+    vim.keymap.set("n", "gd", "<cmd>lua vim.lsp.buf.definition()<cr>", opts)
+    vim.keymap.set("n", "gD", "<cmd>lua vim.lsp.buf.declaration()<cr>", opts)
+    vim.keymap.set("n", "gi", "<cmd>lua vim.lsp.buf.implementation()<cr>", opts)
+    vim.keymap.set("n", "gr", "<cmd>Telescope lsp_references<cr>", opts)
+    vim.keymap.set("n", "gd", "<cmd>lua vim.lsp.buf.definition()<cr>", opts)
+
+    -- Some keymaps are in whichkey
+  end,
+})
 
 vim.diagnostic.config({
   float = {
     source = true,
-    border = "single",
     focusable = true,
   },
 })
+
+local lsp_capabilities = require("cmp_nvim_lsp").default_capabilities()
 
 require("mason").setup()
 require("mason-lspconfig").setup({
@@ -36,24 +55,28 @@ require("mason-lspconfig").setup({
     "tailwindcss",
   },
   handlers = {
-    lsp_zero.default_setup,
+    function(server)
+      lspconfig[server].setup({
+        capabilities = lsp_capabilities,
+      })
+    end,
   },
 })
 
-require("lspconfig").denols.setup({
+lspconfig.denols.setup({
   root_dir = require("lspconfig.util").root_pattern("deno.json", "deno.jsonc"),
 })
 
-require("lspconfig").tsserver.setup({
+lspconfig.tsserver.setup({
   root_dir = require("lspconfig.util").root_pattern("package.json"),
   single_file_support = false,
 })
 
-require("lspconfig").clangd.setup({
+lspconfig.clangd.setup({
   cmd = { "clangd", "--offset-encoding=utf-16" },
 })
 
-require("lspconfig").tailwindcss.setup({
+lspconfig.tailwindcss.setup({
   settings = {
     tailwindCSS = {
       experimental = {
@@ -67,9 +90,9 @@ require("lspconfig").tailwindcss.setup({
   },
 })
 
-require("lspconfig").sqls.setup({ on_attach = require("sqls").on_attach })
+lspconfig.sqls.setup({ on_attach = require("sqls").on_attach })
 
-require("conform").setup({
+conform.setup({
   formatters_by_ft = {
     sh = { "shfmt" },
     zsh = { "shfmt" },
@@ -85,7 +108,7 @@ require("conform").setup({
   },
 })
 
-require("conform").formatters.sqlfluff = {
+conform.formatters.sqlfluff = {
   args = {
     "format",
     "--dialect=postgres",
@@ -95,11 +118,11 @@ require("conform").formatters.sqlfluff = {
 
 -- JS stuff is done using eslint-lsp
 -- Python stuff is done using ruff-lsp
-require("lint").linters_by_ft = {
+nvimlint.linters_by_ft = {
   sql = { "sqlfluff" },
 }
 
-require("lint").linters.sqlfluff.args = {
+nvimlint.linters.sqlfluff.args = {
   "lint",
   "--format=json",
   "--dialect=postgres",
@@ -107,18 +130,13 @@ require("lint").linters.sqlfluff.args = {
 
 vim.api.nvim_create_autocmd({ "BufReadPost", "BufWritePost" }, {
   callback = function()
-    require("lint").try_lint()
+    nvimlint.try_lint()
   end,
 })
 
 require("luasnip.loaders.from_vscode").load()
 
-local cmp_window = require("cmp.config.window")
 cmp.setup({
-  window = {
-    completion = cmp_window.bordered(),
-    documentation = cmp_window.bordered(),
-  },
   sources = {
     { name = "nvim_lsp" },
     { name = "copilot" },
@@ -134,10 +152,9 @@ cmp.setup({
     ["<TAB>"] = cmp.mapping.select_next_item(),
     ["<S-TAB>"] = cmp.mapping.select_prev_item(),
   },
-  formatting = lsp_zero.cmp_format(),
 })
 
-require("lspconfig").lua_ls.setup({
+lspconfig.lua_ls.setup({
   settings = {
     Lua = {
       diagnostics = {

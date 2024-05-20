@@ -27,6 +27,20 @@ require("lazy").setup({
   "stevearc/conform.nvim",
   "mfussenegger/nvim-lint",
   "nanotee/sqls.nvim",
+  -- Lsp and autcompletion
+  -- LSP Support
+  { "neovim/nvim-lspconfig" },
+  { "williamboman/mason.nvim" },
+  { "williamboman/mason-lspconfig.nvim" },
+
+  -- Autocompletion
+  { "hrsh7th/nvim-cmp" },
+  { "hrsh7th/cmp-nvim-lsp" },
+
+  -- Snippets
+  { "L3MON4D3/LuaSnip" },
+  { "saadparwaiz1/cmp_luasnip" },
+  { "rafamadriz/friendly-snippets" },
   {
     "ThePrimeagen/harpoon",
     branch = "harpoon2",
@@ -93,27 +107,6 @@ require("lazy").setup({
     lazy = false,
   },
 
-  -- Lsp and autcompletion
-  {
-    "VonHeikemen/lsp-zero.nvim",
-    branch = "v3.x",
-    dependencies = {
-      -- LSP Support
-      { "neovim/nvim-lspconfig" },
-      { "williamboman/mason.nvim" },
-      { "williamboman/mason-lspconfig.nvim" },
-
-      -- Autocompletion
-      { "hrsh7th/nvim-cmp" },
-      { "hrsh7th/cmp-nvim-lsp" },
-
-      -- Snippets
-      { "L3MON4D3/LuaSnip" },
-      { "saadparwaiz1/cmp_luasnip" },
-      { "rafamadriz/friendly-snippets" },
-    },
-  },
-
   -- Copilot
   {
     "zbirenbaum/copilot.lua",
@@ -123,7 +116,6 @@ require("lazy").setup({
       require("copilot").setup()
     end,
   },
-
   {
     "zbirenbaum/copilot-cmp",
     config = function()
