@@ -5,3 +5,4 @@ opencv-python==4.9.0.80
 scikit-image==0.22.0
 scipy==1.12.0
 CairoSVG==2.7.1
+rectpack==0.2.2
