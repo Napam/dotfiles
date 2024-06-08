@@ -62,6 +62,12 @@ require("lazy").setup({
     event = { "BufReadPre", "BufNewFile" },
   },
   {
+    "nvim-treesitter/nvim-treesitter-textobjects",
+    dependencies = {
+      "nvim-treesitter/nvim-treesitter",
+    },
+  },
+  {
     -- Lazy loaded by Comment.nvim pre_hook
     "JoosepAlviste/nvim-ts-context-commentstring",
     lazy = true,
@@ -201,6 +207,21 @@ require("nvim-treesitter.configs").setup({
       node_incremental = "<C-space>",
       scope_incremental = false,
       node_decremental = "<bs>",
+    },
+  },
+
+  textobjects = {
+    select = {
+      enable = true,
+      lookahead = true,
+      keymaps = {
+        ["af"] = "@function.outer",
+        ["if"] = "@function.inner",
+        ["al"] = "@loop.outer",
+        ["il"] = "@loop.inner",
+        ["ac"] = "@class.outer",
+        ["ic"] = "@class.inner",
+      },
     },
   },
 })
