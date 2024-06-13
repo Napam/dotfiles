@@ -93,7 +93,13 @@ local mappings = {
     l = { "<cmd>lua vim.diagnostic.open_float()<cr>", "Show problem" },
     r = { "<cmd>lua vim.lsp.buf.rename()<cr>", "Rename" },
     s = { "<cmd>lua vim.lsp.buf.signature_help()<cr>", "Signature help" },
-    R = { "<cmd>LspRestart<cr>", "Restart LSP" },
+    R = {
+      function()
+        vim.cmd("LspStop")
+        vim.cmd("LspStart")
+      end,
+      "Restart LSP",
+    },
   },
   q = { "<cmd>q!<cr>", "Quit buffer" },
   r = { "<cmd>Telescope oldfiles<cr>", "Recent files" },
