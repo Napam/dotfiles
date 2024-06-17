@@ -18,7 +18,7 @@ esac
 
 if [[ $ZSH_VERSION ]]; then
   export HISTFILE="$HOME/.zsh_history"
-  export HISTSIZE=420000
+  export HISTSIZE=240000
   export SAVEHIST=$HISTSIZE
 
   export CLICOLOR=1
@@ -77,7 +77,7 @@ if [[ $IS_MAC ]]; then
   esac
 fi
 
-# Flutter
+# Flutter and Dart (Flutter includes Dart)
 [[ -s /opt/flutter ]] && export PATH="$PATH:/opt/flutter/bin"
 
 # venvy
