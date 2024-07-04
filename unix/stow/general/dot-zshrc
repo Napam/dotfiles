@@ -26,6 +26,11 @@ function init_completions() {
     source "$HOME/.config/dotfiles/unix/pass-completion.zsh"
   fi
 
+  # graphite
+  if command -v gt &> /dev/null; then
+    source "$HOME/.config/dotfiles/unix/graphite-completion.zsh"
+  fi
+
   # fzf
   if command -v fzf &> /dev/null; then
     eval "$(fzf --zsh)"
