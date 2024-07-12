@@ -35,6 +35,7 @@ alias safeupgrade="sudo aptitude safe-upgrade"
 alias ansicolors='for i in {0..255}; do  printf "[38;5;${i}mcolor%-5i[0m" $i ; if ! (( ($i + 1 ) % 8 )); then echo ; fi ; done'
 alias passc='pass -c'
 alias repos='cd $HOME/repos'
+alias flutterwatch='writehook ".*.dart" "kill -USR2 \$(pgrep -f \"dart .*flutter_tools.snapshot .*run\")"'
 
 # Firebase
 alias prettyfire='while read -r line; do if [[ $line =~ "^(> *)?{\"" ]]; then echo -E ${line#">  "} | jq -C ; else echo $line; fi; done'
