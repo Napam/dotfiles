@@ -2,111 +2,107 @@ local which_key = require("which-key")
 local harpoon = require("harpoon")
 
 local mappings = {
-  c = { "<cmd>BufferKill<cr>", "Close buffer" },
-  C = { "<cmd>edit ~/.config/nvim/init.lua<cr>", "Open config" },
-  e = { "<cmd>NvimTreeToggle<cr>", "Tree file explorer" },
-  E = { "<cmd>Oil<cr>", "File explorer editor" },
-  f = {
-    name = "Find",
-    f = { "<cmd>Telescope find_files<cr>", "Find files" },
-    g = { "<cmd>Telescope live_grep<cr>", "Find in files" },
-    r = { "<cmd>Telescope resume<cr>", "Resume find" },
-    b = { "<cmd>Telescope buffers<cr>", "Find buffers" },
+  { "<leader>C", "<cmd>edit ~/.config/nvim/init.lua<cr>", desc = "Open config" },
+  { "<leader>E", "<cmd>Oil<cr>", desc = "File explorer editor" },
+  { "<leader>W", "<cmd>wa<cr>", desc = "Save all" },
+  { "<leader>c", "<cmd>BufferKill<cr>", desc = "Close buffer" },
+  { "<leader>e", "<cmd>NvimTreeToggle<cr>", desc = "Tree file explorer" },
+  { "<leader>f", group = "Find" },
+  { "<leader>fb", "<cmd>Telescope buffers<cr>", desc = "Find buffers" },
+  { "<leader>ff", "<cmd>Telescope find_files<cr>", desc = "Find files" },
+  { "<leader>fg", "<cmd>Telescope live_grep<cr>", desc = "Find in files" },
+  { "<leader>fr", "<cmd>Telescope resume<cr>", desc = "Resume find" },
+  { "<leader>g", group = "Git" },
+  { "<leader>gB", "<cmd>Git blame<cr>", desc = "File blame" },
+  { "<leader>gb", "<cmd>Gitsigns blame_line<cr>", desc = "Line blame" },
+  { "<leader>gg", "<cmd>LazyGit<cr>", desc = "Git client" },
+  { "<leader>gj", "<cmd>Gitsigns next_hunk<cr>", desc = "Next hunk" },
+  { "<leader>gk", "<cmd>Gitsigns prev_hunk<cr>", desc = "Previous hunk" },
+  { "<leader>gr", "<cmd>Gitsigns reset_hunk<cr>", desc = "Reset hunk" },
+  { "<leader>h", group = "Harpoon" },
+  {
+    "<leader>h1",
+    function()
+      harpoon:list():select(1)
+    end,
+    desc = "Harpoon 1",
   },
-  g = {
-    name = "Git",
-    g = { "<cmd>LazyGit<cr>", "Git client" },
-    r = { "<cmd>Gitsigns reset_hunk<cr>", "Reset hunk" },
-    b = { "<cmd>Gitsigns blame_line<cr>", "Line blame" },
-    B = { "<cmd>Git blame<cr>", "File blame" },
-    j = { "<cmd>Gitsigns next_hunk<cr>", "Next hunk" },
-    k = { "<cmd>Gitsigns prev_hunk<cr>", "Previous hunk" },
+  {
+    "<leader>h2",
+    function()
+      harpoon:list():select(2)
+    end,
+    desc = "Harpoon 2",
   },
-  h = {
-    name = "Harpoon",
-    l = {
-      function()
-        harpoon.ui:toggle_quick_menu(harpoon:list())
-      end,
-      "List",
-    },
-    a = {
-      function()
-        harpoon:list():add()
-      end,
-      "Append current file",
-    },
-    j = {
-      function()
-        harpoon:list():next()
-      end,
-      "Harpoon next",
-    },
-    k = {
-      function()
-        harpoon:list():prev()
-      end,
-      "Harpoon previous",
-    },
-    ["1"] = {
-      function()
-        harpoon:list():select(1)
-      end,
-      "Harpoon 1",
-    },
-    ["2"] = {
-      function()
-        harpoon:list():select(2)
-      end,
-      "Harpoon 2",
-    },
-    ["3"] = {
-      function()
-        harpoon:list():select(3)
-      end,
-      "Harpoon 3",
-    },
-    ["4"] = {
-      function()
-        harpoon:list():select(4)
-      end,
-      "Harpoon 4",
-    },
-    ["5"] = {
-      function()
-        harpoon:list():select(5)
-      end,
-      "Harpoon 5",
-    },
+  {
+    "<leader>h3",
+    function()
+      harpoon:list():select(3)
+    end,
+    desc = "Harpoon 3",
   },
-  l = {
-    name = "LSP",
-    a = { "<cmd>lua vim.lsp.buf.code_action()<cr>", "Code action" },
-    f = {
-      function()
-        require("conform").format({ bufnr = vim.api.nvim_get_current_buf(), lsp_fallback = true })
-      end,
-      "Format",
-    },
-    j = { "<cmd>lua vim.diagnostic.goto_next()<cr>", "Next problem" },
-    k = { "<cmd>lua vim.diagnostic.goto_prev()<cr>", "Previous problem" },
-    l = { "<cmd>lua vim.diagnostic.open_float()<cr>", "Show problem" },
-    r = { "<cmd>lua vim.lsp.buf.rename()<cr>", "Rename" },
-    s = { "<cmd>lua vim.lsp.buf.signature_help()<cr>", "Signature help" },
-    R = {
-      function()
-        vim.cmd("LspStop")
-        vim.cmd("LspStart")
-      end,
-      "Restart LSP",
-    },
+  {
+    "<leader>h4",
+    function()
+      harpoon:list():select(4)
+    end,
+    desc = "Harpoon 4",
   },
-  q = { "<cmd>q!<cr>", "Quit buffer" },
-  r = { "<cmd>Telescope oldfiles<cr>", "Recent files" },
-  u = { "<cmd>UndotreeToggle<cr>", "Undo history" },
-  w = { "<cmd>w<cr>", "Save" },
-  W = { "<cmd>wa<cr>", "Save all" },
+  {
+    "<leader>h5",
+    function()
+      harpoon:list():select(5)
+    end,
+    desc = "Harpoon 5",
+  },
+  {
+    "<leader>ha",
+    function()
+      harpoon:list():add()
+    end,
+    desc = "Append current file",
+  },
+  {
+    "<leader>hj",
+    function()
+      harpoon:list():next()
+    end,
+    desc = "Harpoon next",
+  },
+  {
+    "<leader>hk",
+    function()
+      harpoon:list():previous()
+    end,
+    desc = "Harpoon previous",
+  },
+  {
+    "<leader>hl",
+    function()
+      harpoon.ui:toggle_quick_menu(harpoon:list())
+    end,
+    desc = "List",
+  },
+  { "<leader>l", group = "LSP" },
+  { "<leader>lR", "<cmd>LspRestart<cr>", desc = "Restart LSP" },
+  { "<leader>la", "<cmd>lua vim.lsp.buf.code_action()<cr>", desc = "Code action" },
+  {
+    "<leader>lf",
+    function()
+      require("conform").format({ bufnr = vim.api.nvim_get_current_buf(), lsp_fallback = true })
+    end,
+    desc = "Format",
+  },
+  { "<leader>lj", "<cmd>lua vim.diagnostic.goto_next()<cr>", desc = "Next problem" },
+  { "<leader>lk", "<cmd>lua vim.diagnostic.goto_prev()<cr>", desc = "Previous problem" },
+  { "<leader>ll", "<cmd>lua vim.diagnostic.open_float()<cr>", desc = "Show problem" },
+  { "<leader>lr", "<cmd>lua vim.lsp.buf.rename()<cr>", desc = "Rename" },
+  { "<leader>ls", "<cmd>lua vim.lsp.buf.signature_help()<cr>", desc = "Signature help" },
+  { "<leader>q", "<cmd>q!<cr>", desc = "Quit buffer" },
+  { "<leader>r", "<cmd>Telescope oldfiles<cr>", desc = "Recent files" },
+  { "<leader>u", "<cmd>UndotreeToggle<cr>", desc = "Undo history" },
+  { "<leader>w", "<cmd>w<cr>", desc = "Save" },
 }
 
 which_key.setup()
-which_key.register(mappings, { prefix = "<leader>" })
+which_key.add(mappings)
