@@ -2,6 +2,7 @@ local cmp = require("cmp")
 local lspconfig = require("lspconfig")
 local conform = require("conform")
 local nvimlint = require("lint")
+local mason_registry = require("mason-registry")
 
 local border_style = "single"
 
@@ -67,10 +68,26 @@ lspconfig.denols.setup({
   root_dir = require("lspconfig.util").root_pattern("deno.json", "deno.jsonc"),
 })
 
+local vue_language_server_path = mason_registry
+  .get_package("vue-language-server")
+  :get_install_path() .. "/node_modules/@vue/language-server"
+
 lspconfig.tsserver.setup({
   root_dir = require("lspconfig.util").root_pattern("package.json"),
-  single_file_support = false,
+  init_options = {
+    plugins = {
+      {
+        name = "@vue/typescript-plugin",
+        location = vue_language_server_path,
+        languages = { "vue" },
+      },
+    },
+  },
+  filetypes = { "typescript", "javascript", "javascriptreact", "typescriptreact", "vue" },
+  -- single_file_support = false,
 })
+
+lspconfig.volar.setup({})
 
 lspconfig.clangd.setup({
   cmd = { "clangd", "--offset-encoding=utf-16" },

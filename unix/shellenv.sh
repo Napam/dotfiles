@@ -40,7 +40,7 @@ export LD_LIBRARY_PATH="/lib:/usr/lib:/usr/local/lib"
 # GO
 export GOPATH="$HOME/.go"
 if [[ -e $GOPATH ]]; then
-  export PATH=$PATH:$GOPATH
+  export PATH=$PATH:$GOPATH:$GOPATH/bin
 fi
 
 # Use nvim instead
