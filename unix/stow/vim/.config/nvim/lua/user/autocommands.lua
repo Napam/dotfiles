@@ -8,7 +8,16 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 })
 
 vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
-  pattern = { ".zshrc", ".bashrc", "*.zsh", "*.bash", "dot-zshrc", "dot-bashrc" },
+  pattern = {
+    ".zshrc",
+    ".bashrc",
+    "*.zsh",
+    "*.bash",
+    "dot-zshrc",
+    "dot-bashrc",
+    ".env",
+    ".env.*",
+  },
   callback = function()
     vim.bo.filetype = "sh"
   end,

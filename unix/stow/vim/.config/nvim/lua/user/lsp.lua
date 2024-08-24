@@ -84,7 +84,7 @@ lspconfig.tsserver.setup({
     },
   },
   filetypes = { "typescript", "javascript", "javascriptreact", "typescriptreact", "vue" },
-  -- single_file_support = false,
+  single_file_support = false,
 })
 
 lspconfig.volar.setup({})
