@@ -109,6 +109,16 @@ lspconfig.tailwindcss.setup({
 
 lspconfig.sqls.setup({ on_attach = require("sqls").on_attach })
 
+lspconfig.yamlls.setup({
+  settings = {
+    yaml = {
+      schemas = {
+        ["https://raw.githubusercontent.com/OAI/OpenAPI-Specification/main/schemas/v3.1/schema.json"] = "/openapi/*",
+      },
+    },
+  },
+})
+
 conform.setup({
   formatters_by_ft = {
     sh = { "shfmt" },
