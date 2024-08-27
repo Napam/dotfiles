@@ -113,7 +113,7 @@ lspconfig.yamlls.setup({
   settings = {
     yaml = {
       schemas = {
-        ["https://raw.githubusercontent.com/OAI/OpenAPI-Specification/main/schemas/v3.1/schema.json"] = "/openapi/*",
+        -- ["https://raw.githubusercontent.com/OAI/OpenAPI-Specification/main/schemas/v3.1/schema.json"] = "/openapi/*",
       },
     },
   },
