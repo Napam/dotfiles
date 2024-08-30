@@ -27,6 +27,14 @@ require("lazy").setup({
   "stevearc/conform.nvim",
   "mfussenegger/nvim-lint",
   "nanotee/sqls.nvim",
+  {
+    "MeanderingProgrammer/render-markdown.nvim",
+    dependencies = {
+      "nvim-treesitter/nvim-treesitter",
+      "echasnovski/mini.nvim",
+    },
+  },
+
   -- Lsp and autcompletion
   -- LSP Support
   { "neovim/nvim-lspconfig" },
@@ -306,3 +314,6 @@ require("fidget").setup({})
 
 -- Harpoon
 require("harpoon"):setup({})
+
+-- Render-markdown
+require("render-markdown").setup({})

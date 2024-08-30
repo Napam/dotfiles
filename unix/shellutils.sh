@@ -85,7 +85,7 @@ alias gb='git for-each-ref --color=always --sort=-committerdate refs/heads --for
 alias gbm='gb | grep Naphat'
 
 # Tmux
-alias tmuxwork='tmuxp load $HOME/.config/tmuxp/work.yaml'
+alias tmuxflow='tmuxp load $HOME/.config/tmuxp/wgflow.yaml'
 alias tmuxapato='tmuxp load $HOME/.config/tmuxp/apato.yaml'
 alias tks='tmux kill-server'
 
