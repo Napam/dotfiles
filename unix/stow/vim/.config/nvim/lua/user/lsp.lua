@@ -107,7 +107,7 @@ lspconfig.tailwindcss.setup({
   },
 })
 
-lspconfig.sqls.setup({ on_attach = require("sqls").on_attach })
+-- lspconfig.sqls.setup({ on_attach = require("sqls").on_attach })
 
 lspconfig.yamlls.setup({
   settings = {
@@ -124,7 +124,7 @@ conform.setup({
     sh = { "shfmt" },
     zsh = { "shfmt" },
     lua = { "stylua" },
-    sql = { "sqlfluff" },
+    sql = { "sleek" },
     bash = { "shfmt" },
     python = { "ruff" },
     markdown = { "prettierd" },
@@ -135,25 +135,25 @@ conform.setup({
   },
 })
 
-conform.formatters.sqlfluff = {
-  args = {
-    "format",
-    "--dialect=postgres",
-    "-",
-  },
-}
+-- conform.formatters.sleek = {
+--   args = {
+--     "format",
+--     "--dialect=postgres",
+--     "-",
+--   },
+-- }
 
 -- JS stuff is done using eslint-lsp
 -- Python stuff is done using ruff-lsp
 nvimlint.linters_by_ft = {
-  sql = { "sqlfluff" },
+  -- sql = { "sqlfluff" },
 }
 
-nvimlint.linters.sqlfluff.args = {
-  "lint",
-  "--format=json",
-  "--dialect=postgres",
-}
+-- nvimlint.linters.sqlfluff.args = {
+--   "lint",
+--   "--format=json",
+--   "--dialect=postgres",
+-- }
 
 vim.api.nvim_create_autocmd({ "BufReadPost", "BufWritePost" }, {
   callback = function()
