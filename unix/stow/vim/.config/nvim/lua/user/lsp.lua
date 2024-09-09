@@ -47,7 +47,7 @@ require("mason-lspconfig").setup({
     "lua_ls",
     "pyright",
     "rust_analyzer",
-    "tsserver",
+    "ts_ls",
     "yamlls",
     "denols",
     "graphql",
@@ -69,10 +69,10 @@ lspconfig.denols.setup({
 })
 
 local vue_language_server_path = mason_registry
-  .get_package("vue-language-server")
-  :get_install_path() .. "/node_modules/@vue/language-server"
+    .get_package("vue-language-server")
+    :get_install_path() .. "/node_modules/@vue/language-server"
 
-lspconfig.tsserver.setup({
+lspconfig.ts_ls.setup({
   root_dir = require("lspconfig.util").root_pattern("package.json"),
   init_options = {
     plugins = {
