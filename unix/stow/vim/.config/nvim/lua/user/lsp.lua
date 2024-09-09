@@ -181,6 +181,13 @@ cmp.setup({
   },
 })
 
+cmp.setup.filetype({ "sql" }, {
+  sources = {
+    { name = "cmp-dbee" },
+    { name = "buffer" },
+  },
+})
+
 lspconfig.lua_ls.setup({
   settings = {
     Lua = {
