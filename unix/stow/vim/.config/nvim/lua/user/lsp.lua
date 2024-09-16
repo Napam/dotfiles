@@ -69,8 +69,8 @@ lspconfig.denols.setup({
 })
 
 local vue_language_server_path = mason_registry
-    .get_package("vue-language-server")
-    :get_install_path() .. "/node_modules/@vue/language-server"
+  .get_package("vue-language-server")
+  :get_install_path() .. "/node_modules/@vue/language-server"
 
 lspconfig.ts_ls.setup({
   root_dir = require("lspconfig.util").root_pattern("package.json"),
@@ -124,7 +124,7 @@ conform.setup({
     sh = { "shfmt" },
     zsh = { "shfmt" },
     lua = { "stylua" },
-    sql = { "sleek" },
+    sql = { "sql_formatter" },
     bash = { "shfmt" },
     python = { "ruff" },
     markdown = { "prettierd" },
@@ -132,6 +132,21 @@ conform.setup({
     typescript = { "prettierd" },
     typescriptreact = { "prettierd" },
     javascriptreact = { "prettierd" },
+  },
+
+  formatters = {
+    sql_formatter = function(_)
+      return {
+        cwd = require("conform.util").root_file({ ".sql-formatter.json" }),
+        require_cwd = true,
+        -- according to docs it should find .sql-formatter.json itself but doesn't :)
+        -- this is kinda suboptimal and weird since the root dir won't necessarily match
+        -- with the config file.
+        args = vim.fn.empty(vim.fn.glob(".sql-formatter.json")) == 0
+            and { "--config", ".sql-formatter.json" }
+          or nil,
+      }
+    end,
   },
 })
 

@@ -31,6 +31,13 @@ vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
 })
 
 vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
+  pattern = { "Dockerfile.*" },
+  callback = function()
+    vim.bo.filetype = "Dockerfile"
+  end,
+})
+
+vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
   pattern = { "*.postcss" },
   callback = function()
     vim.bo.filetype = "css"
