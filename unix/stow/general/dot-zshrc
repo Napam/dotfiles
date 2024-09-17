@@ -1,3 +1,7 @@
+if [[ -s $HOME/.startconfig ]]; then
+  source $HOME/.startconfig
+fi
+
 # Tmuxp tells me to
 export DISABLE_AUTO_TITLE='true'
 

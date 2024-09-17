@@ -94,6 +94,12 @@ if [[ $ZSH_VERSION ]]; then
   [[ -e $HOME/.zsh-vi-mode ]] && source $HOME/.zsh-vi-mode/zsh-vi-mode.zsh
 fi
 
-if command -v tmux &> /dev/null && [ -n "$PS1" ] && [[ ! "$TERM" =~ screen ]] && [[ ! "$TERM" =~ tmux ]] && [ -z "$TMUX" ]; then
+if command -v tmux &> /dev/null && \
+  [[ -n "$PS1" ]] && \
+  [[ ! "$TERM" =~ screen ]] && \
+  [[ ! "$TERM" =~ tmux ]] && \
+  [[ -z "$TMUX" ]] && \
+  [[ $START_TMUX == true ]]
+then
   exec tmux
 fi
