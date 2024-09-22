@@ -182,8 +182,9 @@ cmp.setup({
   sources = {
     { name = "nvim_lsp" },
     { name = "copilot" },
+    { name = "path" },
     { name = "luasnip" },
-    { name = "treesitter" },
+    { name = "nvim_lua" },
   },
   mapping = {
     ["<C-Space>"] = cmp.mapping.complete(),
@@ -198,8 +199,9 @@ cmp.setup({
 
 cmp.setup.filetype({ "sql" }, {
   sources = {
-    { name = "cmp-dbee" },
+    { name = "copilot" },
     { name = "buffer" },
+    { name = "luasnip" },
   },
 })
 
