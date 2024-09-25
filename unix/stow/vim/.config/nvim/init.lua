@@ -22,11 +22,11 @@ require("lazy").setup({
   "ahmedkhalf/project.nvim",
   "tpope/vim-fugitive",
   "stevearc/oil.nvim",
-  "mg979/vim-visual-multi",
   "j-hui/fidget.nvim",
   "stevearc/conform.nvim",
   "mfussenegger/nvim-lint",
   "nanotee/sqls.nvim",
+  "jake-stewart/multicursor.nvim",
   {
     "kndndrj/nvim-dbee",
     dependencies = {
@@ -341,3 +341,6 @@ require("dbee").setup({
   },
 })
 require("cmp-dbee").setup({})
+
+-- Multicursor
+require("multicursor-nvim").setup({})
