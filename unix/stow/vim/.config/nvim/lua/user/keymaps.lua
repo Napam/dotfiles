@@ -126,7 +126,7 @@ end)
 vim.keymap.set("n", "<leader>a", mc.alignCursors)
 
 -- Split visual selections by regex.
-vim.keymap.set("v", "S", mc.splitCursors)
+vim.keymap.set("v", "s", mc.splitCursors)
 
 -- Append/insert for each line of visual selections.
 vim.keymap.set("v", "I", mc.insertVisual)
