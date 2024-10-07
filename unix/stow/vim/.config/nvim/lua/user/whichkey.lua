@@ -86,6 +86,7 @@ local mappings = {
   { "<leader>l", group = "LSP" },
   { "<leader>lR", "<cmd>LspRestart<cr>", desc = "Restart LSP" },
   { "<leader>la", "<cmd>lua vim.lsp.buf.code_action()<cr>", desc = "Code action" },
+  { "<leader>ld", "<cmd>Telescope diagnostics<cr>", desc = "Open telescope diagnostics" },
   {
     "<leader>lf",
     function()
