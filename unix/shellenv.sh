@@ -26,9 +26,14 @@ if [[ $ZSH_VERSION ]]; then
   export LS_COLORS='di=1;36:ln=35:so=32:pi=33:ex=31:bd=34;46:cd=34;43:su=30;41:sg=30;46:tw=30;42:ow=30;43'
 fi
 
-# Homebrew bin, should be in front of PATH such that brew install binaries comes before usr/bin stuff
+# Homebrew bin, should be far in front of PATH such that brew install binaries comes before usr/bin stuff
 if [[ -e /opt/homebrew/bin ]]; then
   export PATH="/opt/homebrew/bin:$PATH"
+fi
+
+# Snap should also be far in front
+if [[ -e /snap/bin ]]; then
+  export PATH="/snap/bin:$PATH"
 fi
 
 # Programs in home local bin
@@ -43,10 +48,15 @@ if [[ -e $GOPATH ]]; then
   export PATH=$PATH:$GOPATH:$GOPATH/bin
 fi
 
-# Use nvim instead
-alias vim=nvim
-export EDITOR=nvim
-export GIT_EDITOR=nvim
+if command -v nvim &> /dev/null; then
+  # Use nvim instead
+  alias vim=nvim
+  export EDITOR=nvim
+  export GIT_EDITOR=nvim
+else
+  export EDITOR=vim
+  export GIT_EDITOR=vim
+fi
 
 export NVM_DIR="$HOME/.nvm"
 [[ -s "$NVM_DIR/nvm.sh" ]] && source "$NVM_DIR/nvm.sh"

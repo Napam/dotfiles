@@ -2,10 +2,6 @@ if [[ -s $HOME/.startconfig ]]; then
   source $HOME/.startconfig
 fi
 
-if [[ -s /home/linuxbrew/.linuxbrew/bin/brew ]]; then
-  eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-fi
-
 # Tmuxp tells me to
 export DISABLE_AUTO_TITLE='true'
 
@@ -106,7 +102,6 @@ if [[ $START_PROMPT_HOSTNAME == true ]]; then
 else
   PROMPT_BASE='%F{121}[%~]%f$ '
 fi
-
 
 PROMPT='$(git_custom_status)${PROMPT_BASE}'
 
