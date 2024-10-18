@@ -126,7 +126,7 @@ conform.setup({
     lua = { "stylua" },
     sql = { "sql_formatter" },
     bash = { "shfmt" },
-    python = { "ruff" },
+    python = { "ruff_format", "ruff_organize_imports" },
     markdown = { "prettierd" },
     javascript = { "prettierd" },
     typescript = { "prettierd" },
