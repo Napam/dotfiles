@@ -132,8 +132,9 @@ conform.setup({
     typescript = { "prettierd" },
     typescriptreact = { "prettierd" },
     javascriptreact = { "prettierd" },
-    templ = { "templ", "html", "rustywind" },
     graphql = { "prettierd" },
+    go = { "goimports", lsp_format = "last" },
+    templ = { "templ", "html", "rustywind", "goimports" },
   },
 
   formatters = {
