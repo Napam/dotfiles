@@ -133,6 +133,7 @@ conform.setup({
     typescriptreact = { "prettierd" },
     javascriptreact = { "prettierd" },
     templ = { "templ", "html", "rustywind" },
+    graphql = { "prettierd" },
   },
 
   formatters = {
