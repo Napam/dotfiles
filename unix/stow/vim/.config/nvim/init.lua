@@ -167,6 +167,11 @@ require("lazy").setup({
     "windwp/nvim-autopairs",
     event = "InsertEnter",
   },
+
+  -- Jupyter notebook
+  {
+    "kiyoon/jupynium.nvim",
+  },
 })
 
 require("user.options")
