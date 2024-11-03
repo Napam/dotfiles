@@ -222,6 +222,9 @@ require("nvim-treesitter.configs").setup({
   highlight = {
     enable = true,
   },
+  injections = {
+    enable = true
+  },
   indent = {
     enable = true,
     disable = { "yaml" },
