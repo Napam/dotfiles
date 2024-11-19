@@ -129,7 +129,7 @@ conform.setup({
     bash = { "shfmt" },
     python = { "ruff_format", "ruff_organize_imports" },
     markdown = { "prettierd" },
-    javascript = { "prettierd" },
+    javascript = { "prettierd", "rustywind" },
     typescript = { "prettierd" },
     typescriptreact = { "prettierd" },
     javascriptreact = { "prettierd" },
