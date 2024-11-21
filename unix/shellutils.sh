@@ -25,6 +25,8 @@ alias proj='cd $HOME/work/projects'
 alias utils='cd $HOME/work/utils'
 alias bountyplusharvest='bounty | awk -F ":>>" "/currBalance/ {print \$1,\$NF+7.5}"'
 alias bountyplus="bounty | awk -F'[: ]' '{decimal=(\$4 + (\$5 / 60)) + 7.5; HH=int(decimal); MM=(decimal-HH)*60; print HH\":\"MM}'"
+alias xbounty='XLEDGER_API_KEY=$(pass apikeys/xledger) bounty'
+alias xbountyplus="xbounty | awk -F'[: ]' '{decimal=(\$4 + (\$5 / 60)) + 7.5; HH=int(decimal); MM=(decimal-HH)*60; print HH\":\"MM}'"
 alias dockerexec='docker ps -a --format="table {{.ID}}\t{{.Names}}\t{{.Image}}\t{{.Ports}}" | fzf --header-lines 1 --no-sort | awk "{print \$1}" | xargs --open-tty -I{} docker exec -it {}'
 alias dockerlogsf='docker ps -a --format="table {{.ID}}\t{{.Names}}\t{{.Image}}\t{{.Ports}}" | fzf --header-lines 1 --no-sort | awk "{print \$1}" | xargs --open-tty -I{} docker logs -f {}'
 alias dockerimagerm="docker images | fzf --header-lines 1 -m --no-sort | awk '{print \$3}' | xargs docker image rm"
