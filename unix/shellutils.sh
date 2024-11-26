@@ -62,6 +62,9 @@ alias svcexec='svcget | $(gnuify xargs) --open-tty -I{} kubectl -it exec svc/{} 
 alias svcsh='svcexec sh'
 alias svcbash='svcexec bash'
 
+# Azure
+alias azaccset="az account set -s \$(az account list -o table | fzf --header-lines 2 | awk -F'[[:space:]][[:space:]]+' '{print \$3}')"
+
 # Git aliases
 alias pullrepos='for repo in `ls -1`; do printf "Pulling \e[33m$repo\e[0m\n"; git -C $repo pull; done'
 alias glol="git log --pretty=format:'%C(yellow)%h %Cred%ad %C(cyan)%an%Cgreen%d %Creset%s' --date=iso"
