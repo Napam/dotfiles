@@ -1,5 +1,5 @@
-if [[ -s $HOME/.startconfig ]]; then
-  source $HOME/.startconfig
+if [[ -s $HOME/.localrc ]]; then
+  source $HOME/.localrc
 fi
 
 # Tmuxp tells me to
