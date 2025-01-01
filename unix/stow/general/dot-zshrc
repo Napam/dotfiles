@@ -46,6 +46,11 @@ function init_completions() {
     eval "$(fzf --zsh)"
   fi
 
+  # zoxide, this also enables zoxide in general
+  if command -v zoxide &> /dev/null; then
+    eval "$(zoxide init zsh)"
+  fi
+
   # fzf-tab
   [[ -e $HOME/.local/src/fzf-tab ]] && source "$HOME/.local/src/fzf-tab/fzf-tab.plugin.zsh"
 
