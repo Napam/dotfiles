@@ -65,6 +65,16 @@ require("mason-lspconfig").setup({
   },
 })
 
+lspconfig.basedpyright.setup({
+  settings = {
+    basedpyright = {
+      analysis = {
+        typeCheckingMode = "standard",
+      },
+    },
+  },
+})
+
 lspconfig.denols.setup({
   root_dir = require("lspconfig.util").root_pattern("deno.json", "deno.jsonc"),
 })
