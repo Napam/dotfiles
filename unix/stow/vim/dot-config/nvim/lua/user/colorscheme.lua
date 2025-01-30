@@ -9,3 +9,9 @@ vim.cmd([[
 ]])
 
 vim.cmd("colorscheme sonokai")
+
+vim.api.nvim_set_hl(0, "CmpItemKindMagic", { bg = "NONE", fg = "#D4D434" })
+vim.api.nvim_set_hl(0, "CmpItemKindPath", { link = "CmpItemKindFolder" })
+vim.api.nvim_set_hl(0, "CmpItemKindDictkey", { link = "CmpItemKindKeyword" })
+vim.api.nvim_set_hl(0, "CmpItemKindInstance", { link = "CmpItemKindVariable" })
+vim.api.nvim_set_hl(0, "CmpItemKindStatement", { link = "CmpItemKindVariable" })

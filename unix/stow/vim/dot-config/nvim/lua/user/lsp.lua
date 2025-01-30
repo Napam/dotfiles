@@ -192,14 +192,17 @@ vim.api.nvim_create_autocmd({ "BufReadPost", "BufWritePost" }, {
 
 require("luasnip.loaders.from_vscode").load()
 
+local lspkind = require("lspkind")
+
 cmp.setup({
-  sources = {
+  sources = cmp.config.sources({
+    { name = "neopyter" },
     { name = "nvim_lsp" },
     { name = "copilot" },
     { name = "path" },
     { name = "luasnip" },
     { name = "nvim_lua" },
-  },
+  }),
   mapping = {
     ["<C-Space>"] = cmp.mapping.complete(),
     ["<CR>"] = cmp.mapping.confirm({
@@ -208,6 +211,25 @@ cmp.setup({
     }),
     ["<TAB>"] = cmp.mapping.select_next_item(),
     ["<S-TAB>"] = cmp.mapping.select_prev_item(),
+  },
+  formatting = {
+    format = lspkind.cmp_format({
+      mode = "symbol_text",
+      menu = {
+        buffer = "[Buf]",
+        nvim_lsp = "[LSP]",
+        nvim_lua = "[Lua]",
+        neopyter = "[Neopyter]",
+      },
+      symbol_map = {
+        -- specific complete item kind icon
+        ["Magic"] = "🪄",
+        ["Path"] = "📁",
+        ["Dict key"] = "🔑",
+        ["Instance"] = "󱃻",
+        ["Statement"] = "󱇯",
+      },
+    }),
   },
 })
 

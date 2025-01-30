@@ -61,6 +61,7 @@ require("lazy").setup({
     },
     config = true,
   },
+  { "onsails/lspkind.nvim" },
 
   -- Autocompletion
   { "hrsh7th/nvim-cmp" },
@@ -169,8 +170,65 @@ require("lazy").setup({
   },
 
   -- Jupyter notebook
+  -- {
+  --   "kiyoon/jupynium.nvim",
+  -- },
   {
-    "kiyoon/jupynium.nvim",
+    "SUSTech-data/neopyter",
+    dependencies = {
+      "nvim-lua/plenary.nvim",
+      "nvim-treesitter/nvim-treesitter", -- neopyter don't depend on `nvim-treesitter`, but does depend on treesitter parser of python
+      "AbaoFromCUG/websocket.nvim", -- for mode='direct'
+    },
+
+    ---@type neopyter.Option
+    opts = {
+      mode = "direct",
+      remote_address = "127.0.0.1:9001",
+      file_pattern = { "*.ju.*" },
+      on_attach = function(bufnr)
+        -- do some buffer keymap
+        local function map(mode, lhs, rhs, desc)
+          vim.keymap.set(mode, lhs, rhs, { desc = desc, buffer = bufnr })
+        end
+        -- same, recommend the former
+        map("n", "<space>x", "<cmd>Neopyter execute notebook:run-cell<cr>", "run selected")
+        -- map("n", "<C-Enter>", "<cmd>Neopyter run current<cr>", "run selected")
+
+        -- same, recommend the former
+        map(
+          "n",
+          "<space>X",
+          "<cmd>Neopyter execute notebook:run-all-above<cr>",
+          "run all above cell"
+        )
+        -- map("n", "<space>X", "<cmd>Neopyter run allAbove<cr>", "run all above cell")
+
+        -- same, recommend the former, but the latter is silent
+        map("n", "<space>nt", "<cmd>Neopyter execute kernelmenu:restart<cr>", "restart kernel")
+        -- map("n", "<space>nt", "<cmd>Neopyter kernel restart<cr>", "restart kernel")
+
+        map(
+          "n",
+          "<S-Enter>",
+          "<cmd>Neopyter execute runmenu:run<cr>",
+          "run selected and select next"
+        )
+        map(
+          "n",
+          "<M-Enter>",
+          "<cmd>Neopyter execute run-cell-and-insert-below<cr>",
+          "run selected and insert below"
+        )
+
+        map(
+          "n",
+          "<F5>",
+          "<cmd>Neopyter execute notebook:restart-run-all<cr>",
+          "restart kernel and run all"
+        )
+      end,
+    },
   },
 })
 
@@ -267,6 +325,8 @@ require("nvim-treesitter.configs").setup({
         ["ii"] = "@conditional.inner",
         ["ak"] = "@comment.outer",
         ["ik"] = "@comment.inner",
+        ["aj"] = { query = "@cell", desc = "Select cell" },
+        ["ij"] = { query = "@cellcontent", desc = "Select cell content" },
       },
     },
   },
