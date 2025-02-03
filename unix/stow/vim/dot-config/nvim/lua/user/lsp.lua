@@ -196,7 +196,7 @@ local lspkind = require("lspkind")
 
 cmp.setup({
   sources = cmp.config.sources({
-    { name = "neopyter" },
+    -- { name = "neopyter" },
     { name = "nvim_lsp" },
     { name = "copilot" },
     { name = "path" },
