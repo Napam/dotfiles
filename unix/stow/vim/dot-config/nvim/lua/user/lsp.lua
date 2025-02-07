@@ -146,6 +146,7 @@ conform.setup({
     graphql = { "prettierd" },
     go = { "goimports", lsp_format = "last" },
     templ = { "templ", "html", "rustywind", "goimports" },
+    typst = { "typstyle" },
   },
 
   formatters = {
