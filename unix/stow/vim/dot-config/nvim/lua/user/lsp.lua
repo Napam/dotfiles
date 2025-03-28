@@ -14,6 +14,10 @@ vim.lsp.handlers["textDocument/signatureHelp"] = vim.lsp.with(vim.lsp.handlers.s
   border = border_style,
 })
 
+vim.diagnostic.config({
+  virtual_text = true,
+})
+
 vim.api.nvim_create_autocmd("LspAttach", {
   desc = "LSP stuff",
   callback = function(event)
