@@ -3,7 +3,6 @@ local mappings = {
   { "<leader>W", "<cmd>wa<cr>", desc = "Save all" },
   { "<leader>c", "<cmd>:bd<cr>", desc = "Close buffer" },
   { "<leader>e", "<cmd>Oil<cr>", desc = "File explorer" },
-  { "<leader>r", "<cmd>FzfLua oldfiles<cr>", desc = "Find old files" },
   { "<leader>q", "<cmd>q!<cr>", desc = "Quit buffer" },
   { "<leader>u", "<cmd>UndotreeToggle<cr>", desc = "Undo history" },
   { "<leader>w", "<cmd>w<cr>", desc = "Save" },
@@ -12,6 +11,7 @@ local mappings = {
   { "<leader>ff", "<cmd>FzfLua files<cr>", desc = "Find files" },
   { "<leader>fg", "<cmd>FzfLua live_grep<cr>", desc = "Find in files" },
   { "<leader>fr", "<cmd>FzfLua resume<cr>", desc = "Resume finder" },
+  { "<leader>fo", "<cmd>FzfLua oldfiles<cr>", desc = "Recently used files" },
 
   { "<leader>g", group = "Git" },
   { "<leader>gB", "<cmd>Git blame<cr>", desc = "File blame" },
@@ -37,6 +37,41 @@ local mappings = {
   { "<leader>ll", "<cmd>lua vim.diagnostic.open_float()<cr>", desc = "Show problem" },
   { "<leader>lr", "<cmd>lua vim.lsp.buf.rename()<cr>", desc = "Rename" },
   { "<leader>ls", "<cmd>lua vim.lsp.buf.signature_help()<cr>", desc = "Signature help" },
+
+  { "<leader>x", group = "Extra diagnostics" },
+  {
+    "<leader>xx",
+    "<cmd>Trouble diagnostics toggle<cr>",
+    desc = "Diagnostics (Trouble)",
+  },
+  {
+    "<leader>xX",
+    "<cmd>Trouble diagnostics toggle filter.buf=0<cr>",
+    desc = "Buffer Diagnostics (Trouble)",
+  },
+  {
+    "<leader>xs",
+    "<cmd>Trouble symbols toggle focus=false<cr>",
+    desc = "Symbols (Trouble)",
+  },
+  {
+    "<leader>xl",
+    "<cmd>Trouble lsp toggle focus=false win.position=right<cr>",
+    desc = "LSP Definitions / references / ... (Trouble)",
+  },
+  {
+    "<leader>xL",
+    "<cmd>Trouble loclist toggle<cr>",
+    desc = "Location List (Trouble)",
+  },
+  {
+    "<leader>xQ",
+    "<cmd>Trouble qflist toggle<cr>",
+    desc = "Quickfix List (Trouble)",
+  },
+
+  { "<leader>S", group = "Snacks" },
+  { "<leader>Sz", "<cmd>lua Snacks.zen()<cr>", desc = "Enable zen" },
 }
 
 return {

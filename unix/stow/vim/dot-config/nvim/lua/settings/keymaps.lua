@@ -49,8 +49,6 @@ keymap("n", "gi", "<cmd>FzfLua lsp_implementations()<cr>", opts)
 keymap("n", "gr", "<cmd>FzfLua lsp_references<cr>", opts)
 
 -- Insert --
--- Press jk fast to change to normal mode
-keymap("i", "jk", "<ESC>", opts)
 
 -- Visual --
 -- Stay in indent mode
@@ -60,6 +58,7 @@ keymap("v", ">", ">gv", opts)
 -- Move text up and down
 keymap("v", "<A-j>", ":m .+1<CR>==", opts)
 keymap("v", "<A-k>", ":m .-2<CR>==", opts)
+
 -- Dont copy to clipboard when pasting
 keymap("v", "p", '"_dP', opts)
 
