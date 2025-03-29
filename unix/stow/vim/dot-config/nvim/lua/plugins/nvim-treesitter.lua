@@ -7,59 +7,63 @@ return {
   build = function()
     vim.cmd.TSUpdate()
   end,
-  opts = {
-    auto_install = true,
-    highlight = {
-      enable = true,
-    },
-    injections = {
-      enable = true,
-    },
-    indent = {
-      enable = true,
-      disable = { "yaml" },
-    },
-    ensure_installed = {
-      "comment",
-      "markdown_inline",
-      "regex",
-      "typescript",
-      "python",
-      "bash",
-      "javascript",
-      "html",
-    },
-    ignore_install = {
-      "tmux",
-    },
-    incremental_selection = {
-      enable = true,
-      keymaps = {
-        init_selection = "<C-space>",
-        node_incremental = "<C-space>",
-        scope_incremental = false,
-        node_decremental = "<bs>",
-      },
-    },
-    textobjects = {
-      select = {
+  config = function()
+    local tsconfigs = require("nvim-treesitter.configs")
+    tsconfigs.setup({
+
+      auto_install = true,
+      highlight = {
         enable = true,
-        lookahead = true,
+      },
+      injections = {
+        enable = true,
+      },
+      indent = {
+        enable = true,
+        disable = { "yaml" },
+      },
+      ensure_installed = {
+        "comment",
+        "markdown_inline",
+        "regex",
+        "typescript",
+        "python",
+        "bash",
+        "javascript",
+        "html",
+      },
+      ignore_install = {
+        "tmux",
+      },
+      incremental_selection = {
+        enable = true,
         keymaps = {
-          ["af"] = "@function.outer",
-          ["if"] = "@function.inner",
-          ["al"] = "@loop.outer",
-          ["il"] = "@loop.inner",
-          ["ac"] = "@class.outer",
-          ["ic"] = "@class.inner",
-          ["ai"] = "@conditional.outer",
-          ["ii"] = "@conditional.inner",
-          ["ak"] = "@comment.outer",
-          ["ik"] = "@comment.inner",
-          ["aj"] = { query = "@cell", desc = "Select cell" },
-          ["ij"] = { query = "@cellcontent", desc = "Select cell content" },
+          init_selection = "<C-space>",
+          node_incremental = "<C-space>",
+          scope_incremental = false,
+          node_decremental = "<bs>",
         },
       },
-    },
-  },
+      textobjects = {
+        select = {
+          enable = true,
+          lookahead = true,
+          keymaps = {
+            ["af"] = "@function.outer",
+            ["if"] = "@function.inner",
+            ["al"] = "@loop.outer",
+            ["il"] = "@loop.inner",
+            ["ac"] = "@class.outer",
+            ["ic"] = "@class.inner",
+            ["ai"] = "@conditional.outer",
+            ["ii"] = "@conditional.inner",
+            ["ak"] = "@comment.outer",
+            ["ik"] = "@comment.inner",
+            ["aj"] = { query = "@cell", desc = "Select cell" },
+            ["ij"] = { query = "@cellcontent", desc = "Select cell content" },
+          },
+        },
+      },
+    })
+  end,
 }
