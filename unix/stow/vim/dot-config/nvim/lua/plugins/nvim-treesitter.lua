@@ -10,7 +10,8 @@ return {
   config = function()
     local tsconfigs = require("nvim-treesitter.configs")
     tsconfigs.setup({
-
+      sync_install = false,
+      modules = {},
       auto_install = true,
       highlight = {
         enable = true,

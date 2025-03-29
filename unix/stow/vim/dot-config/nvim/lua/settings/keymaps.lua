@@ -41,6 +41,13 @@ keymap("n", "<A-h>", "<CMD>noh<CR>", opts)
 keymap("n", "<C-u>", "<C-u>zz", opts)
 keymap("n", "<C-d>", "<C-d>zz", opts)
 
+-- LSP
+keymap("n", "K", "<cmd>lua vim.lsp.buf.hover()<cr>", opts)
+keymap("n", "gd", "<cmd>lua vim.lsp.buf.definition()<cr>", opts)
+keymap("n", "gD", "<cmd>lua vim.lsp.buf.declaration()<cr>", opts)
+keymap("n", "gi", "<cmd>FzfLua lsp_implementations()<cr>", opts)
+keymap("n", "gr", "<cmd>FzfLua lsp_references<cr>", opts)
+
 -- Insert --
 -- Press jk fast to change to normal mode
 keymap("i", "jk", "<ESC>", opts)
