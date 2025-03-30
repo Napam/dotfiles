@@ -14,5 +14,12 @@ return {
     input = { enabled = true },
     words = { enabled = true },
     zen = { enabled = true },
+    picker = { enabled = true },
+
+    styles = {
+      input = {
+        relative = "cursor",
+      },
+    },
   },
 }

@@ -1,17 +1,24 @@
 local mappings = {
+  { "gd", "<cmd>lua Snacks.picker.lsp_definitions()<cr>", desc = "Goto Definition" },
+  { "gD", "<cmd>lua Snacks.picker.lsp_declarations()<cr>", desc = "Goto Declaration" },
+  { "gr", "<cmd>lua Snacks.picker.lsp_references()<cr>", nowait = true, desc = "References" },
+  { "gI", "<cmd>lua Snacks.picker.lsp_implementations()<cr>", desc = "Goto Implementation" },
+  { "gy", "<cmd>lua Snacks.picker.lsp_type_definitions()<cr>", desc = "Goto T[y]pe Definition" },
+
   { "<leader>C", "<cmd>edit ~/.config/nvim/init.lua<cr>", desc = "Open config" },
   { "<leader>W", "<cmd>wa<cr>", desc = "Save all" },
-  { "<leader>c", "<cmd>:bd<cr>", desc = "Close buffer" },
+  { "<leader>c", "<cmd>lua Snacks.bufdelete()<cr>", desc = "Close buffer" },
   { "<leader>e", "<cmd>Oil<cr>", desc = "File explorer" },
   { "<leader>q", "<cmd>q!<cr>", desc = "Quit buffer" },
   { "<leader>u", "<cmd>UndotreeToggle<cr>", desc = "Undo history" },
   { "<leader>w", "<cmd>w<cr>", desc = "Save" },
 
   { "<leader>f", group = "Find" },
-  { "<leader>ff", "<cmd>FzfLua files<cr>", desc = "Find files" },
-  { "<leader>fg", "<cmd>FzfLua live_grep<cr>", desc = "Find in files" },
-  { "<leader>fr", "<cmd>FzfLua resume<cr>", desc = "Resume finder" },
-  { "<leader>fo", "<cmd>FzfLua oldfiles<cr>", desc = "Recently used files" },
+  { "<leader>ff", "<cmd>lua Snacks.picker.files()<cr>", desc = "Find files" },
+  { "<leader>fg", "<cmd>lua Snacks.picker.grep()<cr>", desc = "Find in files" },
+  { "<leader>fr", "<cmd>lua Snacks.picker.resume()<cr>", desc = "Resume finder" },
+  { "<leader>fo", "<cmd>lua Snacks.picker.recent()<cr>", desc = "Recently used files" },
+  { "<leader>fu", "<cmd>lua Snacks.picker.undo()<cr>", desc = "Recently used files" },
 
   { "<leader>g", group = "Git" },
   { "<leader>gB", "<cmd>Git blame<cr>", desc = "File blame" },
@@ -72,6 +79,7 @@ local mappings = {
 
   { "<leader>S", group = "Snacks" },
   { "<leader>Sz", "<cmd>lua Snacks.zen()<cr>", desc = "Enable zen" },
+  { "<leader>Sn", "<cmd>lua Snacks.notifier.show_history()<cr>", desc = "Notification history" },
 }
 
 return {
