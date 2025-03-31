@@ -8,3 +8,9 @@ vim.api.nvim_create_autocmd("TextYankPost", {
     vim.highlight.on_yank({ higroup = "Search", timeout = 100 })
   end,
 })
+
+vim.api.nvim_create_autocmd({ "BufWritePre" }, {
+  desc = "Remove trailing whitespaces before save",
+  pattern = { "*" },
+  command = [[%s/\s\+$//e]],
+})
