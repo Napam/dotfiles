@@ -5,3 +5,5 @@ vim.diagnostic.config({
     focusable = true,
   },
 })
+
+vim.o.winborder = 'single'
