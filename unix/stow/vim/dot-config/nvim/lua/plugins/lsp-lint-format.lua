@@ -20,6 +20,9 @@ return {
                   typeCheckingMode = "standard",
                   diagnosticSeverityOverrides = {
                     reportImplicitStringConcatenation = false,
+                    -- Let linter handle unused stuff, or will have double up with essentially same message
+                    reportUnusedImport = false,
+                    reportUnusedVariable = false,
                   },
                 },
               },
@@ -130,8 +133,6 @@ return {
                 -- includeInlayVariableTypeHints = false,
                 -- includeInlayVariableTypeHintsWhenTypeMatchesName = false,
               },
-              -- prevent omni completion from inserting extra period
-              completionDisableFilterText = true,
             },
             ---@param client vim.lsp.Client
             on_attach = function(client)
