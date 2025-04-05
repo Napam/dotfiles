@@ -203,6 +203,7 @@ return {
         "html",
         "jsonls",
         "lua_ls",
+        "prettierd",
         "ruff",
         "rust_analyzer",
         "rustywind",
