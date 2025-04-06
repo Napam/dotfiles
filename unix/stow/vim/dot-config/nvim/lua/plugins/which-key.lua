@@ -20,8 +20,8 @@ local mappings = {
   { "<leader>w",  "<cmd>w<cr>",                             desc = "Save" },
 
   { "<leader>f",  group = "Find" },
-  { "<leader>ff", "<cmd>lua Snacks.picker.git_files()<cr>", desc = "Find files" },
-  { "<leader>fg", "<cmd>lua Snacks.picker.git_grep()<cr>",  desc = "Find in files" },
+  { "<leader>ff", "<cmd>lua Snacks.picker.files()<cr>",     desc = "Find files" },
+  { "<leader>fg", "<cmd>lua Snacks.picker.grep()<cr>",      desc = "Find in files" },
   { "<leader>fr", "<cmd>lua Snacks.picker.resume()<cr>",    desc = "Resume finder" },
   { "<leader>fo", "<cmd>lua Snacks.picker.recent()<cr>",    desc = "Recently used files" },
   { "<leader>fu", "<cmd>lua Snacks.picker.undo()<cr>",      desc = "Recently used files" },
