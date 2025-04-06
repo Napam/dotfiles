@@ -14,7 +14,18 @@ return {
     input = { enabled = true },
     words = { enabled = true },
     zen = { enabled = true },
-    picker = { enabled = true },
+
+    picker = {
+      enabled = true,
+      sources = {
+        files = {
+          hidden = true,
+          ignored = true,
+          exclude = { ".git", "node_modules", ".DS_Store" },
+        }
+      }
+    },
+
     lazygit = {
       configure = true,
       theme = {
@@ -39,5 +50,6 @@ return {
         relative = "cursor",
       },
     },
+
   },
 }
