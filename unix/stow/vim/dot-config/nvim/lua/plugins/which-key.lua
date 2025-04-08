@@ -16,15 +16,15 @@ local mappings = {
   { "<leader>c",  "<cmd>lua Snacks.bufdelete()<cr>",        desc = "Close buffer" },
   { "<leader>e",  "<cmd>Oil<cr>",                           desc = "File explorer" },
   { "<leader>q",  "<cmd>q!<cr>",                            desc = "Quit buffer" },
-  { "<leader>u",  "<cmd>UndotreeToggle<cr>",                desc = "Undo history" },
   { "<leader>w",  "<cmd>w<cr>",                             desc = "Save" },
 
   { "<leader>f",  group = "Find" },
+  { "<leader>fs", "<cmd>lua Snacks.picker.smart()<cr>",     desc = "Smart file serach" },
   { "<leader>ff", "<cmd>lua Snacks.picker.files()<cr>",     desc = "Find files" },
   { "<leader>fg", "<cmd>lua Snacks.picker.grep()<cr>",      desc = "Find in files" },
   { "<leader>fr", "<cmd>lua Snacks.picker.resume()<cr>",    desc = "Resume finder" },
   { "<leader>fo", "<cmd>lua Snacks.picker.recent()<cr>",    desc = "Recently used files" },
-  { "<leader>fu", "<cmd>lua Snacks.picker.undo()<cr>",      desc = "Recently used files" },
+  { "<leader>fu", "<cmd>lua Snacks.picker.undo()<cr>",      desc = "Undo list" },
 
   { "<leader>g",  group = "Git" },
   { "<leader>gB", "<cmd>Git blame<cr>",                     desc = "File blame" },

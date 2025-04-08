@@ -21,7 +21,13 @@ return {
         files = {
           hidden = true,
           ignored = true,
-          exclude = { ".git", "node_modules", ".DS_Store" },
+          exclude = {
+            ".git",
+            "node_modules",
+            ".DS_Store",
+            ".venv",
+            "__pycache__"
+          },
         }
       }
     },
