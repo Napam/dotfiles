@@ -6,6 +6,10 @@
   arguments: (argument_list
     (string (string_content) @injection.content (#set! injection.language "sql"))))
 
+(assignment
+  left: (identifier) @id (#match? @id "query|sql_query")
+  right: (string
+    (string_content) @injection.content (#set! injection.language "sql")))
 
 (call
   function: [
