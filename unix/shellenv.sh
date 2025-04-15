@@ -16,6 +16,10 @@ case "$(uname -sr)" in
     ;;
 esac
 
+if [[ $IS_MAC ]]; then
+  export XDG_CONFIG_HOME="$HOME/.config"
+fi
+
 if [[ $ZSH_VERSION ]]; then
   export HISTFILE="$HOME/.zsh_history"
   export HISTSIZE=240000

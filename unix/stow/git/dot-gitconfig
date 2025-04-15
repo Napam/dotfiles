@@ -3,8 +3,14 @@
 	name = Naphat Amundsen
 	signingkey = ~/.ssh/id_rsa
 [core]
-	pager = less -F
+	pager = delta
 	editor = vim
+[interactive]
+    diffFilter = delta --color-only
+[delta]
+    navigate = true
+[merge]
+    conflictstylle = zdiff3
 [push]
   autoSetupRemote = true
 [pull]
