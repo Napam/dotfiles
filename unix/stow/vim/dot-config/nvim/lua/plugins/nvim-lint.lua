@@ -4,6 +4,8 @@ return {
     local nvim_lint = require("lint")
     local group = vim.api.nvim_create_augroup("nvim-lint", { clear = true })
 
+    nvim_lint.linters_by_ft = {}
+
     vim.api.nvim_create_autocmd({ "BufReadPost", "BufWritePost" }, {
       desc = "nvim-lint",
       group = group,
