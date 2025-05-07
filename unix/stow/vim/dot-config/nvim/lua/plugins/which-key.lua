@@ -19,11 +19,12 @@ local mappings = {
   { "<leader>w",  "<cmd>w<cr>",                             desc = "Save" },
 
   { "<leader>f",  group = "Find" },
-  { "<leader>fs", "<cmd>lua Snacks.picker.smart()<cr>",     desc = "Smart file serach" },
+  { "<leader>fb", "<cmd>lua Snacks.picker.buffers()<cr>",   desc = "Find in buffers" },
   { "<leader>ff", "<cmd>lua Snacks.picker.files()<cr>",     desc = "Find files" },
   { "<leader>fg", "<cmd>lua Snacks.picker.grep()<cr>",      desc = "Find in files" },
-  { "<leader>fr", "<cmd>lua Snacks.picker.resume()<cr>",    desc = "Resume finder" },
   { "<leader>fo", "<cmd>lua Snacks.picker.recent()<cr>",    desc = "Recently used files" },
+  { "<leader>fr", "<cmd>lua Snacks.picker.resume()<cr>",    desc = "Resume finder" },
+  { "<leader>fs", "<cmd>lua Snacks.picker.smart()<cr>",     desc = "Smart file serach" },
   { "<leader>fu", "<cmd>lua Snacks.picker.undo()<cr>",      desc = "Undo list" },
 
   { "<leader>g",  group = "Git" },
