@@ -2,192 +2,165 @@ return {
   {
     "neovim/nvim-lspconfig",
     lazy = false,
+    dependencies = { "mason-org/mason.nvim" },
     config = function()
-      local lspconfig = require("lspconfig")
+      vim.lsp.config("basedpyright", {
+        settings = {
+          basedpyright = {
+            analysis = {
+              typeCheckingMode = "standard",
+              diagnosticSeverityOverrides = {
+                reportImplicitStringConcatenation = false,
+                -- Let linter handle unused stuff, or will have double up with essentially same message
+                reportUnusedImport = false,
+                reportUnusedVariable = false,
+              },
+            },
+          }
+        }
+      })
 
-      require("mason-lspconfig").setup_handlers({
-        -- Mason language servers with default setups
-        function(server_name)
-          lspconfig[server_name].setup({})
-        end,
+      vim.lsp.config("eslint", {
+        settings = { format = false },
+      })
 
-        -- Mason language servers with custom setups
-        basedpyright = function()
-          lspconfig["basedpyright"].setup({
-            settings = {
-              basedpyright = {
-                analysis = {
-                  typeCheckingMode = "standard",
-                  diagnosticSeverityOverrides = {
-                    reportImplicitStringConcatenation = false,
-                    -- Let linter handle unused stuff, or will have double up with essentially same message
-                    reportUnusedImport = false,
-                    reportUnusedVariable = false,
+      vim.lsp.config("gopls", {
+        settings = {
+          gopls = {
+            hints = {
+              -- assignVariableTypes = true,
+              compositeLiteralFields = true,
+              compositeLiteralTypes = true,
+              constantValues = true,
+              functionTypeParameters = true,
+              parameterNames = true,
+              rangeVariableTypes = true,
+            },
+          }
+        },
+      })
+
+      vim.lsp.config("lua_ls", {
+        settings = {
+          Lua = {
+            hint = {
+              enable = true,
+              ---@type "Auto" | "Enable" | "Disable"
+              arrayIndex = "Disable",
+              -- await = true,
+              -- awaitPropagate = false,
+              ---@type "All" | "Literal" | "Disable"
+              paramName = "Literal",
+              -- paramType = true,
+              -- ---@type "All" | "SameLine" | "Disable"
+              -- semicolon = "SameLine",
+              setType = true,
+            },
+          },
+        },
+        ---@param client vim.lsp.Client
+        on_init = function(client)
+          local ok, workspace_folder = pcall(unpack, client.workspace_folders)
+          if not ok then
+            return
+          end
+          local path = workspace_folder.name
+          if
+              vim.uv.fs_stat(path .. "/.luarc.json")
+              or vim.uv.fs_stat(path .. "/.luarc.jsonc")
+          then
+            return
+          end
+
+          client.config.settings.Lua =
+          ---@diagnostic disable-next-line: param-type-mismatch
+              vim.tbl_deep_extend("force", client.config.settings.Lua, {
+                runtime = { version = "LuaJIT" },
+                workspace = {
+                  checkThirdParty = "Disable",
+                  library = {
+                    "${3rd}/luv/library",
+                    unpack(vim.api.nvim_get_runtime_file("", true)),
                   },
                 },
-              },
+              })
+        end,
+        on_attach = function()
+          -- HACK: https://github.com/LuaLS/lua-language-server/issues/1809
+          vim.api.nvim_set_hl(0, "@lsp.type.comment", {})
+        end,
+      })
+
+      vim.lsp.config("ruff", {
+        settings = {}
+      })
+
+
+      vim.lsp.config("ts_ls", {
+        settings = {
+          init_options = {
+            preferences = {
+              includeInlayEnumMemberValueHints = true,
+              -- includeInlayFunctionLikeReturnTypeHints = false,
+              -- includeInlayFunctionParameterTypeHints = false,
+              includeInlayParameterNameHints = "all",
+              -- includeInlayParameterNameHintsWhenArgumentMatchesName = false,
+              -- includeInlayPropertyDeclarationTypeHints = true,
+              -- includeInlayVariableTypeHints = false,
+              -- includeInlayVariableTypeHintsWhenTypeMatchesName = false,
             },
-          })
-        end,
+          },
+        }
+      })
 
-        eslint = function()
-          lspconfig["eslint"].setup({
-            settings = { format = false },
-          })
-        end,
-
-        gopls = function()
-          lspconfig["gopls"].setup({
-            settings = {
-              gopls = {
-                hints = {
-                  -- assignVariableTypes = true,
-                  compositeLiteralFields = true,
-                  compositeLiteralTypes = true,
-                  constantValues = true,
-                  functionTypeParameters = true,
-                  parameterNames = true,
-                  rangeVariableTypes = true,
+      vim.lsp.config("tailwindcss", {
+        settings = {
+          tailwindCSS = {
+            experimental = {
+              classRegex = {
+                "\\w+Class=\\{?['\"]([^'\"]*)\\}?",
+                "(?:\\b(?:const|let|var)\\s+)?[\\w$_]*(?:[Ss]tyles|[Cc]lasses|[Cc]lassnames|[Cc]lass)[\\w\\d]*\\s*(?:=|\\+=)\\s*['\"`]([^'\"`]*)['\"`]",
+                { "(?:twMerge|twJoin|Merge|[Aa]dd)\\(([^;]*)[\\);]", "[`'\"`]([^'\"`;]*)[`'\"`]" },
+                {
+                  "(tw`(?:(?:(?:[^`]*\\$\\{[^]*?\\})[^`]*)+|[^`]*`))",
+                  "((?:(?<=`)(?:[^\"'`]*)(?=\\${|`))|(?:(?<=\\})(?:[^\"'`]*)(?=\\${))|(?:(?<=\\})(?:[^\"'`]*)(?=`))|(?:(?<=')(?:[^\"'`]*)(?='))|(?:(?<=\")(?:[^\"'`]*)(?=\"))|(?:(?<=`)(?:[^\"'`]*)(?=`)))",
                 },
               },
             },
-          })
-        end,
+          },
+        },
+      })
 
-        lua_ls = function()
-          lspconfig["lua_ls"].setup({
-            settings = {
-              Lua = {
-                hint = {
-                  enable = true,
-                  ---@type "Auto" | "Enable" | "Disable"
-                  arrayIndex = "Disable",
-                  -- await = true,
-                  -- awaitPropagate = false,
-                  ---@type "All" | "Literal" | "Disable"
-                  paramName = "Literal",
-                  -- paramType = true,
-                  -- ---@type "All" | "SameLine" | "Disable"
-                  -- semicolon = "SameLine",
-                  setType = true,
-                },
-              },
-            },
-            ---@param client vim.lsp.Client
-            on_init = function(client)
-              local ok, workspace_folder = pcall(unpack, client.workspace_folders)
-              if not ok then
-                return
-              end
-              local path = workspace_folder.name
-              if
-                  vim.uv.fs_stat(path .. "/.luarc.json")
-                  or vim.uv.fs_stat(path .. "/.luarc.jsonc")
-              then
-                return
-              end
+      vim.lsp.config("yamlls", {
+        settings = {
+          keyOrdering = false
+        },
+      })
 
-              client.config.settings.Lua =
-              ---@diagnostic disable-next-line: param-type-mismatch
-                  vim.tbl_deep_extend("force", client.config.settings.Lua, {
-                    runtime = { version = "LuaJIT" },
-                    workspace = {
-                      checkThirdParty = "Disable",
-                      library = {
-                        "${3rd}/luv/library",
-                        unpack(vim.api.nvim_get_runtime_file("", true)),
-                      },
-                    },
-                  })
-            end,
-            on_attach = function()
-              -- HACK: https://github.com/LuaLS/lua-language-server/issues/1809
-              vim.api.nvim_set_hl(0, "@lsp.type.comment", {})
-            end,
-          })
-        end,
-
-        ruff = function()
-          lspconfig["ruff"].setup({
-            ---@param client vim.lsp.Client
-            on_attach = function(client)
-              client.server_capabilities.hoverProvider = false
-            end,
-          })
-        end,
-
-        ts_ls = function()
-          lspconfig["ts_ls"].setup({
-            root_dir = function(file)
-              return vim.fs.root(file, { "package.json", "tsconfig.json", "jsconfig.json" })
-            end,
-            single_file_support = false,
-            init_options = {
-              preferences = {
-                includeInlayEnumMemberValueHints = true,
-                -- includeInlayFunctionLikeReturnTypeHints = false,
-                -- includeInlayFunctionParameterTypeHints = false,
-                includeInlayParameterNameHints = "all",
-                -- includeInlayParameterNameHintsWhenArgumentMatchesName = false,
-                -- includeInlayPropertyDeclarationTypeHints = true,
-                -- includeInlayVariableTypeHints = false,
-                -- includeInlayVariableTypeHintsWhenTypeMatchesName = false,
-              },
-            },
-            ---@param client vim.lsp.Client
-            on_attach = function(client)
-              client.server_capabilities.documentFormattingProvider = false
-            end,
-          })
-        end,
-
-        tailwindcss = function()
-          lspconfig["tailwindcss"].setup({
-            settings = {
-              tailwindCSS = {
-                experimental = {
-                  classRegex = {
-                    "\\w+Class=\\{?['\"]([^'\"]*)\\}?",
-                    "(?:\\b(?:const|let|var)\\s+)?[\\w$_]*(?:[Ss]tyles|[Cc]lasses|[Cc]lassnames|[Cc]lass)[\\w\\d]*\\s*(?:=|\\+=)\\s*['\"`]([^'\"`]*)['\"`]",
-                    { "(?:twMerge|twJoin|Merge|[Aa]dd)\\(([^;]*)[\\);]", "[`'\"`]([^'\"`;]*)[`'\"`]" },
-                    {
-                      "(tw`(?:(?:(?:[^`]*\\$\\{[^]*?\\})[^`]*)+|[^`]*`))",
-                      "((?:(?<=`)(?:[^\"'`]*)(?=\\${|`))|(?:(?<=\\})(?:[^\"'`]*)(?=\\${))|(?:(?<=\\})(?:[^\"'`]*)(?=`))|(?:(?<=')(?:[^\"'`]*)(?='))|(?:(?<=\")(?:[^\"'`]*)(?=\"))|(?:(?<=`)(?:[^\"'`]*)(?=`)))",
-                    },
-                  },
-                },
-              },
-            },
-          })
-        end,
-
-        yamlls = function()
-          lspconfig["yamlls"].setup({
-            settings = {
-              yaml = { keyOrdering = false },
-            },
-          })
-        end,
-
-        denols = function()
-          lspconfig["denols"].setup({
-            root_dir = function(file)
-              return vim.fs.root(file, { "deno.json", "deno.jsonc" })
-            end,
-          })
+      vim.lsp.config("denols", {
+        root_dir = function(file)
+          return vim.fs.root(file, { "deno.json", "deno.jsonc" })
         end,
       })
     end,
   },
+
   {
-    "williamboman/mason.nvim",
+    "mason-org/mason.nvim",
+
     config = function()
       require("mason").setup()
     end,
   },
   {
-    "williamboman/mason-lspconfig.nvim",
+    "mason-org/mason-lspconfig.nvim",
     opts = {},
+    config = function()
+      require("mason-lspconfig").setup({
+        automatic_enable = true,
+        ensure_installed = {}
+      })
+    end,
   },
   {
     "WhoIsSethDaniel/mason-tool-installer.nvim",
@@ -217,7 +190,7 @@ return {
   },
   {
     "stevearc/conform.nvim",
-    dependencies = { "williamboman/mason.nvim" },
+    dependencies = { "mason-org/mason.nvim" },
     config = function()
       local conform = require("conform")
       conform.setup({
