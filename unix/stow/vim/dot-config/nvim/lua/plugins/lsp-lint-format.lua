@@ -210,6 +210,8 @@ return {
           go = { "goimports", lsp_format = "last" },
           templ = { "templ", "html", "rustywind", "goimports" },
           typst = { "typstyle" },
+          yaml = { "prettierd" },
+          helm = { "prettierd" },
         },
       })
     end,
@@ -312,4 +314,5 @@ return {
     },
     opts_extend = { "sources.default" },
   },
+  { "towolf/vim-helm" }
 }

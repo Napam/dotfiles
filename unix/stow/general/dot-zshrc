@@ -131,3 +131,7 @@ fi
 if [[ -f "$HOME/.config/dotfiles-work/unix/init.sh" ]]; then
   source $HOME/.config/dotfiles-work/unix/init.sh
 fi
+
+if command -v _localrc_after &> /dev/null; then
+  _localrc_after
+fi
