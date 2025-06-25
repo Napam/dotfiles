@@ -63,8 +63,21 @@ return {
     "mfussenegger/nvim-dap",
     dependencies = {
       "leoluz/nvim-dap-go",
+      "mfussenegger/nvim-dap-python",
     },
     config = function()
+      local dap_python = require("dap-python")
+      dap_python.setup("python3")
+      table.insert(require('dap').configurations.python, {
+        type = 'python',
+        request = 'launch',
+        name = 'PDM Launch from cwd',
+        program = '${file}',
+        python = 'pdm run',
+        cwd = vim.fn.getcwd(),
+        -- ... more options, see https://github.com/microsoft/debugpy/wiki/Debug-configuration-settings
+      })
+
       local dap_go = require("dap-go")
       dap_go.setup({
         dap_configurations = {
