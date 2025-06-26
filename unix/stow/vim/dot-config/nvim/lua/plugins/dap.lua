@@ -1,4 +1,4 @@
-local function get_pid_from_cwd_file()
+local function get_pid_from_dap_pid_file()
   local search_base_dir = vim.fn.getcwd()
   local found_pid_file_path = nil
 
@@ -64,6 +64,7 @@ return {
     dependencies = {
       "leoluz/nvim-dap-go",
       "mfussenegger/nvim-dap-python",
+      -- "mxsdev/nvim-dap-vscode-js",
     },
     config = function()
       local dap_python = require("dap-python")
@@ -90,6 +91,16 @@ return {
         }
       }
 
+      dap.adapters["pwa-chrome"] = {
+        type = "server",
+        host = "localhost",
+        port = "${port}",
+        executable = {
+          command = "js-debug-adapter",
+          args = { "${port}" },
+        }
+      }
+
       for _, language in ipairs({ "typescript", "javascript", "typescriptreact", "javascriptreact" }) do
         dap.configurations[language] = {
           {
@@ -97,15 +108,61 @@ return {
             request = "launch",
             name = "Launch file",
             program = "${file}",
-            cwd = vim.fn.getcwd(),
+            cwd = vim.fn.getcwd,
             console = "integratedTerminal",
+            sourceMaps = true,
           },
-          {
+          { -- Remember to use --insepct flag when attaching debugger to node
             type = "pwa-node",
             request = "attach",
             name = "Attach to process",
             processId = require("dap.utils").pick_process,
             console = "integratedTerminal",
+            cwd = vim.fn.getcwd,
+            sourceMaps = true,
+          },
+          {
+            type = "pwa-node",
+            request = "attach",
+            name = "Attach to PID using dap.pid",
+            processId = get_pid_from_dap_pid_file,
+            console = "integratedTerminal",
+          },
+          {
+            type = "pwa-chrome",
+            request = "launch",
+            name = "Launch Chrome",
+            console = "integratedTerminal",
+            url = function()
+              local co = coroutine.running()
+              return coroutine.create(function()
+                vim.ui.input({ prompt = "Enter URL: ", default = "http://localhost:3000" }, function(url)
+                  if url == nil or url == "" then
+                    return
+                  else
+                    coroutine.resume(co, url)
+                  end
+                end)
+              end)
+            end,
+            cwd = vim.fn.getcwd,
+            sourceMaps = true,
+            localRoot = vim.fn.getcwd,
+            remoteRoot = function()
+              local co = coroutine.running()
+              return coroutine.create(function()
+                vim.ui.input({ prompt = "Enter remote root: ", default = "/" }, function(remoteRoot)
+                  if remoteRoot == nil or remoteRoot == "" then
+                    return
+                  else
+                    coroutine.resume(co, remoteRoot)
+                  end
+                end)
+              end)
+            end,
+            resolveSourceMapLocations = {
+              "${workspaceFolder}/**",
+            },
           },
         }
       end
@@ -119,7 +176,7 @@ return {
             name = "Attach PID using dap.pid",
             mode = "local",
             request = "attach",
-            processId = get_pid_from_cwd_file,
+            processId = get_pid_from_dap_pid_file,
             console = "integratedTerminal",
           },
         },
