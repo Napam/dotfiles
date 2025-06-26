@@ -67,8 +67,10 @@ return {
     },
     config = function()
       local dap_python = require("dap-python")
+      local dap = require("dap")
+
       dap_python.setup("python3")
-      table.insert(require('dap').configurations.python, {
+      table.insert(dap.configurations.python, {
         type = 'python',
         request = 'launch',
         name = 'PDM Launch from cwd',
@@ -77,6 +79,37 @@ return {
         cwd = vim.fn.getcwd(),
         -- ... more options, see https://github.com/microsoft/debugpy/wiki/Debug-configuration-settings
       })
+
+      dap.adapters["pwa-node"] = {
+        type = "server",
+        host = "localhost",
+        port = "${port}",
+        executable = {
+          command = "js-debug-adapter",
+          args = { "${port}" },
+        }
+      }
+
+      for _, language in ipairs({ "typescript", "javascript", "typescriptreact", "javascriptreact" }) do
+        dap.configurations[language] = {
+          {
+            type = "pwa-node",
+            request = "launch",
+            name = "Launch file",
+            program = "${file}",
+            cwd = vim.fn.getcwd(),
+            console = "integratedTerminal",
+          },
+          {
+            type = "pwa-node",
+            request = "attach",
+            name = "Attach to process",
+            processId = require("dap.utils").pick_process,
+            console = "integratedTerminal",
+          },
+        }
+      end
+
 
       local dap_go = require("dap-go")
       dap_go.setup({
@@ -87,6 +120,7 @@ return {
             mode = "local",
             request = "attach",
             processId = get_pid_from_cwd_file,
+            console = "integratedTerminal",
           },
         },
         -- delve configurations
