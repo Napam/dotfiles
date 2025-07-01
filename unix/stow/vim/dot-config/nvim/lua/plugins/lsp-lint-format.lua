@@ -297,13 +297,19 @@ return {
       -- Default list of enabled providers defined so that you can extend it
       -- elsewhere in your config, without redefining it, due to `opts_extend`
       sources = {
-        default = { "copilot", "lsp", "path", "snippets", "buffer" },
+        default = { "copilot", "lsp", "neopyter", "path", "snippets", "buffer" },
         providers = {
           copilot = {
             name = "copilot",
             module = "blink-copilot",
             score_offset = 100,
             async = true,
+          },
+          neopyter = {
+            name = "Neopyter",
+            module = "neopyter.blink",
+            ---@type neopyter.CompleterOption
+            opts = {},
           },
         },
       },

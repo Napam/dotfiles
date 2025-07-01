@@ -52,6 +52,7 @@ local mappings = {
   { "<leader>lr", "<cmd>lua vim.lsp.buf.rename()<cr>",                         desc = "Rename" },
   { "<leader>ls", "<cmd>lua vim.lsp.buf.signature_help()<cr>",                 desc = "Signature help" },
 
+  { "<leader>p",  group = "Persistence" },
   { "<leader>ps", function() require("persistence").load() end,                desc = "Load the session for the current directory" },
   { "<leader>pS", function() require("persistence").select() end,              desc = "Select a session to load" },
   { "<leader>pl", function() require("persistence").load({ last = true }) end, desc = "Load the last session" },
@@ -90,8 +91,17 @@ local mappings = {
   },
 
   { "<leader>S",  group = "Snacks" },
-  { "<leader>Sz", "<cmd>lua Snacks.zen()<cr>",                   desc = "Enable zen" },
-  { "<leader>Sn", "<cmd>lua Snacks.notifier.show_history()<cr>", desc = "Notification history" },
+  { "<leader>Sz", "<cmd>lua Snacks.zen()<cr>",                          desc = "Enable zen" },
+  { "<leader>Sn", "<cmd>lua Snacks.notifier.show_history()<cr>",        desc = "Notification history" },
+
+  { "<leader>j",  group = "Jupyter" },
+  { "<leader>jc", "<cmd>Neopyter execute notebook:run-cell<cr>",        desc = "Run selected cell" },
+  { "<leader>js", "<cmd>Neopyter sync current<cr>",                     desc = "Sync" },
+  { "<leader>ja", "<cmd>Neopyter execute notebook:run-all-above<cr>",   desc = "Run all above" },
+  { "<leader>jb", "<cmd>Neopyter execute notebook:run-all-below<cr>",   desc = "Run all below" },
+  { "<leader>jA", "<cmd>Neopyter execute runmenu:run-all<cr>",          desc = "Run all" },
+  { "<leader>jr", "<cmd>Neopyter execute kernelmenu:restart<cr>",       desc = "Restart" },
+  { "<leader>jR", "<cmd>Neopyter execute notebook:restart-run-all<cr>", desc = "Restart and run all" },
 }
 
 return {
