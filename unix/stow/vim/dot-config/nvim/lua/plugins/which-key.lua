@@ -46,11 +46,16 @@ local mappings = {
     end,
     desc = "Format",
   },
-  { "<leader>lj", "<cmd>lua vim.diagnostic.goto_next()<cr>",   desc = "Next problem" },
-  { "<leader>lk", "<cmd>lua vim.diagnostic.goto_prev()<cr>",   desc = "Previous problem" },
-  { "<leader>ll", "<cmd>lua vim.diagnostic.open_float()<cr>",  desc = "Show problem" },
-  { "<leader>lr", "<cmd>lua vim.lsp.buf.rename()<cr>",         desc = "Rename" },
-  { "<leader>ls", "<cmd>lua vim.lsp.buf.signature_help()<cr>", desc = "Signature help" },
+  { "<leader>lj", "<cmd>lua vim.diagnostic.goto_next()<cr>",                   desc = "Next problem" },
+  { "<leader>lk", "<cmd>lua vim.diagnostic.goto_prev()<cr>",                   desc = "Previous problem" },
+  { "<leader>ll", "<cmd>lua vim.diagnostic.open_float()<cr>",                  desc = "Show problem" },
+  { "<leader>lr", "<cmd>lua vim.lsp.buf.rename()<cr>",                         desc = "Rename" },
+  { "<leader>ls", "<cmd>lua vim.lsp.buf.signature_help()<cr>",                 desc = "Signature help" },
+
+  { "<leader>ps", function() require("persistence").load() end,                desc = "Load the session for the current directory" },
+  { "<leader>pS", function() require("persistence").select() end,              desc = "Select a session to load" },
+  { "<leader>pl", function() require("persistence").load({ last = true }) end, desc = "Load the last session" },
+  { "<leader>pd", function() require("persistence").stop() end,                desc = "Stop persistence" },
 
   { "<leader>x",  group = "Extra diagnostics" },
   {

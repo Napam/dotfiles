@@ -82,6 +82,19 @@ return {
         cwd = vim.fn.getcwd(),
         -- ... more options, see https://github.com/microsoft/debugpy/wiki/Debug-configuration-settings
       })
+      table.insert(dap.configurations.python, {
+        type = 'python',
+        request = 'launch',
+        name = 'UV Launch from cwd',
+        program = '${file}',
+        python = 'uv',
+        args = {
+          "run",
+          "${file}"
+        },
+        cwd = vim.fn.getcwd(),
+        -- ... more options, see https://github.com/microsoft/debugpy/wiki/Debug-configuration-settings
+      })
 
       dap.adapters["pwa-node"] = {
         type = "server",
