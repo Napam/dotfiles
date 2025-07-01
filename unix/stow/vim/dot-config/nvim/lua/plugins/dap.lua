@@ -10,7 +10,7 @@ local function get_pid_from_dap_pid_file()
 
   if not found_pid_file_path then
     vim.notify(
-      "PID Parser INFO: No dap.pid file found recursively in '" .. search_base_dir .. "'.",
+      "No dap.pid file found recursively in '" .. search_base_dir .. "'.",
       vim.log.levels.INFO
     )
     return nil
@@ -27,7 +27,7 @@ local function get_pid_from_dap_pid_file()
 
   if not success_read then
     vim.notify(
-      "PID Parser ERROR: Failed to read PID file '" .. found_pid_file_path .. "'. Error: " .. tostring(err_read),
+      "Failed to read PID file '" .. found_pid_file_path .. "'. Error: " .. tostring(err_read),
       vim.log.levels.ERROR
     )
     return nil
@@ -35,7 +35,7 @@ local function get_pid_from_dap_pid_file()
 
   if not pid_str or pid_str == "" then
     vim.notify(
-      "PID Parser WARNING: PID file '" .. found_pid_file_path .. "' is empty or could not read its first line.",
+      "PID file '" .. found_pid_file_path .. "' is empty or could not read its first line.",
       vim.log.levels.WARN
     )
     return nil
@@ -44,7 +44,7 @@ local function get_pid_from_dap_pid_file()
   local pid = tonumber(pid_str:match("^%s*(%d+)%s*$"))
   if not pid then
     vim.notify(
-      "PID Parser WARNING: Could not parse a valid PID number from the first line of '" ..
+      "Could not parse a valid PID number from the first line of '" ..
       found_pid_file_path .. "'. Content: '" .. pid_str:gsub("%s", " ") .. "'",
       vim.log.levels.WARN
     )
@@ -52,7 +52,7 @@ local function get_pid_from_dap_pid_file()
   end
 
   vim.notify(
-    "PID Parser INFO: Successfully found and parsed PID: " .. pid .. " from '" .. found_pid_file_path .. "'.",
+    "Successfully found and parsed PID: " .. pid .. " from '" .. found_pid_file_path .. "'.",
     vim.log.levels.INFO
   )
   return pid
@@ -64,11 +64,13 @@ return {
     dependencies = {
       "leoluz/nvim-dap-go",
       "mfussenegger/nvim-dap-python",
-      -- "mxsdev/nvim-dap-vscode-js",
+      "Joakker/lua-json5",
     },
     config = function()
       local dap_python = require("dap-python")
       local dap = require("dap")
+
+      require('dap.ext.vscode').json_decode = require('json5').parse
 
       dap_python.setup("python3")
       table.insert(dap.configurations.python, {
@@ -219,6 +221,38 @@ return {
           verbose = false,
         },
       })
+
+      dap.configurations.dart = {
+        {
+          type = "dart",
+          request = "launch",
+          name = "Launch dart",
+          dartSdkPath = "dart",
+          flutterSdkPath = "flutter",
+          program = "${workspaceFolder}/lib/main.dart",
+          cwd = "${workspaceFolder}",
+        },
+        {
+          type = "flutter",
+          request = "launch",
+          name = "Launch flutter",
+          dartSdkPath = "dart",
+          flutterSdkPath = "flutter",
+          program = "${workspaceFolder}/lib/main.dart",
+          cwd = "${workspaceFolder}",
+        }
+      }
+
+      dap.adapters.dart = {
+        type = 'executable',
+        command = 'dart',
+        args = { 'debug_adapter' },
+      }
+      dap.adapters.flutter = {
+        type = 'executable',
+        command = 'flutter',
+        args = { 'debug_adapter' },
+      }
     end
   },
   { "rcarriga/nvim-dap-ui", enabled = false },
