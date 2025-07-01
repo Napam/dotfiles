@@ -29,6 +29,13 @@ return {
             "__pycache__"
           },
         }
+      },
+      win = {
+        input = {
+          keys = {
+            ["<C-y>"] = { "confirm", mode = { "n", "i" } }
+          }
+        }
       }
     },
 
