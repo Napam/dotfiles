@@ -256,9 +256,11 @@ return {
         }
       }
 
+      -- Overriding dart adapter to just use flutter. This matches the VSCode behavior for others
+      -- I will probably never write dart without flutter anyways.
       dap.adapters.dart = {
         type = 'executable',
-        command = 'dart',
+        command = 'flutter',
         args = { 'debug_adapter' },
       }
       dap.adapters.flutter = {

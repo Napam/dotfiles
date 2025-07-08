@@ -1,4 +1,4 @@
 # This is a very simple serialization format that uses awk to parse.
 # It is just key-value pairs as you see here.
 
-executable=python3.12
+executable=python3.13

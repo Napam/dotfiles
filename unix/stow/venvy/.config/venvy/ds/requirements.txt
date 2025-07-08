@@ -1,2 +1,6 @@
-numpy>=1.25.2
-matplotlib>=3.8.2
+matplotlib==3.10.3
+numpy==2.3.1
+pandas==2.3.1
+polars==1.31.0
+scikit-learn==1.7.0
+scipy==1.16.0
