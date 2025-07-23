@@ -1,4 +1,5 @@
 local mappings = {
+
   { "gd", "<cmd>lua Snacks.picker.lsp_definitions()<cr>",      desc = "Goto Definition" },
   { "gD", "<cmd>lua Snacks.picker.lsp_declarations()<cr>",     desc = "Goto Declaration" },
   { "gr", "<cmd>lua Snacks.picker.lsp_references()<cr>",       nowait = true,                  desc = "References" },
@@ -17,6 +18,10 @@ local mappings = {
   { "<leader>e",  "<cmd>Oil<cr>",                           desc = "File explorer" },
   { "<leader>q",  "<cmd>q!<cr>",                            desc = "Quit buffer" },
   { "<leader>w",  "<cmd>w<cr>",                             desc = "Save" },
+
+  { "<leader>a",  group = "AI" },
+  { "<leader>ac", "<cmd>CodeCompanionChat Toggle<cr>",             desc = "Code companion chat" },
+  { "<leader>aa", "<cmd>CodeCompanionActions<cr>",             desc = "Code companion actions" },
 
   { "<leader>f",  group = "Find" },
   { "<leader>fb", "<cmd>lua Snacks.picker.buffers()<cr>",   desc = "Find in buffers" },
