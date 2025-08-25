@@ -43,6 +43,7 @@ return {
         "typescript",
         "yaml",
         "zig",
+        "r",
       },
       ignore_install = {
         "tmux",
