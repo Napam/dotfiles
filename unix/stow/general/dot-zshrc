@@ -102,7 +102,7 @@ alias editrc='vim $(realpath $HOME/.zshrc); source $HOME/.zshrc'
 # Enables dynamic prompt by evaluating the PROMPT env var
 setopt prompt_subst
 
-if [[ $START_PROMPT_HOSTNAME == true ]]; then
+if [[ $LOCAL_PROMPT_SHOW_HOSTNAME == true ]]; then
   PROMPT_BASE='%F{214}[%m]%F{121}[%~]%f$ '
 else
   PROMPT_BASE='%F{121}[%~]%f$ '
