@@ -18,16 +18,23 @@ vim.opt.rtp:prepend(lazypath)
 
 require("settings")
 
--- Setup lazy.nvim
+-- Get the value of the environment variable
+local mode = os.getenv("LOCAL_NVIM_PLUGIN_MODE")
+
+-- Build the spec table conditionally
+local spec = {
+  { import = "plugins/essentials" },
+}
+
+if mode ~= "ESSENTIALS" then
+  table.insert(spec, { import = "plugins/rest" })
+end
+
+-- Setup lazy.nvim with the conditional spec
 require("lazy").setup({
-  spec = {
-    -- import your plugins
-    { import = "plugins" },
-  },
-  -- Configure any other settings here. See the documentation for more details.
-  -- colorscheme that will be used when installing plugins.
+  spec = spec,
+  -- Configure any other settings here.
   install = { colorscheme = { "habamax" } },
-  -- automatically check for plugin updates
   checker = { enabled = false },
   change_detection = { notify = false },
 })
