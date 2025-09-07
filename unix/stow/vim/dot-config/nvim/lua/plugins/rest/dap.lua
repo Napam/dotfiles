@@ -58,6 +58,17 @@ local function get_pid_from_dap_pid_file()
   return pid
 end
 
+local function get_venv_python()
+  local cwd = vim.fn.getcwd()
+  local venv_path = cwd .. "/.venv/bin/python"
+  local readable = vim.fn.filereadable(venv_path)
+  if readable == 1 then
+    return venv_path
+  else
+    return "python3"
+  end
+end
+
 return {
   {
     "mfussenegger/nvim-dap",
@@ -72,28 +83,14 @@ return {
 
       require('dap.ext.vscode').json_decode = require('json5').parse
 
-      dap_python.setup("python3")
+      dap_python.setup(get_venv_python())
       table.insert(dap.configurations.python, {
         type = 'python',
         request = 'launch',
-        name = 'PDM Launch from cwd',
+        name = 'Launch file from cwd',
         program = '${file}',
-        python = 'pdm run',
-        cwd = vim.fn.getcwd(),
-        -- ... more options, see https://github.com/microsoft/debugpy/wiki/Debug-configuration-settings
-      })
-      table.insert(dap.configurations.python, {
-        type = 'python',
-        request = 'launch',
-        name = 'UV Launch from cwd',
-        program = '${file}',
-        python = 'uv',
-        args = {
-          "run",
-          "${file}"
-        },
-        cwd = vim.fn.getcwd(),
-        -- ... more options, see https://github.com/microsoft/debugpy/wiki/Debug-configuration-settings
+        -- python = get_venv_python(), -- this shit doesn't work
+        cwd = vim.fn.getcwd,
       })
 
       dap.adapters["pwa-node"] = {
@@ -181,7 +178,6 @@ return {
           },
         }
       end
-
 
       local dap_go = require("dap-go")
       dap_go.setup({
