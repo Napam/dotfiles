@@ -91,6 +91,7 @@ return {
         program = '${file}',
         -- python = get_venv_python(), -- this shit doesn't work
         cwd = vim.fn.getcwd,
+        env = { PYTHONPATH = "." }
       })
 
       dap.adapters["pwa-node"] = {
