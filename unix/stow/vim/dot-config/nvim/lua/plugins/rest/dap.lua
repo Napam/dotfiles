@@ -87,10 +87,31 @@ return {
       table.insert(dap.configurations.python, {
         type = 'python',
         request = 'launch',
-        name = 'Launch file from cwd',
+        name = 'Launch file from pyproject root',
         program = '${file}',
-        -- python = get_venv_python(), -- this shit doesn't work
-        cwd = vim.fn.getcwd,
+        cwd = function()
+          local file_path = vim.api.nvim_buf_get_name(0)
+          if file_path == "" then
+            vim.notify("No file detected in current buffer, using cwd: " .. vim.fn.getcwd())
+            return vim.fn.getcwd()
+          end
+
+          local pyproject = vim.fs.find("pyproject.toml", {
+            path = vim.fs.dirname(file_path),
+            upward = true,
+            type = "file",
+            limit = 1,
+          })[1]
+
+          if pyproject then
+            local pyproject_dir = vim.fs.dirname(pyproject)
+            vim.notify("Using pyproject.toml parent dir as root at: " .. pyproject_dir)
+            return pyproject_dir
+          else
+            vim.notify("No pyproject.toml found, using cwd: " .. vim.fn.getcwd())
+            return vim.fn.getcwd()
+          end
+        end,
         env = { PYTHONPATH = "." }
       })
 
