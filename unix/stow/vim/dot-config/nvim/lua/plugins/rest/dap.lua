@@ -89,6 +89,8 @@ return {
         request = 'launch',
         name = 'Launch file from pyproject root',
         program = '${file}',
+        justMyCode = true,
+        console = 'integratedTerminal',
         cwd = function()
           local file_path = vim.api.nvim_buf_get_name(0)
           if file_path == "" then
