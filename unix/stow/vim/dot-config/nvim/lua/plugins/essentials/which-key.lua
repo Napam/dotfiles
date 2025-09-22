@@ -6,7 +6,7 @@ local mappings = {
   { "gI", "<cmd>lua Snacks.picker.lsp_implementations()<cr>",  desc = "Goto Implementation" },
   { "gy", "<cmd>lua Snacks.picker.lsp_type_definitions()<cr>", desc = "Goto T[y]pe Definition" },
   {
-    "s",
+    "<leader><leader>",
     mode = { "n", "x", "o" },
     function() require("flash").jump() end,
     desc = "Flash"
