@@ -217,6 +217,45 @@ return {
           helm = { "prettierd" },
         },
       })
+
+      conform.formatters.injected = {
+        options = {
+          ignore_errors = false,
+          -- Map of treesitter language to file extension
+          -- A temporary file name with this extension will be generated during formatting
+          -- because some formatters care about the filename.
+          lang_to_ext = {
+            bash = 'sh',
+            c_sharp = 'cs',
+            elixir = 'exs',
+            go = 'go',
+            graphql = 'graphql',
+            helm = 'yaml',
+            html = 'html',
+            javascript = 'js',
+            javascriptreact = 'jsx',
+            julia = 'jl',
+            latex = 'tex',
+            lua = 'lua',
+            markdown = 'md',
+            python = 'py',
+            r = 'r',
+            ruby = 'rb',
+            rust = 'rs',
+            sql = 'sql',
+            svelte = 'svelte',
+            teal = 'tl',
+            typescript = 'ts',
+            typescriptreact = 'tsx',
+            typst = 'typ',
+            yaml = 'yaml',
+            zsh = 'sh',
+          },
+          -- Map of treesitter language to formatters to use
+          -- (defaults to the value from formatters_by_ft)
+          lang_to_formatters = {},
+        },
+      }
     end,
   },
   {
