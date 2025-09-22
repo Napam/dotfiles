@@ -25,6 +25,7 @@ vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
     "dot-bashrc",
     ".env",
     ".env.*",
+    ".localrc"
   },
   callback = function()
     vim.bo.filetype = "sh"
