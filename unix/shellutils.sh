@@ -56,15 +56,16 @@ alias nvimconf='cd $HOME/.config/dotfiles/unix/stow/vim/dot-config/nvim'
 # Kubernetes aliases
 alias k='kubectl'
 alias k3='k3s kubectl'
-alias kgp='kubectl get pods'
-alias podget='kubectl get pods | fzf | awk "{print \$1}"'
-alias svcget='kubectl get svc | fzf | awk "{print \$1}"'
+alias podget='kubectl get pods -A | fzf | awk "{print \$1}"'
+alias svcget='kubectl get svc -A | fzf | awk "{print \$1}"'
 alias podexec='podget | $(gnuify xargs) --open-tty -I{} kubectl -it exec {} --'
 alias podsh='podexec sh'
 alias podbash='podexec bash'
 alias svcexec='svcget | $(gnuify xargs) --open-tty -I{} kubectl -it exec svc/{} --'
 alias svcsh='svcexec sh'
 alias svcbash='svcexec bash'
+alias kgp='kubectl get pods'
+alias kgpas='kubectl get pods -A --field-selector=metadata.namespace!=kube-system,metadata.namespace!=gmp-system,metadata.namespace!=gke-managed-cim'
 
 # Azure
 alias azaccset="az account set -s \$(az account list -o table | fzf --header-lines 2 | awk -F'[[:space:]][[:space:]]+' '{print \$3}')"
