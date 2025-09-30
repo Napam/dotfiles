@@ -65,7 +65,7 @@ alias svcexec='svcget | $(gnuify xargs) --open-tty -I{} kubectl -it exec svc/{} 
 alias svcsh='svcexec sh'
 alias svcbash='svcexec bash'
 alias kgp='kubectl get pods'
-alias kgpas='kubectl get pods -A --field-selector=metadata.namespace!=kube-system,metadata.namespace!=gmp-system,metadata.namespace!=gke-managed-cim'
+alias kgpa='kubectl get pods -A --field-selector=metadata.namespace!=kube-system,metadata.namespace!=gmp-system,metadata.namespace!=gke-managed-cim'
 
 # Azure
 alias azaccset="az account set -s \$(az account list -o table | fzf --header-lines 2 | awk -F'[[:space:]][[:space:]]+' '{print \$3}')"

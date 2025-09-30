@@ -2,3 +2,10 @@ git:
   paging:
     colorArg: always
     pager: delta --dark --paging=never
+
+keybinding:
+  universal:
+    prevItem: k
+    nextItem: j
+    prevItem-alt: <c-p>
+    nextItem-alt: <c-n>
