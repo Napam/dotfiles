@@ -95,6 +95,14 @@ if [[ -d $HOME/.config/dotfiles ]]; then
   source $HOME/.config/dotfiles/unix/shellenv.sh
 fi
 
+function prompt_env() {
+    if [[ $ENV == "prod" || $ENV == "production" || $ENV == "live" ]]; then
+        echo "%F{009}[$ENV]%f"
+    elif [[ ! -z $ENV ]]; then
+        echo "%F{223}[$ENV]%f"
+    fi
+}
+
 init_completions
 
 alias editrc='vim $(realpath $HOME/.zshrc); source $HOME/.zshrc'
@@ -103,12 +111,12 @@ alias editrc='vim $(realpath $HOME/.zshrc); source $HOME/.zshrc'
 setopt prompt_subst
 
 if [[ $LOCAL_PROMPT_SHOW_HOSTNAME == true ]]; then
-  PROMPT_BASE='%F{214}[%m]%F{121}[%~]%f$ '
+  PROMPT_BASE='%F{214}[%m]%F{121}[%~]%f'
 else
-  PROMPT_BASE='%F{121}[%~]%f$ '
+  PROMPT_BASE='%F{121}[%~]%f'
 fi
 
-PROMPT='$(git_custom_status)${PROMPT_BASE}'
+PROMPT='$(git_custom_status)${PROMPT_BASE}$(prompt_env)$ '
 
 # kube-ps1
 if [[ -f "$HOME/.local/src/kube-ps1/kube-ps1.sh" ]]; then
@@ -118,7 +126,7 @@ if [[ -f "$HOME/.local/src/kube-ps1/kube-ps1.sh" ]]; then
   KUBE_PS1_CTX_COLOR='154'
   KUBE_PS1_NS_COLOR='154'
   KUBE_PS1_DIVIDER='%F{154}|'
-  PROMPT='$(git_custom_status)$(kube_ps1)${PROMPT_BASE}'
+  PROMPT='$(git_custom_status)$(kube_ps1)${PROMPT_BASE}$(prompt_env)$ '
 
   KUBE_PS1_SYMBOL_ENABLE='false'
   KUBE_PS1_NS_ENABLE='true'
