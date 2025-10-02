@@ -98,8 +98,10 @@ fi
 function prompt_env() {
     if [[ $ENV == "prod" || $ENV == "production" || $ENV == "live" ]]; then
         echo "%F{009}[$ENV]%f"
-    elif [[ ! -z $ENV ]]; then
+    elif [[ $ENV == "dev" || $ENV == "develop" || $ENV == "development" || $ENV == "test" || $ENV == "stage" || $ENV == "qa" ]]; then
         echo "%F{223}[$ENV]%f"
+    elif [[ ! -z $ENV ]]; then
+        echo "%F{242}[$ENV]%f"
     fi
 }
 
