@@ -69,225 +69,251 @@ local function get_venv_python()
   end
 end
 
+---@param dap table The 'dap' module (i.e., require('dap')).
+local function setup_dap_python(dap)
+  local dap_python = require("dap-python")
+  dap_python.setup(get_venv_python())
+  table.insert(dap.configurations.python, {
+    type = 'python',
+    request = 'launch',
+    name = 'Launch file from pyproject root',
+    program = '${file}',
+    justMyCode = true,
+    console = 'integratedTerminal',
+    cwd = function()
+      local file_path = vim.api.nvim_buf_get_name(0)
+      if file_path == "" then
+        vim.notify("No file detected in current buffer, using cwd: " .. vim.fn.getcwd())
+        return vim.fn.getcwd()
+      end
+
+      local pyproject = vim.fs.find("pyproject.toml", {
+        path = vim.fs.dirname(file_path),
+        upward = true,
+        type = "file",
+        limit = 1,
+      })[1]
+
+      if pyproject then
+        local pyproject_dir = vim.fs.dirname(pyproject)
+        vim.notify("Using pyproject.toml parent dir as root at: " .. pyproject_dir)
+        return pyproject_dir
+      else
+        vim.notify("No pyproject.toml found, using cwd: " .. vim.fn.getcwd())
+        return vim.fn.getcwd()
+      end
+    end,
+    env = { PYTHONPATH = "." }
+  })
+end
+
+
+---@param dap table The 'dap' module (i.e., require('dap')).
+local function setup_dap_js(dap)
+  dap.adapters["pwa-node"] = {
+    type = "server",
+    host = "localhost",
+    port = "${port}",
+    executable = {
+      command = "js-debug-adapter",
+      args = { "${port}" },
+    }
+  }
+
+  dap.adapters["pwa-chrome"] = {
+    type = "server",
+    host = "localhost",
+    port = "${port}",
+    executable = {
+      command = "js-debug-adapter",
+      args = { "${port}" },
+    }
+  }
+
+  for _, language in ipairs({ "typescript", "javascript", "typescriptreact", "javascriptreact" }) do
+    dap.configurations[language] = {
+      {
+        type = "pwa-node",
+        request = "launch",
+        name = "Launch file",
+        program = "${file}",
+        cwd = vim.fn.getcwd,
+        console = "integratedTerminal",
+        sourceMaps = true,
+      },
+      { -- Remember to use --insepct flag when attaching debugger to node
+        type = "pwa-node",
+        request = "attach",
+        name = "Attach to process",
+        processId = require("dap.utils").pick_process,
+        console = "integratedTerminal",
+        cwd = vim.fn.getcwd,
+        sourceMaps = true,
+      },
+      {
+        type = "pwa-node",
+        request = "attach",
+        name = "Attach to PID using dap.pid",
+        processId = get_pid_from_dap_pid_file,
+        console = "integratedTerminal",
+      },
+      {
+        type = "pwa-chrome",
+        request = "launch",
+        name = "Launch Chrome",
+        console = "integratedTerminal",
+        url = function()
+          local co = coroutine.running()
+          return coroutine.create(function()
+            vim.ui.input({ prompt = "Enter URL: ", default = "http://localhost:3000" }, function(url)
+              if url == nil or url == "" then
+                return
+              else
+                coroutine.resume(co, url)
+              end
+            end)
+          end)
+        end,
+        cwd = vim.fn.getcwd,
+        sourceMaps = true,
+        localRoot = vim.fn.getcwd,
+        remoteRoot = function()
+          local co = coroutine.running()
+          return coroutine.create(function()
+            vim.ui.input({ prompt = "Enter remote root: ", default = "/" }, function(remoteRoot)
+              if remoteRoot == nil or remoteRoot == "" then
+                return
+              else
+                coroutine.resume(co, remoteRoot)
+              end
+            end)
+          end)
+        end,
+        resolveSourceMapLocations = {
+          "${workspaceFolder}/**",
+        },
+      },
+    }
+  end
+end
+
+
+---@param dap table The 'dap' module (i.e., require('dap')).
+local function setup_dap_go(dap)
+  dap.adapters.go = function(callback, config)
+    local command = "dlv"
+    local args = { "dap", "-l", "127.0.0.1:${port}" }
+
+    if config.useKitty then
+      -- Hack to see delve output, since delve is not sending output to nvim
+      command = "kitty"
+      args = { "dlv", "dap", "-l", "127.0.0.1:${port}" }
+    end
+
+    callback({
+      type = "server",
+      port = "${port}",
+      executable = {
+        command = command,
+        args = args,
+        detached = vim.fn.has("win32") == 0,
+        cwd = config.cwd
+      },
+    })
+  end
+
+  dap.configurations.go = {
+    {
+      type = "go",
+      name = "Attach PID using dap.pid",
+      mode = "local",
+      request = "attach",
+      processId = get_pid_from_dap_pid_file,
+      -- console = "integratedTerminal", no effect, delve does not support it, just look at the output of whatever is running the process
+    },
+    {
+      type = "go",
+      name = "Debug package by closest go.mod",
+      request = "launch",
+      useKitty = true,
+      program = ".",
+      cwd = function()
+        local file_path = vim.api.nvim_buf_get_name(0)
+        if file_path == "" then
+          vim.notify("No file detected in current buffer, using cwd: " .. vim.fn.getcwd())
+          return vim.fn.getcwd()
+        end
+
+        local go_mod = vim.fs.find("go.mod", {
+          path = vim.fs.dirname(file_path),
+          upward = true,
+          type = "file",
+          limit = 1,
+        })[1]
+
+        if go_mod then
+          local go_mod_dir = vim.fs.dirname(go_mod)
+          vim.notify("Using go.mod parent dir as root at: " .. go_mod_dir)
+          return go_mod_dir
+        else
+          vim.notify("No go.mod found, using cwd: " .. vim.fn.getcwd())
+          return vim.fn.getcwd()
+        end
+      end,
+    },
+  }
+end
+
+---@param dap table The 'dap' module (i.e., require('dap')).
+local function setup_dap_flutter(dap)
+  dap.adapters.dart = {
+    type = 'executable',
+    command = 'flutter',
+    args = { 'debug_adapter' },
+  }
+  dap.adapters.flutter = {
+    type = 'executable',
+    command = 'flutter',
+    args = { 'debug_adapter' },
+  }
+
+  dap.configurations.dart = {
+    {
+      type = "dart",
+      request = "launch",
+      name = "Launch dart",
+      dartSdkPath = "dart",
+      flutterSdkPath = "flutter",
+      program = "${workspaceFolder}/lib/main.dart",
+      cwd = "${workspaceFolder}",
+    },
+    {
+      type = "flutter",
+      request = "launch",
+      name = "Launch flutter",
+      dartSdkPath = "dart",
+      flutterSdkPath = "flutter",
+      program = "${workspaceFolder}/lib/main.dart",
+      cwd = "${workspaceFolder}",
+    }
+  }
+end
+
+
 return {
   {
     "mfussenegger/nvim-dap",
     dependencies = {
-      "leoluz/nvim-dap-go",
       "mfussenegger/nvim-dap-python",
       "Joakker/lua-json5",
     },
     config = function()
-      local dap_python = require("dap-python")
       local dap = require("dap")
-
       require('dap.ext.vscode').json_decode = require('json5').parse
-
-      dap_python.setup(get_venv_python())
-      table.insert(dap.configurations.python, {
-        type = 'python',
-        request = 'launch',
-        name = 'Launch file from pyproject root',
-        program = '${file}',
-        justMyCode = true,
-        console = 'integratedTerminal',
-        cwd = function()
-          local file_path = vim.api.nvim_buf_get_name(0)
-          if file_path == "" then
-            vim.notify("No file detected in current buffer, using cwd: " .. vim.fn.getcwd())
-            return vim.fn.getcwd()
-          end
-
-          local pyproject = vim.fs.find("pyproject.toml", {
-            path = vim.fs.dirname(file_path),
-            upward = true,
-            type = "file",
-            limit = 1,
-          })[1]
-
-          if pyproject then
-            local pyproject_dir = vim.fs.dirname(pyproject)
-            vim.notify("Using pyproject.toml parent dir as root at: " .. pyproject_dir)
-            return pyproject_dir
-          else
-            vim.notify("No pyproject.toml found, using cwd: " .. vim.fn.getcwd())
-            return vim.fn.getcwd()
-          end
-        end,
-        env = { PYTHONPATH = "." }
-      })
-
-      dap.adapters["pwa-node"] = {
-        type = "server",
-        host = "localhost",
-        port = "${port}",
-        executable = {
-          command = "js-debug-adapter",
-          args = { "${port}" },
-        }
-      }
-
-      dap.adapters["pwa-chrome"] = {
-        type = "server",
-        host = "localhost",
-        port = "${port}",
-        executable = {
-          command = "js-debug-adapter",
-          args = { "${port}" },
-        }
-      }
-
-      for _, language in ipairs({ "typescript", "javascript", "typescriptreact", "javascriptreact" }) do
-        dap.configurations[language] = {
-          {
-            type = "pwa-node",
-            request = "launch",
-            name = "Launch file",
-            program = "${file}",
-            cwd = vim.fn.getcwd,
-            console = "integratedTerminal",
-            sourceMaps = true,
-          },
-          { -- Remember to use --insepct flag when attaching debugger to node
-            type = "pwa-node",
-            request = "attach",
-            name = "Attach to process",
-            processId = require("dap.utils").pick_process,
-            console = "integratedTerminal",
-            cwd = vim.fn.getcwd,
-            sourceMaps = true,
-          },
-          {
-            type = "pwa-node",
-            request = "attach",
-            name = "Attach to PID using dap.pid",
-            processId = get_pid_from_dap_pid_file,
-            console = "integratedTerminal",
-          },
-          {
-            type = "pwa-chrome",
-            request = "launch",
-            name = "Launch Chrome",
-            console = "integratedTerminal",
-            url = function()
-              local co = coroutine.running()
-              return coroutine.create(function()
-                vim.ui.input({ prompt = "Enter URL: ", default = "http://localhost:3000" }, function(url)
-                  if url == nil or url == "" then
-                    return
-                  else
-                    coroutine.resume(co, url)
-                  end
-                end)
-              end)
-            end,
-            cwd = vim.fn.getcwd,
-            sourceMaps = true,
-            localRoot = vim.fn.getcwd,
-            remoteRoot = function()
-              local co = coroutine.running()
-              return coroutine.create(function()
-                vim.ui.input({ prompt = "Enter remote root: ", default = "/" }, function(remoteRoot)
-                  if remoteRoot == nil or remoteRoot == "" then
-                    return
-                  else
-                    coroutine.resume(co, remoteRoot)
-                  end
-                end)
-              end)
-            end,
-            resolveSourceMapLocations = {
-              "${workspaceFolder}/**",
-            },
-          },
-        }
-      end
-
-      local dap_go = require("dap-go")
-      dap_go.setup({
-        dap_configurations = {
-          {
-            type = "go",
-            name = "Attach PID using dap.pid",
-            mode = "local",
-            request = "attach",
-            processId = get_pid_from_dap_pid_file,
-            console = "integratedTerminal",
-          },
-        },
-        -- delve configurations
-        delve = {
-          -- the path to the executable dlv which will be used for debugging.
-          -- by default, this is the "dlv" executable on your PATH.
-          path = "dlv",
-          -- time to wait for delve to initialize the debug session.
-          -- default to 20 seconds
-          initialize_timeout_sec = 20,
-          -- a string that defines the port to start delve debugger.
-          -- default to string "${port}" which instructs nvim-dap
-          -- to start the process in a random available port.
-          -- if you set a port in your debug configuration, its value will be
-          -- assigned dynamically.
-          port = "${port}",
-          -- additional args to pass to dlv
-          args = {},
-          -- the build flags that are passed to delve.
-          -- defaults to empty string, but can be used to provide flags
-          -- such as "-tags=unit" to make sure the test suite is
-          -- compiled during debugging, for example.
-          -- passing build flags using args is ineffective, as those are
-          -- ignored by delve in dap mode.
-          -- avaliable ui interactive function to prompt for arguments get_arguments
-          build_flags = {},
-          -- whether the dlv process to be created detached or not. there is
-          -- an issue on delve versions < 1.24.0 for Windows where this needs to be
-          -- set to false, otherwise the dlv server creation will fail.
-          -- avaliable ui interactive function to prompt for build flags: get_build_flags
-          detached = vim.fn.has("win32") == 0,
-          -- the current working directory to run dlv from, if other than
-          -- the current working directory.
-          cwd = nil,
-        },
-        -- options related to running closest test
-        tests = {
-          -- enables verbosity when running the test.
-          verbose = false,
-        },
-      })
-
-      dap.configurations.dart = {
-        {
-          type = "dart",
-          request = "launch",
-          name = "Launch dart",
-          dartSdkPath = "dart",
-          flutterSdkPath = "flutter",
-          program = "${workspaceFolder}/lib/main.dart",
-          cwd = "${workspaceFolder}",
-        },
-        {
-          type = "flutter",
-          request = "launch",
-          name = "Launch flutter",
-          dartSdkPath = "dart",
-          flutterSdkPath = "flutter",
-          program = "${workspaceFolder}/lib/main.dart",
-          cwd = "${workspaceFolder}",
-        }
-      }
-
-      -- Overriding dart adapter to just use flutter. This matches the VSCode behavior for others
-      -- I will probably never write dart without flutter anyways.
-      dap.adapters.dart = {
-        type = 'executable',
-        command = 'flutter',
-        args = { 'debug_adapter' },
-      }
-      dap.adapters.flutter = {
-        type = 'executable',
-        command = 'flutter',
-        args = { 'debug_adapter' },
-      }
+      setup_dap_python(dap)
+      setup_dap_js(dap)
+      setup_dap_go(dap)
+      setup_dap_flutter(dap)
     end
   },
   { "rcarriga/nvim-dap-ui", enabled = false },
