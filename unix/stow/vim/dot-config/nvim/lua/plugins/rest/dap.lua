@@ -58,12 +58,17 @@ local function get_pid_from_dap_pid_file()
   return pid
 end
 
-local function get_venv_python()
-  local cwd = vim.fn.getcwd()
-  local venv_path = cwd .. "/.venv/bin/python"
-  local readable = vim.fn.filereadable(venv_path)
-  if readable == 1 then
-    return venv_path
+local function get_venv_python(cwd)
+  vim.notify("Looking for .venv in cwd: " .. cwd)
+  local venv_dir = vim.fs.find(".venv", {
+    path = cwd,
+    upward = true,
+    type = "directory",
+    limit = 1,
+  })[1]
+  if venv_dir then
+    vim.notify("Using venv python at: " .. venv_dir)
+    return venv_dir .. "/bin/python"
   else
     return "python3"
   end
@@ -71,40 +76,63 @@ end
 
 ---@param dap table The 'dap' module (i.e., require('dap')).
 local function setup_dap_python(dap)
-  local dap_python = require("dap-python")
-  dap_python.setup(get_venv_python())
-  table.insert(dap.configurations.python, {
-    type = 'python',
-    request = 'launch',
-    name = 'Launch file from pyproject root',
-    program = '${file}',
-    justMyCode = true,
-    console = 'integratedTerminal',
-    cwd = function()
-      local file_path = vim.api.nvim_buf_get_name(0)
-      if file_path == "" then
-        vim.notify("No file detected in current buffer, using cwd: " .. vim.fn.getcwd())
-        return vim.fn.getcwd()
-      end
+  -- local dap_python = require("dap-python")
+  -- dap_python.setup(get_venv_python())
 
-      local pyproject = vim.fs.find("pyproject.toml", {
-        path = vim.fs.dirname(file_path),
-        upward = true,
-        type = "file",
-        limit = 1,
-      })[1]
+  dap.adapters.python = function(callback, opts)
+    local cwd = vim.fn.getcwd()
+    if type(opts.cwd) == "function" then
+      cwd = opts.cwd()
+    else
+      cwd = opts.cwd or cwd
+    end
 
-      if pyproject then
-        local pyproject_dir = vim.fs.dirname(pyproject)
-        vim.notify("Using pyproject.toml parent dir as root at: " .. pyproject_dir)
-        return pyproject_dir
-      else
-        vim.notify("No pyproject.toml found, using cwd: " .. vim.fn.getcwd())
-        return vim.fn.getcwd()
-      end
-    end,
-    env = { PYTHONPATH = "." }
-  })
+    local config = {
+      type = 'executable',
+      command = get_venv_python(cwd),
+      args = { '-m', 'debugpy.adapter' },
+      executable = {
+        cwd = cwd,
+      }
+    }
+
+    callback(config)
+  end
+
+  dap.configurations.python = {
+    {
+      type = 'python',
+      request = 'launch',
+      name = 'Launch file from pyproject root',
+      program = '${file}',
+      justMyCode = true,
+      console = 'integratedTerminal',
+      cwd = function()
+        local file_path = vim.api.nvim_buf_get_name(0)
+        if file_path == "" then
+          vim.notify("No file detected in current buffer, using cwd: " .. vim.fn.getcwd())
+          return vim.fn.getcwd()
+        end
+
+        local pyproject = vim.fs.find("pyproject.toml", {
+          path = vim.fs.dirname(file_path),
+          upward = true,
+          type = "file",
+          limit = 1,
+        })[1]
+
+        if pyproject then
+          local pyproject_dir = vim.fs.dirname(pyproject)
+          vim.notify("Using pyproject.toml parent dir as root at: " .. pyproject_dir)
+          return pyproject_dir
+        else
+          vim.notify("No pyproject.toml found, using cwd: " .. vim.fn.getcwd())
+          return vim.fn.getcwd()
+        end
+      end,
+      env = { PYTHONPATH = "." }
+    }
+  }
 end
 
 
@@ -304,7 +332,7 @@ return {
   {
     "mfussenegger/nvim-dap",
     dependencies = {
-      "mfussenegger/nvim-dap-python",
+      -- "mfussenegger/nvim-dap-python",
       "Joakker/lua-json5",
     },
     config = function()

@@ -52,6 +52,9 @@ if [[ -e $GOPATH ]]; then
   export PATH=$PATH:$GOPATH:$GOPATH/bin
 fi
 
+# Lua
+export LUA_CPATH="$LUA_CPATH;?.dylib"
+
 if command -v nvim &> /dev/null; then
   # Use nvim instead
   alias vim=nvim
