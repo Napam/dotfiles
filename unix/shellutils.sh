@@ -301,6 +301,12 @@ gitclean() {
   fi
 }
 
+genpass() {
+  local length=${1:-16}
+  local pass=$(openssl rand -base64 $length | tr -d '/=+\n' | cut -c1-$length)
+  echo $pass
+}
+
 # 256色のカラーパレットを表示する
 #  bash と zsh にて実行可能
 
