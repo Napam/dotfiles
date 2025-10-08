@@ -28,7 +28,18 @@ return {
             ".venv",
             "__pycache__"
           },
-        }
+        },
+        grep = {
+          hidden = true,
+          ignored = true,
+          exclude = {
+            ".git",
+            "node_modules",
+            ".DS_Store",
+            ".venv",
+            "__pycache__"
+          },
+        },
       },
       win = {
         input = {
