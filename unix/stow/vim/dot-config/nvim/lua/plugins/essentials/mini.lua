@@ -1,13 +1,13 @@
 return {
   {
-    "echasnovski/mini.pairs",
+    "nvim-mini/mini.pairs",
     version = "*",
     config = function()
       require("mini.pairs").setup()
     end,
   },
   {
-    "echasnovski/mini.surround",
+    "nvim-mini/mini.surround",
     version = "*",
     opts = {
       mappings = {
@@ -18,7 +18,7 @@ return {
     },
   },
   {
-    "echasnovski/mini.icons",
+    "nvim-mini/mini.icons",
     opts = {}
   },
 }
