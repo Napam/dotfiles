@@ -96,13 +96,18 @@ if [[ -d $HOME/.config/dotfiles ]]; then
 fi
 
 function prompt_env() {
-    if [[ $ENV == *prod* || $ENV == *live* ]]; then
-        echo "%F{009}[$ENV]%f"
-    elif [[ $ENV == *dev* || $ENV == *test* || $ENV == *stage* || $ENV == *qa* ]]; then
-        echo "%F{223}[$ENV]%f"
-    elif [[ ! -z $ENV ]]; then
-        echo "%F{242}[$ENV]%f"
-    fi
+  local is_exported=$(sh -c 'echo $ENV')
+  if [[ ! $is_exported ]]; then
+    return
+  fi
+
+  if [[ $ENV == *prod* || $ENV == *live* ]]; then
+      echo "%F{009}[$ENV]%f"
+  elif [[ $ENV == *dev* || $ENV == *test* || $ENV == *stage* || $ENV == *qa* ]]; then
+      echo "%F{223}[$ENV]%f"
+  elif [[ ! -z $ENV ]]; then
+      echo "%F{242}[$ENV]%f"
+  fi
 }
 
 init_completions
