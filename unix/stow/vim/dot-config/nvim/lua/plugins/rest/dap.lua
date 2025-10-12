@@ -289,6 +289,52 @@ local function setup_dap_go(dap)
         end
       end,
     },
+    {
+      type = "go",
+      name = "Debug package by closest go.mod with args",
+      request = "launch",
+      useKitty = true,
+      program = ".",
+      args = function()
+        local co = coroutine.running()
+        return coroutine.create(function()
+          vim.ui.input({ prompt = "Enter program arguments (space-separated): " }, function(input)
+            if input == nil then
+              coroutine.resume(co, {})
+            else
+              local args = {}
+              for arg in string.gmatch(input, "%S+") do
+                table.insert(args, arg)
+              end
+              coroutine.resume(co, args)
+            end
+          end)
+        end)
+      end,
+      cwd = function()
+        local file_path = vim.api.nvim_buf_get_name(0)
+        if file_path == "" then
+          vim.notify("No file detected in current buffer, using cwd: " .. vim.fn.getcwd())
+          return vim.fn.getcwd()
+        end
+
+        local go_mod = vim.fs.find("go.mod", {
+          path = vim.fs.dirname(file_path),
+          upward = true,
+          type = "file",
+          limit = 1,
+        })[1]
+
+        if go_mod then
+          local go_mod_dir = vim.fs.dirname(go_mod)
+          vim.notify("Using go.mod parent dir as root at: " .. go_mod_dir)
+          return go_mod_dir
+        else
+          vim.notify("No go.mod found, using cwd: " .. vim.fn.getcwd())
+          return vim.fn.getcwd()
+        end
+      end,
+    },
   }
 end
 
