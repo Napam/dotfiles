@@ -73,6 +73,9 @@ return {
       input = {
         relative = "cursor",
       },
+      zen = {
+        width = 160,
+      },
     },
 
   },
