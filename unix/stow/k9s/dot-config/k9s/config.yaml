@@ -1,6 +1,6 @@
 k9s:
   liveViewAutoRefresh: true
-  screenDumpDir: ~/Library/Application Support/k9s/screen-dumps
+  # screenDumpDir: /Users/naphat/Library/Application Support/k9s/screen-dumps
   refreshRate: 2
   apiServerTimeout: 15s
   maxConnRetry: 5
