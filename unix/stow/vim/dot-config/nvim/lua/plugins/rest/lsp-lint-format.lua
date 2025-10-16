@@ -285,14 +285,26 @@ return {
   },
   {
     "zbirenbaum/copilot.lua",
-    dependencies = { "fang2hou/blink-copilot" },
+    dependencies = {
+      "fang2hou/blink-copilot",
+      "copilotlsp-nvim/copilot-lsp"
+    },
     lazy = true,
     event = "InsertEnter",
     config = function()
       require("copilot").setup({
         suggestion = { enabled = true },
         panel = { enabled = false },
-        copilot_model = "gpt-4o-copilot"
+        nes = {
+          enable = true,
+          auto_trigger = true,
+          keymap = {
+            accept_and_goto = "<leader>ap",
+            accept = false,
+            dismiss = "<Esc>",
+          },
+        }
+
       })
     end
   },
