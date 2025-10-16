@@ -215,6 +215,7 @@ return {
           typst = { "typstyle" },
           yaml = { "prettierd" },
           helm = { "prettierd" },
+          alloy = { "alloy" },
         },
       })
 
@@ -255,6 +256,11 @@ return {
           -- (defaults to the value from formatters_by_ft)
           lang_to_formatters = {},
         },
+      }
+
+      conform.formatters.alloy = {
+        command = "alloy",
+        args = { "fmt" }
       }
     end,
   },
