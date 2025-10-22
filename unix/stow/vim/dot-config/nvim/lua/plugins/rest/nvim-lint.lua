@@ -5,7 +5,7 @@ return {
     local group = vim.api.nvim_create_augroup("nvim-lint", { clear = true })
 
     local pattern = '([^:]+): ([^:]+):(%d+):(%d+): (.+)'
-    local groups = { 'severity', 'file', 'lnum', 'col', 'message'}
+    local groups = { 'severity', 'file', 'lnum', 'col', 'message' }
 
     nvim_lint.linters.alloy = {
       name = "alloy-validate",
@@ -19,7 +19,9 @@ return {
       })
     }
 
-    nvim_lint.linters_by_ft = { alloy = { "alloy" } }
+    nvim_lint.linters_by_ft = {
+      alloy = { "alloy" },
+    }
 
     vim.api.nvim_create_autocmd({ "BufReadPost", "BufWritePost" }, {
       desc = "nvim-lint",

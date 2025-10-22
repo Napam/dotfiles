@@ -2,7 +2,9 @@ return {
   {
     "neovim/nvim-lspconfig",
     lazy = false,
-    dependencies = { "mason-org/mason.nvim" },
+    dependencies = {
+      { "mason-org/mason.nvim" },
+    },
     config = function()
       vim.lsp.config("basedpyright", {
         settings = {
@@ -188,6 +190,7 @@ return {
         "js-debug-adapter",
         "delve",
         "dart-debug-adapter",
+        "sql-formatter"
       },
     },
   },
@@ -261,6 +264,13 @@ return {
       conform.formatters.alloy = {
         command = "alloy",
         args = { "fmt" }
+      }
+
+      conform.formatters.sql_formatter = {
+        command = "sql-formatter",
+        cwd = require("conform.util").root_file({
+          ".sql-formatter.json",
+        }),
       }
     end,
   },
