@@ -31,3 +31,12 @@ vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
     vim.bo.filetype = "sh"
   end,
 })
+
+vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
+  pattern = {
+    "**/.vscode/launch.json",
+  },
+  callback = function()
+    vim.bo.filetype = "json5"
+  end,
+})
