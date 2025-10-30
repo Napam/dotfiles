@@ -1,0 +1,7 @@
+[lint]
+
+ignore = [
+    "E741", # Ambiguous variable name
+    "E742", # Ambiguous function name
+    "E743", # Ambiguous class name
+]
