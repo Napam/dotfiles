@@ -79,7 +79,7 @@ local function setup_dap_python(dap)
   -- local dap_python = require("dap-python")
   -- dap_python.setup(get_venv_python())
 
-  dap.adapters.python = function(callback, opts)
+  local python_adapter = function(callback, opts)
     local cwd = vim.fn.getcwd()
     if type(opts.cwd) == "function" then
       cwd = opts.cwd()
@@ -99,7 +99,10 @@ local function setup_dap_python(dap)
     callback(config)
   end
 
-  dap.configurations.python = {
+  dap.adapters.python = python_adapter
+  dap.adapters.debugpy = python_adapter
+
+  local python_configurations = {
     {
       type = 'python',
       request = 'launch',
@@ -133,6 +136,9 @@ local function setup_dap_python(dap)
       env = { PYTHONPATH = "." }
     }
   }
+
+  dap.configurations.python = python_configurations
+  dap.configurations.debugpy = python_configurations
 end
 
 
