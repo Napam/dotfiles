@@ -219,6 +219,7 @@ return {
           yaml = { "prettierd" },
           helm = { "prettierd" },
           alloy = { "alloy" },
+          json5 = { "prettierd" }
         },
       })
 
