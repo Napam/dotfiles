@@ -1,5 +1,5 @@
-numpy==2.2.2
-matplotlib==3.10.0
-scipy==1.15.1
-scikit-learn==1.6.1
-polars==1.21.0
+numpy==2.3.5
+matplotlib==3.10.7
+scipy==1.16.3
+scikit-learn==1.7.2
+polars==1.35.2
