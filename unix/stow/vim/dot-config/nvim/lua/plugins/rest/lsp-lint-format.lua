@@ -212,6 +212,7 @@ return {
           typescript = { "prettierd" },
           typescriptreact = { "prettierd" },
           javascriptreact = { "prettierd" },
+          svelte = { "prettierd" },
           graphql = { "prettierd" },
           go = { "goimports", lsp_format = "last" },
           templ = { "templ", "html", "rustywind", "goimports" },
