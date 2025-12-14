@@ -190,7 +190,9 @@ return {
         "js-debug-adapter",
         "delve",
         "dart-debug-adapter",
-        "sql-formatter"
+        "sql-formatter",
+        "tinymist",
+        "typstyle"
       },
     },
   },
