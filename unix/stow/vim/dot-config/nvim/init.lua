@@ -26,7 +26,7 @@ local spec = {
   { import = "plugins/essentials" },
 }
 
-if mode ~= "ESSENTIALS" then
+if mode == "ALL" then
   table.insert(spec, { import = "plugins/rest" })
 end
 
