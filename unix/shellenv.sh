@@ -116,7 +116,7 @@ if command -v tmux &> /dev/null && \
   [[ ! "$TERM" =~ screen ]] && \
   [[ ! "$TERM" =~ tmux ]] && \
   [[ -z "$TMUX" ]] && \
-  [[ $START_TMUX == true ]]
+  [[ $LOCAL_TMUX == true ]]
 then
   exec tmux
 fi

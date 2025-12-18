@@ -310,8 +310,8 @@ genpass() {
 
 localrctemplate() {
   cat << EOF
-# export START_TMUX=true
-# export START_PROMPT_HOSTNAAME=true
+# export LOCAL_TMUX=true
+# export LOCAL_PROMPT_SHOW_HOSTNAME=true
 # export LOCAL_NVIM_PLUGIN_MODE="ALL"
 #
 # function _localrc_after() {
