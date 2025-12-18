@@ -49,6 +49,7 @@ alias prettyfire='while read -r line; do if [[ $line =~ "^(> *)?{\"" ]]; then ec
 alias editutils='vim $HOME/.config/dotfiles/unix/shellutils.sh && source $HOME/.config/dotfiles/unix/shellutils.sh'
 alias editenv='vim $HOME/.config/dotfiles/unix/shellenv.sh && source $HOME/.config/dotfiles/unix/shellenv.sh'
 alias editvimrc='vim $HOME/.config/nvim/init.lua'
+alias editlocalrc='vim $HOME/.localrc && source $HOME/.localrc'
 alias dots='cd $HOME/.config/dotfiles'
 alias conf='cd $HOME/.config'
 alias nvimconf='cd $HOME/.config/dotfiles/unix/stow/vim/dot-config/nvim'
@@ -305,6 +306,18 @@ genpass() {
   local length=${1:-16}
   local pass=$(openssl rand -base64 $length | tr -d '/=+\n' | cut -c1-$length)
   echo $pass
+}
+
+localrctemplate() {
+  cat << EOF
+# export START_TMUX=true
+# export START_PROMPT_HOSTNAAME=true
+# export LOCAL_NVIM_PLUGIN_MODE="ALL"
+#
+# function _localrc_after() {
+#     # Scripts to invoke after the main rc file has loaded
+# }
+EOF
 }
 
 # 256色のカラーパレットを表示する
