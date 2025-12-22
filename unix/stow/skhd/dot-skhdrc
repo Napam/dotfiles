@@ -1,2 +1,2 @@
 ctrl + cmd - t : /Applications/kitty.app/Contents/MacOS/kitty --single-instance -d ~
-alt + cmd - c : open -n -a "Google Chrome"
+alt + cmd - c : open -n -a "Vivaldi"
