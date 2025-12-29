@@ -1,2 +1,10 @@
 ctrl + cmd - t : /Applications/kitty.app/Contents/MacOS/kitty --single-instance -d ~
-alt + cmd - c : open -n -a "Vivaldi"
+# alt + cmd - c : open -n -a "Vivaldi"
+
+# This script opens a new window in the default web browser
+alt + cmd - c :
+    osascript -e 'set defaultBrowser to do shell script "defaults read com.apple.LaunchServices/com.apple.launchservices.secure LSHandlers | sed -n -e \"/LSHandlerURLScheme = https;/{x;p;d;}\" -e \"s/.*=[^\\\"]\\\"\\(.*\\)\\\";/\\1/g\" -e x"' \
+    -e 'tell application id defaultBrowser' \
+    -e 'make new window' \
+    -e 'activate' \
+    -e 'end tell'
