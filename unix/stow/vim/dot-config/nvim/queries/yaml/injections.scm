@@ -21,3 +21,12 @@
   (#match? @_key "^(script|command|entrypoint)$")
   (#set! injection.language "bash"))
 
+
+(block_mapping_pair
+  key: (flow_node
+    (plain_scalar
+      (string_scalar) @_key))
+  value: (block_node
+    (block_scalar) @injection.content)
+  (#match? @_key "^(expr)$")
+  (#set! injection.language "promql"))
