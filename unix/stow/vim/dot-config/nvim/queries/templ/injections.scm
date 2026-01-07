@@ -16,7 +16,7 @@
             (attribute_value) @injection.content
         )
     )
-    (#match? @name "data-[a-z]+|onchange|onclick|oninput|onkeydown|onkeyup|onmousedown|onmouseup|onmouseover|onmouseout|onmouseenter|onmouseleave|onsubmit|onfocus|onblur")
+    (#match? @name "data-[a-z]+|hx-[a-z:]+|onchange|onclick|oninput|onkeydown|onkeyup|onmousedown|onmouseup|onmouseover|onmouseout|onmouseenter|onmouseleave|onsubmit|onfocus|onblur")
     (#set! injection.language "javascript")
 )
 
