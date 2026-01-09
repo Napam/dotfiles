@@ -26,3 +26,7 @@
 	format = ssh
 [commit]
 	gpgsign = true
+[lfs "customtransfer.xet"]
+	path = git-xet
+	args = transfer
+	concurrent = true
