@@ -311,7 +311,7 @@ return {
 
       conform.formatters.typstyle = {
         command = "typstyle",
-        args = { "--wrap-text", "--line-width", "100" },
+        args = { "--wrap-text", "--line-width", "80" },
       }
     end,
   },
