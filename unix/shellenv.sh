@@ -72,10 +72,11 @@ export NVM_DIR="$HOME/.nvm"
 export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"
 
 if [[ -v IS_MAC ]]; then
-  export JAVA_HOME="/opt/homebrew/Cellar/openjdk/21/libexec/openjdk.jdk/Contents/Home"
+  export JAVA_HOME=$(/usr/libexec/java_home)
 else
   export JAVA_HOME="/usr/lib/jvm/java-1.17.0-openjdk-amd64"
 fi
+export JAVA_TOOL_OPTIONS="-Djdk.xml.totalEntitySizeLimit=0 -Djdk.xml.entityExpansionLimit=0"
 #export JAVA_TOOL_OPTIONS="-Djava.net.preferIPv4Stack=true"
 
 # Add JBang to environment

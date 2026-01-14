@@ -159,8 +159,40 @@ return {
     opts = {},
     config = function()
       require("mason-lspconfig").setup({
-        automatic_enable = true,
+        automatic_enable = {
+          exclude = {
+            "cspell_ls"
+          }
+        },
         ensure_installed = {}
+      })
+
+
+      -- Manually start cspell only when cspell config exists
+      vim.api.nvim_create_autocmd("FileType", {
+        pattern = { "markdown", "text", "typst" },
+        callback = function(args)
+          local file = vim.api.nvim_buf_get_name(args.buf)
+          if file == "" then return end
+
+          local cspell_config_file = vim.fs.find({ ".cspell.json", "cspell.json" }, {
+            path = vim.fs.dirname(file),
+            upward = true,
+            type = "file",
+            limit = 1,
+          })[1]
+
+          vim.notify("Detected cspell config: " .. cspell_config_file)
+
+          if cspell_config_file then
+            vim.lsp.start({
+              name = "cspell_ls",
+              cmd = { "cspell-lsp", "--stdio" },
+              root_dir = vim.fs.dirname(cspell_config_file),
+              filetypes = { "markdown", "text", "typst" },
+            })
+          end
+        end
       })
     end,
   },
@@ -275,6 +307,11 @@ return {
         cwd = require("conform.util").root_file({
           ".sql-formatter.json",
         }),
+      }
+
+      conform.formatters.typstyle = {
+        command = "typstyle",
+        args = { "--wrap-text", "--line-width", "100" },
       }
     end,
   },
