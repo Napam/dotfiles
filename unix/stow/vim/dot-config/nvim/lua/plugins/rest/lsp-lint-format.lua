@@ -170,7 +170,7 @@ return {
 
       -- Manually start cspell only when cspell config exists
       vim.api.nvim_create_autocmd("FileType", {
-        pattern = { "markdown", "text", "typst" },
+        pattern = { "markdown", "text", "typst", "latex", "tex" },
         callback = function(args)
           local file = vim.api.nvim_buf_get_name(args.buf)
           if file == "" then return end
@@ -182,14 +182,24 @@ return {
             limit = 1,
           })[1]
 
-          vim.notify("Detected cspell config: " .. cspell_config_file)
+          if cspell_config_file == nil then
+            return
+          end
 
-          if cspell_config_file then
+          if vim.fn.executable("cspell_ls") == 0 then
+            vim.schedule(
+              function()
+                vim.notify("Detected cspell config but, cspell-lsp not found")
+              end
+            )
+            return
+          else
+            vim.notify("Detected cspell config: " .. cspell_config_file .. ". Will start cspell-lsp.")
             vim.lsp.start({
               name = "cspell_ls",
               cmd = { "cspell-lsp", "--stdio" },
               root_dir = vim.fs.dirname(cspell_config_file),
-              filetypes = { "markdown", "text", "typst" },
+              filetypes = { "markdown", "text", "typst", "latex", "tex" },
             })
           end
         end
