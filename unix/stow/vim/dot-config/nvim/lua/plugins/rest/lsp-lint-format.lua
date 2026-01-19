@@ -186,22 +186,30 @@ return {
             return
           end
 
-          if vim.fn.executable("cspell_ls") == 0 then
-            vim.schedule(
-              function()
-                vim.notify("Detected cspell config but, cspell-lsp not found")
-              end
-            )
-            return
-          else
-            vim.notify("Detected cspell config: " .. cspell_config_file .. ". Will start cspell-lsp.")
-            vim.lsp.start({
-              name = "cspell_ls",
-              cmd = { "cspell-lsp", "--stdio" },
-              root_dir = vim.fs.dirname(cspell_config_file),
-              filetypes = { "markdown", "text", "typst", "latex", "tex" },
-            })
+          -- Check if cspell-lsp is available via mason or system PATH
+          local mason_registry_ok, mason_registry = pcall(require, "mason-registry")
+          local cspell_available = false
+
+          if mason_registry_ok and mason_registry.is_installed("cspell") then
+            cspell_available = true
+          elseif vim.fn.executable("cspell-lsp") == 1 then
+            cspell_available = true
           end
+
+          if not cspell_available then
+            vim.schedule(function()
+              vim.notify("Detected cspell config but cspell-lsp not found", vim.log.levels.WARN)
+            end)
+            return
+          end
+
+          vim.notify("Detected cspell config: " .. cspell_config_file .. ". Starting cspell-lsp.")
+          vim.lsp.start({
+            name = "cspell_ls",
+            cmd = { "cspell-lsp", "--stdio" },
+            root_dir = vim.fs.dirname(cspell_config_file),
+            filetypes = { "markdown", "text", "typst", "latex", "tex" },
+          })
         end
       })
     end,
