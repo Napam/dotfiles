@@ -9,11 +9,20 @@ return {
     animate = { enabled = false },
     bigfile = { enabled = true },
     bufdelete = { enabled = true },
-    image = { enabled = true },
     indent = { enabled = true },
     input = { enabled = true },
     words = { enabled = true },
     zen = { enabled = true },
+
+    image = {
+      enabled = true,
+      doc = {
+        max_width = 80,
+        max_height = 40,
+        inline = false,
+        float = false
+      }
+    },
 
     picker = {
       enabled = true,
