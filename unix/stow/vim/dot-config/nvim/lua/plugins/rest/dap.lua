@@ -2,7 +2,7 @@ local function get_pid_from_dap_pid_file()
   local search_base_dir = vim.fn.getcwd()
   local found_pid_file_path = nil
 
-  found_pid_file_path = vim.fs.find("dap.pid", {
+  found_pid_file_path = vim.fs.find({ "dap.pid", "app.pid", "main.pid", "pid" }, {
     path = search_base_dir,
     type = 'file',
     limit = 1,
