@@ -74,6 +74,27 @@ local function get_venv_python(cwd)
   end
 end
 
+-- Helper: Find go.mod directory from current file or fallback to cwd
+local function find_go_mod_dir()
+  local file_path = vim.api.nvim_buf_get_name(0)
+  if file_path == "" then
+    return vim.fn.getcwd()
+  end
+
+  local go_mod = vim.fs.find("go.mod", {
+    path = vim.fs.dirname(file_path),
+    upward = true,
+    type = "file",
+    limit = 1,
+  })[1]
+
+  if go_mod then
+    return vim.fs.dirname(go_mod)
+  else
+    return vim.fn.getcwd()
+  end
+end
+
 ---@param dap table The 'dap' module (i.e., require('dap')).
 local function setup_dap_python(dap)
   -- local dap_python = require("dap-python")
@@ -272,27 +293,9 @@ local function setup_dap_go(dap)
       useKitty = true,
       program = ".",
       cwd = function()
-        local file_path = vim.api.nvim_buf_get_name(0)
-        if file_path == "" then
-          vim.notify("No file detected in current buffer, using cwd: " .. vim.fn.getcwd())
-          return vim.fn.getcwd()
-        end
-
-        local go_mod = vim.fs.find("go.mod", {
-          path = vim.fs.dirname(file_path),
-          upward = true,
-          type = "file",
-          limit = 1,
-        })[1]
-
-        if go_mod then
-          local go_mod_dir = vim.fs.dirname(go_mod)
-          vim.notify("Using go.mod parent dir as root at: " .. go_mod_dir)
-          return go_mod_dir
-        else
-          vim.notify("No go.mod found, using cwd: " .. vim.fn.getcwd())
-          return vim.fn.getcwd()
-        end
+        local go_mod_dir = find_go_mod_dir()
+        vim.notify("Using go.mod parent dir as root at: " .. go_mod_dir)
+        return go_mod_dir
       end,
     },
     {
@@ -318,27 +321,56 @@ local function setup_dap_go(dap)
         end)
       end,
       cwd = function()
-        local file_path = vim.api.nvim_buf_get_name(0)
-        if file_path == "" then
-          vim.notify("No file detected in current buffer, using cwd: " .. vim.fn.getcwd())
-          return vim.fn.getcwd()
+        local go_mod_dir = find_go_mod_dir()
+        vim.notify("Using go.mod parent dir as root at: " .. go_mod_dir)
+        return go_mod_dir
+      end,
+    },
+    {
+      type = "go",
+      name = "Debug test by function under cursor",
+      request = "launch",
+      useKitty = true,
+      mode = "test",
+      cwd = "${fileDirname}",
+      program = "${fileDirname}",
+      args = function()
+        -- Get the current function name using treesitter
+        local ts_utils = require('nvim-treesitter.ts_utils')
+        local node = ts_utils.get_node_at_cursor()
+
+        while node do
+          if node:type() == 'function_declaration' then
+            local name_node = node:field('name')[1]
+            if name_node then
+              local func_name = vim.treesitter.get_node_text(name_node, 0)
+              if func_name:match('^Test') then
+                vim.notify("Running test: " .. func_name)
+                return { "-test.run", "^" .. func_name .. "$", "-test.v" }
+              end
+            end
+          end
+          node = node:parent()
         end
 
-        local go_mod = vim.fs.find("go.mod", {
-          path = vim.fs.dirname(file_path),
-          upward = true,
-          type = "file",
-          limit = 1,
-        })[1]
-
-        if go_mod then
-          local go_mod_dir = vim.fs.dirname(go_mod)
-          vim.notify("Using go.mod parent dir as root at: " .. go_mod_dir)
-          return go_mod_dir
-        else
-          vim.notify("No go.mod found, using cwd: " .. vim.fn.getcwd())
-          return vim.fn.getcwd()
+        vim.notify("No test function found under cursor", vim.log.levels.WARN)
+        return {}
+      end,
+    },
+    {
+      type = "go",
+      name = "Debug test by input function name",
+      request = "launch",
+      useKitty = true,
+      mode = "test",
+      cwd = "${fileDirname}",
+      program = "${fileDirname}",
+      args = function()
+        local test_name = vim.fn.input("Test name: ")
+        if test_name ~= "" then
+          return { "-test.run", "^" .. test_name .. "$", "-test.v" }
         end
+        return {}
       end,
     },
   }
