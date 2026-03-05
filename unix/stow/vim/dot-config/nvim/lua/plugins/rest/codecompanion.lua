@@ -14,8 +14,11 @@ return {
       strategies = {
         chat = {
           adapter = {
-            name = "copilot",
-            model = "claude-sonnet-4.6"
+            -- name = "copilot",
+            -- model = "claude-sonnet-4.6"
+
+            name = "opencode",
+            -- Model specified at ~/.local/opencode/config.json
           }
         }
       }
