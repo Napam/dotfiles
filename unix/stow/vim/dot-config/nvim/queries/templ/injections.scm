@@ -1,3 +1,5 @@
+; extends
+
 ; (
 ;     (attribute
 ;         name: (attribute_name) @name

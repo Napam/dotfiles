@@ -1,3 +1,5 @@
+; extends
+
 ; Inject shell syntax for command and args blocks in Kubernetes manifests
 (block_mapping_pair
   key: (flow_node

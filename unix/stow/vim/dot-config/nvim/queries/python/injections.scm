@@ -1,3 +1,5 @@
+; extends
+
 (call
   function: [
     (attribute attribute: (identifier) @id)
