@@ -58,6 +58,36 @@ local function get_pid_from_dap_pid_file()
   return pid
 end
 
+
+-- Own env file parser
+-- Mainly for delve since it has no native support for envFile, but can be used by other adapters if needed.
+--
+-- Delve: unlike debugpy and vscode-js-debug (pwa-node) which handle envFile natively in the
+-- adapter, delve has no knowledge of envFile at all. It is VSCode's Go extension that
+-- parses the file and merges the vars into the env map before the DAP session starts.
+-- We replicate that here so the feature works outside VSCode.
+-- Supports: blank lines, # comments, `export KEY=VAL`, quoted values, inline comments.
+local function parse_env_file(filepath)
+  local env = {}
+  local file = io.open(filepath, "r")
+  if not file then return env end
+
+  for line in file:lines() do
+    if not line:match("^%s*#") and not line:match("^%s*$") then
+      local stripped = line:match("^%s*export%s+(.+)$") or line
+      local key, val = stripped:match("^%s*([^%s=]+)%s*=%s*(.-)%s*$")
+      if key and val then
+        val = val:match('^"(.*)"$') or val:match("^'(.*)'$") or val
+        -- Inline comments are only valid outside quotes, so strip after unquoting
+        val = val:match("^(.-)%s*#.*$") or val
+        env[key] = val
+      end
+    end
+  end
+  file:close()
+  return env
+end
+
 local function get_venv_python(cwd)
   vim.notify("Looking for .venv in cwd: " .. cwd)
   local venv_dir = vim.fs.find(".venv", {
@@ -74,7 +104,6 @@ local function get_venv_python(cwd)
   end
 end
 
--- Helper: Find go.mod directory from current file or fallback to cwd
 local function find_go_mod_dir()
   local file_path = vim.api.nvim_buf_get_name(0)
   if file_path == "" then
@@ -256,6 +285,32 @@ end
 ---@param dap table The 'dap' module (i.e., require('dap')).
 local function setup_dap_go(dap)
   dap.adapters.go = function(callback, config)
+    local final_env = {}
+
+    -- envFile is a VSCode-ism; delve ignores it, so we parse and inject the vars ourselves.
+    -- Explicit `env` entries take precedence over envFile (mirrors VSCode behaviour).
+    if config.envFile then
+      local cwd = config.cwd or vim.fn.getcwd()
+      local path = config.envFile
+          :gsub("${workspaceFolder}", cwd)
+          :gsub("${cwd}", cwd)
+      -- Resolve relative paths against config.cwd, not Neovim's cwd
+      if not path:match("^/") then
+        path = cwd .. "/" .. path:gsub("^%./", "")
+      end
+      for k, v in pairs(parse_env_file(path)) do
+        final_env[k] = tostring(v)
+      end
+    end
+
+    if config.env then
+      for k, v in pairs(config.env) do
+        final_env[k] = tostring(v)
+      end
+    end
+
+    config.env = final_env
+
     local command = "dlv"
     local args = { "dap", "-l", "127.0.0.1:${port}" }
 
