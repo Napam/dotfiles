@@ -1,0 +1,66 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  // Default model for primary agents that don't override (i.e. Build)
+  "model": "github-copilot/claude-sonnet-4.6",
+  // Small model for lightweight background tasks (title generation, etc.)
+  "small_model": "github-copilot/gpt-5.4-mini",
+  // The Orchestrator is the default landing agent
+  "default_agent": "orchestrator",
+  "agent": {
+    // ─── Orchestrator ────────────────────────────────────────────────────────
+    // Fast router. Does recon, answers simple questions, and delegates
+    // coding tasks to @specialist or @expert with rich hand-off context.
+    "orchestrator": {
+      "description": "Fast reconnaissance and routing agent. Gathers context, answers simple questions, and delegates coding tasks to specialist subagents.",
+      "mode": "primary",
+      "model": "github-copilot/gpt-5.4-mini",
+      "prompt": "{file:./prompts/orchestrator.md}",
+      "color": "#4ecdc4",
+      "permission": {
+        "edit": "allow",
+        "bash": "allow",
+        "task": {
+          "*": "allow", // Can delegate to any subagent...
+          "general": "deny" // ...except general (Orchestrator fills this role)
+        }
+      }
+    },
+    // ─── Build (Tier 1 primary) ───────────────────────────────────────────────
+    // Sonnet-powered direct coding agent. Tab to this for hands-on work
+    // without the Orchestrator delegation overhead.
+    "build": {
+      "model": "github-copilot/claude-sonnet-4.6",
+      "permission": {
+        "edit": "allow",
+        "bash": "allow"
+      }
+    },
+    // ─── Built-in subagents ───────────────────────────────────────────────────
+    // Note: specialist and expert subagents are defined in agents/*.md
+    // (auto-discovered by OpenCode from the agents/ directory).
+    // general is available to other agents but blocked from the Orchestrator
+    // (see task permissions above) since the Orchestrator fills that role.
+    "general": {
+      "model": "github-copilot/gpt-5.4-mini"
+    },
+    // explore is useful for read-only recon; run it on the small model.
+    "explore": {
+      "model": "github-copilot/gpt-5.4-mini",
+      "permission": {
+        "edit": "deny", // Read-only agent
+        "bash": "ask" // Ask before running any commands
+      }
+    },
+    // ─── Janitor tier ─────────────────────────────────────────────────────────
+    // Small model handles all background housekeeping tasks.
+    "compaction": {
+      "model": "github-copilot/gpt-5.4-mini"
+    },
+    "title": {
+      "model": "github-copilot/gpt-5.4-mini"
+    },
+    "summary": {
+      "model": "github-copilot/gpt-5.4-mini"
+    }
+  }
+}
