@@ -31,12 +31,12 @@ if [[ $ZSH_VERSION ]]; then
 fi
 
 # Homebrew bin, should be far in front of PATH such that brew install binaries comes before usr/bin stuff
-if [[ -e /opt/homebrew/bin ]]; then
+if [[ -d /opt/homebrew/bin ]]; then
   export PATH="/opt/homebrew/bin:$PATH"
 fi
 
 # Snap should also be far in front
-if [[ -e /snap/bin ]]; then
+if [[ -d /snap/bin ]]; then
   export PATH="/snap/bin:$PATH"
 fi
 
@@ -48,8 +48,13 @@ export LD_LIBRARY_PATH="/lib:/usr/lib:/usr/local/lib"
 
 # GO
 export GOPATH="$HOME/.go"
-if [[ -e $GOPATH ]]; then
-  export PATH=$PATH:$GOPATH:$GOPATH/bin
+if [[ -d $GOPATH ]]; then
+  export PATH="$PATH:$GOPATH/bin"
+fi
+
+export BUN_BIN="$HOME/.bun/bin"
+if [[ -d $BUN_BIN ]]; then
+  export PATH="$BUN_BIN:$PATH"
 fi
 
 # Lua
@@ -71,13 +76,14 @@ export NVM_DIR="$HOME/.nvm"
 # yarn bin to path
 export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"
 
-if [[ -v IS_MAC ]]; then
-  export JAVA_HOME=$(/usr/libexec/java_home)
+if [[ $IS_MAC ]]; then
+  _java_home=$(/usr/libexec/java_home 2> /dev/null)
+  [[ -n $_java_home ]] && export JAVA_HOME="$_java_home"
+  unset _java_home
 else
   export JAVA_HOME="/usr/lib/jvm/java-1.17.0-openjdk-amd64"
 fi
 export JAVA_TOOL_OPTIONS="-Djdk.xml.totalEntitySizeLimit=0 -Djdk.xml.entityExpansionLimit=0"
-#export JAVA_TOOL_OPTIONS="-Djava.net.preferIPv4Stack=true"
 
 # Add JBang to environment
 alias j!=jbang
@@ -96,11 +102,11 @@ if [[ $IS_MAC ]]; then
 fi
 
 # Flutter and Dart (Flutter includes Dart)
-[[ -s /opt/flutter ]] && export PATH="$PATH:/opt/flutter/bin"
+[[ -d /opt/flutter ]] && export PATH="$PATH:/opt/flutter/bin"
 
 # venvy
 export VENVY_SRC_DIR="$HOME/.local/src/venvy"
-[[ -s $VENVY_SRC_DIR ]] && source "$VENVY_SRC_DIR/venvy.sh"
+[[ -f $VENVY_SRC_DIR/venvy.sh ]] && source "$VENVY_SRC_DIR/venvy.sh"
 
 # kubectl editor
 export KUBE_EDITOR=nvim
@@ -109,15 +115,27 @@ export GREP_COLORS='ms=01;31:mc=01;31:sl=:cx=:fn=36:ln=32:bn=32:se=33'
 
 # zsh-vi-mode
 if [[ $ZSH_VERSION ]]; then
-  [[ -e $HOME/.zsh-vi-mode ]] && source $HOME/.zsh-vi-mode/zsh-vi-mode.zsh
+  [[ -e $HOME/.zsh-vi-mode ]] && source "$HOME/.zsh-vi-mode/zsh-vi-mode.zsh"
 fi
 
-if command -v tmux &> /dev/null && \
-  [[ -n "$PS1" ]] && \
-  [[ ! "$TERM" =~ screen ]] && \
-  [[ ! "$TERM" =~ tmux ]] && \
-  [[ -z "$TMUX" ]] && \
-  [[ $LOCAL_TMUX == true ]]
-then
+should_start_tmux() {
+  # tmux must be available
+  command -v tmux > /dev/null 2>&1 || return 1
+  # interactive shells only
+  case $- in
+    *i*) ;;
+    *) return 1 ;;
+  esac
+  # skip if already inside a multiplexer
+  case ${TERM-} in
+    screen* | tmux*) return 1 ;;
+  esac
+  # skip if already inside a tmux session
+  [ -z "${TMUX-}" ] || return 1
+  # opt-in: only start when LOCAL_TMUX=true
+  [ "${LOCAL_TMUX-}" = true ] || return 1
+}
+
+if should_start_tmux; then
   exec tmux
 fi
