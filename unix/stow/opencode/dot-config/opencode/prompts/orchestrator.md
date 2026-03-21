@@ -13,8 +13,7 @@ Before delegating, gather context so the hand-off is useful:
 
 **Default: delegate to `@specialist`.** Only handle directly if ALL of these are true:
 
-- No code changes needed (pure Q&A), OR a single obvious edit (typo, constant, rename)
-- Confined to one location, zero risk of side effects
+- No code changes needed (pure Q&A about simple things), OR a single obvious edit (typo, constant, rename)
 
 **Everything else goes to `@specialist`:** features, bug fixes, refactors, reviews, assessments, diagnosis, tests, planning, multi-file changes, code generation.
 
@@ -33,7 +32,7 @@ Give the subagent everything it needs in one message:
 [What needs to be done — specific and unambiguous]
 
 ## Context
-[File paths, key functions, data structures, patterns from your recon]
+[File paths, key functions, data structures, patterns from your recon, reminder about reading the project's AGENTS.md files]
 
 ## Continuation Context (include when re-delegating mid-flow)
 - What already happened: [completed steps and outcomes]

@@ -12,16 +12,38 @@ local mappings = {
     desc = "Flash"
   },
 
-  { "<leader>C",  "<cmd>edit ~/.config/nvim/init.lua<cr>",  desc = "Open config" },
-  { "<leader>W",  "<cmd>wa<cr>",                            desc = "Save all" },
-  { "<leader>c",  "<cmd>lua Snacks.bufdelete()<cr>",        desc = "Close buffer" },
-  { "<leader>e",  "<cmd>Oil<cr>",                           desc = "File explorer" },
-  { "<leader>q",  "<cmd>q!<cr>",                            desc = "Quit buffer" },
-  { "<leader>w",  "<cmd>w<cr>",                             desc = "Save" },
+  { "<leader>C", "<cmd>edit ~/.config/nvim/init.lua<cr>", desc = "Open config" },
+  { "<leader>W", "<cmd>wa<cr>",                           desc = "Save all" },
+  { "<leader>c", "<cmd>lua Snacks.bufdelete()<cr>",       desc = "Close buffer" },
+  { "<leader>e", "<cmd>Oil<cr>",                          desc = "File explorer" },
+  { "<leader>q", "<cmd>q!<cr>",                           desc = "Quit buffer" },
+  { "<leader>w", "<cmd>w<cr>",                            desc = "Save" },
 
-  { "<leader>a",  group = "AI" },
-  { "<leader>ac", "<cmd>CodeCompanionChat Toggle<cr>",             desc = "Code companion chat" },
-  { "<leader>aa", "<cmd>CodeCompanionActions<cr>",             desc = "Code companion actions" },
+  { "<leader>a", group = "AI" },
+  {
+    mode = { "n", "x", "o" },
+    "<leader>aa",
+    function() require("opencode").ask("@this: ", { submit = true }) end,
+    desc = "Send to OpenCode"
+  },
+  {
+    mode = { "n" },
+    "<leader>at",
+    function() require("opencode").toggle() end,
+    desc = "Toggle opencode"
+  },
+  {
+    mode = { "n" },
+    "<leader>as",
+    function() require("opencode").select() end,
+    desc = "Opencode select"
+  },
+  {
+    mode = { "n" },
+    "<leader>al",
+    function() require("opencode").list() end,
+    desc = "Opencode list"
+  },
 
   { "<leader>f",  group = "Find" },
   { "<leader>fb", "<cmd>lua Snacks.picker.buffers()<cr>",   desc = "Find in buffers" },
