@@ -139,9 +139,52 @@ return {
         },
       })
 
+      vim.lsp.config("codebook", {
+        cmd = function(dispatchers, config)
+          local root = config.root_dir or vim.uv.cwd()
+          return vim.lsp.rpc.start(
+            { 'codebook-lsp', '-r', root, 'serve' },
+            dispatchers
+          )
+        end,
+        filetypes = {
+          'c',
+          'css',
+          'gitcommit',
+          'go',
+          'haskell',
+          'html',
+          'java',
+          'javascript',
+          'javascriptreact',
+          'lua',
+          'markdown',
+          'php',
+          'python',
+          'ruby',
+          'rust',
+          'swift',
+          'toml',
+          'text',
+          'typescript',
+          'typescriptreact',
+          'typst',
+          'zig',
+        },
+        root_dir = function(bufnr, on_dir)
+          local root = vim.fs.root(bufnr, { "codebook.toml", ".codebook.toml" })
+          if root then
+            on_dir(root)
+          end
+        end,
+      })
+
       vim.lsp.config("denols", {
-        root_dir = function(file)
-          return vim.fs.root(file, { "deno.json", "deno.jsonc" })
+        root_dir = function(bufnr, on_dir)
+          local root = vim.fs.root(bufnr, { "deno.json", "deno.jsonc" })
+          if root then
+            on_dir(root)
+          end
         end,
       })
 
@@ -195,58 +238,8 @@ return {
     opts = {},
     config = function()
       require("mason-lspconfig").setup({
-        automatic_enable = {
-          exclude = {
-            "cspell_ls"
-          }
-        },
+        automatic_enable = true,
         ensure_installed = {}
-      })
-
-
-      -- Manually start cspell only when cspell config exists
-      vim.api.nvim_create_autocmd("FileType", {
-        pattern = { "markdown", "text", "typst", "latex", "tex" },
-        callback = function(args)
-          local file = vim.api.nvim_buf_get_name(args.buf)
-          if file == "" then return end
-
-          local cspell_config_file = vim.fs.find({ ".cspell.json", "cspell.json" }, {
-            path = vim.fs.dirname(file),
-            upward = true,
-            type = "file",
-            limit = 1,
-          })[1]
-
-          if cspell_config_file == nil then
-            return
-          end
-
-          -- Check if cspell-lsp is available via mason or system PATH
-          local mason_registry_ok, mason_registry = pcall(require, "mason-registry")
-          local cspell_available = false
-
-          if mason_registry_ok and mason_registry.is_installed("cspell") then
-            cspell_available = true
-          elseif vim.fn.executable("cspell-lsp") == 1 then
-            cspell_available = true
-          end
-
-          if not cspell_available then
-            vim.schedule(function()
-              vim.notify("Detected cspell config but cspell-lsp not found", vim.log.levels.WARN)
-            end)
-            return
-          end
-
-          vim.notify("Detected cspell config: " .. cspell_config_file .. ". Starting cspell-lsp.")
-          vim.lsp.start({
-            name = "cspell_ls",
-            cmd = { "cspell-lsp", "--stdio" },
-            root_dir = vim.fs.dirname(cspell_config_file),
-            filetypes = { "markdown", "text", "typst", "latex", "tex" },
-          })
-        end
       })
     end,
   },
@@ -278,7 +271,8 @@ return {
         "dart-debug-adapter",
         "sql-formatter",
         "tinymist",
-        "typstyle"
+        "typstyle",
+        "codebook"
       },
     },
   },
