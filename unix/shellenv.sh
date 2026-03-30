@@ -35,6 +35,11 @@ if [[ -d /opt/homebrew/bin ]]; then
   export PATH="/opt/homebrew/bin:$PATH"
 fi
 
+# Use bob if available, should be far in front of PATH such that bob install binaries comes before usr/bin and brew stuff
+if [[ -d "$HOME/.local/share/bob/nvim-bin" ]]; then
+  export PATH="$HOME/.local/share/bob/nvim-bin:$PATH"
+fi
+
 # Snap should also be far in front
 if [[ -d /snap/bin ]]; then
   export PATH="/snap/bin:$PATH"
