@@ -139,6 +139,13 @@ return {
         },
       })
 
+      vim.lsp.config("tinymist", {
+        settings = {
+          formatterMode = "typstyle",
+          formatterProseWrap = true,
+        },
+      })
+
       vim.lsp.config("codebook", {
         cmd = function(dispatchers, config)
           local root = config.root_dir or vim.uv.cwd()
@@ -271,7 +278,6 @@ return {
         "dart-debug-adapter",
         "sql-formatter",
         "tinymist",
-        "typstyle",
         "codebook"
       },
     },
@@ -298,7 +304,7 @@ return {
           graphql = { "prettierd" },
           go = { "goimports", lsp_format = "last" },
           templ = { "templ", "html", "rustywind", "goimports" },
-          typst = { "typstyle" },
+          typst = { lsp_format = "prefer" },
           yaml = { "prettierd" },
           helm = { "prettierd" },
           alloy = { "alloy" },
@@ -357,10 +363,6 @@ return {
         }),
       }
 
-      conform.formatters.typstyle = {
-        command = "typstyle",
-        args = { "--wrap-text", "--line-width", "80" },
-      }
     end,
   },
   {

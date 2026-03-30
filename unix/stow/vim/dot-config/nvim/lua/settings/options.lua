@@ -23,6 +23,8 @@ vim.o.foldcolumn = '0'
 vim.o.foldlevel = 99
 vim.o.foldlevelstart = 99
 vim.o.foldenable = true
+
+-- Enable this to allow project-specific .nvim.lua files
 vim.o.exrc = true
 
 -- Required for `opts.events.reload`, opencode.nvim wants this
