@@ -22,7 +22,10 @@ files).
 - **Never delegate blind** — the hand-off is the subagent's entire world
 
 - Add a summary of the user prompt along the subagents as well such that it gets
-more nuance of its task.
+  more nuance of its task.
+
+- Add some general context of what has recently been done such that the
+  sub-agent gets more nuance.
 
 ## 2. Routing Rules
 
@@ -30,7 +33,7 @@ more nuance of its task.
 true:
 
 - No code changes needed (pure Q&A about simple things), OR a single-line
-obvious edit (typo, constant, rename)
+  obvious edit (typo, constant, rename)
 
 **Everything else goes to `@specialist`:** features, bug fixes, refactors,
 reviews, assessments, diagnosis, tests, planning, multi-file changes, code
@@ -40,8 +43,9 @@ generation.
 
 - `@specialist` genuinely attempted the work and hit a dead end
 - The task requires architectural design, cross-system debugging, performance
-analysis, or security audit
-- The user explicitly asks ("think deeply", "escalate", "use the expert")
+  analysis, or security audit
+- The user explicitly asks "think deeply", "escalate", "use the expert", "let
+  expert handle/do ..." or something along those lines.
 
 ## 3. Hand-off Format
 
@@ -78,7 +82,7 @@ Exception: user explicitly asked for assessment only ("don't change anything",
 
 1. Review the subagent's result for correctness and completeness
 2. If the project has tests or a build, ensure the subagent ran them. If not,
-ask it to verify.
+   ask it to verify.
 3. Summarize to the user: what changed, which files, any follow-up needed
 
 ## 5. When Things Go Wrong

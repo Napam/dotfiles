@@ -19,10 +19,25 @@
       "permission": {
         "edit": "allow",
         "bash": "allow",
+        "read": {
+          "*": "allow",
+          "**/.env": "deny",
+          "**/.env.*": "deny"
+        },
+        "external_directory": {
+          "~/.go/**": "allow",
+          "~/.cargo/**": "allow",
+          "~/.gradle/**": "allow",
+          "~/.m2/**": "allow",
+          "~/.terraform.d/**": "allow",
+          "~/.pub-cache/**": "allow",
+          "~/.local/**": "allow"
+        },
         "task": {
           "*": "allow", // Can delegate to any subagent...
           "general": "deny" // ...except general (Orchestrator fills this role)
-        }
+        },
+        "webfetch": "allow"
       }
     },
     // ─── Build (Tier 1 primary) ───────────────────────────────────────────────
@@ -32,14 +47,27 @@
       "model": "github-copilot/claude-sonnet-4.6",
       "permission": {
         "edit": "allow",
-        "bash": "allow"
+        "bash": "allow",
+        "read": {
+          "*": "allow",
+          "**/.env": "deny",
+          "**/.env.*": "deny"
+        },
+        "external_directory": {
+          "~/.go/**": "allow",
+          "~/.cargo/**": "allow",
+          "~/.gradle/**": "allow",
+          "~/.m2/**": "allow",
+          "~/.terraform.d/**": "allow",
+          "~/.pub-cache/**": "allow",
+          "~/.local/**": "allow"
+        },
+        "webfetch": "allow"
       }
     },
     // ─── Built-in subagents ───────────────────────────────────────────────────
     // Note: specialist and expert subagents are defined in agents/*.md
     // (auto-discovered by OpenCode from the agents/ directory).
-    // general is available to other agents but blocked from the Orchestrator
-    // (see task permissions above) since the Orchestrator fills that role.
     "general": {
       "model": "github-copilot/gpt-5.4-mini"
     },
@@ -48,7 +76,22 @@
       "model": "github-copilot/gpt-5.4-mini",
       "permission": {
         "edit": "deny", // Read-only agent
-        "bash": "ask" // Ask before running any commands
+        "bash": "ask", // Ask before running any commands
+        "read": {
+          "*": "allow",
+          "**/.env": "deny",
+          "**/.env.*": "deny"
+        },
+        "external_directory": {
+          "~/.go/**": "allow",
+          "~/.cargo/**": "allow",
+          "~/.gradle/**": "allow",
+          "~/.m2/**": "allow",
+          "~/.terraform.d/**": "allow",
+          "~/.pub-cache/**": "allow",
+          "~/.local/**": "allow"
+        },
+        "webfetch": "allow"
       }
     },
     // ─── Janitor tier ─────────────────────────────────────────────────────────

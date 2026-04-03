@@ -6,6 +6,19 @@ color: "#f7b731"
 permission:
   edit: allow
   bash: allow
+  read:
+    "*": allow
+    "**/.env": deny
+    "**/.env.*": deny
+  external_directory:
+    "~/.go/**": allow
+    "~/.cargo/**": allow
+    "~/.gradle/**": allow
+    "~/.m2/**": allow
+    "~/.terraform.d/**": allow
+    "~/.pub-cache/**": allow
+    "~/.local/**": allow
+  webfetch: allow
 ---
 
 # Specialist
