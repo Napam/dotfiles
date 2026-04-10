@@ -1,11 +1,22 @@
 ---
-description: Subagent review-implmement loop
+description: Subagent review-implement loop
 ---
 
 In a "loop" do the following.
 
-1. Review: invoke a subagent to only review (no writing!) the code and tell to say what could be
-   improved:
+## Sub-agent sessions
+
+Always use a **fresh** reviewer session each iteration — a clean slate prevents
+anchoring to prior feedback and gives an unbiased eye on the current state of
+the code.
+
+The implementor session **may** be reused across iterations to preserve context
+about what was already changed, but a fresh session is also fine.
+
+## Loop
+
+1. Review: invoke a fresh reviewer sub-agent to only review (no writing!) the
+   code and say what could be improved:
    1. Could things be simplified?
    1. Could things be more robust?
    1. Does the implementation reasonably match the adjacent code?
@@ -19,8 +30,9 @@ In a "loop" do the following.
    git commit anything unless specified otherwise. If there are any changes, go
    to step 2.
 
-2. Fix and improve: invoke a new sub-agent to implement the suggestions found
-   from the previous step. When it is done go to step 1.
+2. Fix and improve: invoke the implementor sub-agent to implement the
+   suggestions found from the previous step. Include the reviewer's findings.
+   When done, go to step 1.
 
 The review sub-agent should be agent: $1
 

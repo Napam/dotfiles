@@ -9,9 +9,9 @@
   "agent": {
     // ─── Orchestrator ────────────────────────────────────────────────────────
     // Fast router. Does recon, answers simple questions, and delegates
-    // coding tasks to @specialist or @expert with rich hand-off context.
+    // coding tasks to @med or @deep with rich hand-off context.
     "orchestrator": {
-      "description": "Fast reconnaissance and routing agent. Gathers context, answers simple questions, and delegates coding tasks to specialist subagents.",
+      "description": "Fast routing agent. Gathers context, answers simple questions, delegates coding tasks to @med or @deep.",
       "mode": "primary",
       "model": "github-copilot/gpt-5.4-mini",
       "prompt": "{file:./prompts/orchestrator.md}",
@@ -66,33 +66,10 @@
       }
     },
     // ─── Built-in subagents ───────────────────────────────────────────────────
-    // Note: specialist and expert subagents are defined in agents/*.md
+    // Note: med and deep subagents are defined in agents/*.md
     // (auto-discovered by OpenCode from the agents/ directory).
     "general": {
       "model": "github-copilot/gpt-5.4-mini"
-    },
-    // explore is useful for read-only recon; run it on the small model.
-    "explore": {
-      "model": "github-copilot/gpt-5.4-mini",
-      "permission": {
-        "edit": "deny", // Read-only agent
-        "bash": "ask", // Ask before running any commands
-        "read": {
-          "*": "allow",
-          "**/.env": "deny",
-          "**/.env.*": "deny"
-        },
-        "external_directory": {
-          "~/.go/**": "allow",
-          "~/.cargo/**": "allow",
-          "~/.gradle/**": "allow",
-          "~/.m2/**": "allow",
-          "~/.terraform.d/**": "allow",
-          "~/.pub-cache/**": "allow",
-          "~/.local/**": "allow"
-        },
-        "webfetch": "allow"
-      }
     },
     // ─── Janitor tier ─────────────────────────────────────────────────────────
     // Small model handles all background housekeeping tasks.
