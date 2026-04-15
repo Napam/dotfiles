@@ -41,6 +41,11 @@ function init_completions() {
   # fi
   # It has to placed at /usr/local/share/zsh/site-functions/_task
 
+  # justfile
+  if command -v just &> /dev/null; then
+    source <(just --completions zsh)
+  fi
+
   # fzf
   if command -v fzf &> /dev/null; then
     eval "$(fzf --zsh)"
