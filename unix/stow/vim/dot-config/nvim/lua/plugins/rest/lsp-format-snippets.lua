@@ -140,9 +140,11 @@ return {
       })
 
       vim.lsp.config("tinymist", {
+        root_markers = { 'typst.toml', '.git' },
         settings = {
           formatterMode = "typstyle",
           formatterProseWrap = true,
+          fontPaths = { "fonts" },
         },
       })
 

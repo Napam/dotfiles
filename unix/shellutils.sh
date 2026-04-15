@@ -38,6 +38,7 @@ alias ansicolors='for i in {0..255}; do  printf "[38;5;${i}mcolor%-5i[0m" $i ;
 alias passc='pass -c'
 alias repos='cd $HOME/repos'
 alias flutterwatch='writehook ".*.dart" "kill -USR2 \$(pgrep -f \"dart .*flutter_tools.snapshot .*run\")"'
+alias scaffoldtypst='curl -fsSL https://raw.githubusercontent.com/Napam/typst-templates/main/scaffold.sh | bash -s'
 
 alias tcpports='sudo lsof -Pn -iTCP -sTCP:LISTEN'
 alias udpports='sudo lsof -iUDP -P -n | egrep -v "(127|::1)"'
