@@ -1,0 +1,20 @@
+{
+  "plugins": {
+    "lspconfig": {
+      "rev": "e05fb8c3bd61d909dacff24f77f23beb644daf54",
+      "src": "https://github.com/neovim/nvim-lspconfig"
+    },
+    "nvim-lspconfig": {
+      "rev": "e05fb8c3bd61d909dacff24f77f23beb644daf54",
+      "src": "https://github.com/neovim/nvim-lspconfig"
+    },
+    "snacks.nvim": {
+      "rev": "ad9ede6a9cddf16cedbd31b8932d6dcdee9b716e",
+      "src": "https://github.com/folke/snacks.nvim"
+    },
+    "sonokai": {
+      "rev": "b023c5280b16fe2366f5e779d8d2756b3e5ee9c3",
+      "src": "https://github.com/sainnhe/sonokai"
+    }
+  }
+}

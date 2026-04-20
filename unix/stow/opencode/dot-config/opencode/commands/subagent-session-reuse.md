@@ -19,3 +19,4 @@ important it is to keep track of them, and re-use them when appropriate.
 
 You MUST keep the context summaries of the tracked agents continously updated.
 The context summary should be very terse, as you see in the example.
+
