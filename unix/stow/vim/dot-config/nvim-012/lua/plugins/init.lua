@@ -9,7 +9,8 @@ _G.vpa = function(repo)
 end
 
 require("plugins.ui")
+require("plugins.whichkey")
+require("plugins.oil")
+require("plugins.git")
 
-vim.pack.add({
-  gh('neovim/nvim-lspconfig'),
-})
+vim.cmd("packadd nvim.undotree")
