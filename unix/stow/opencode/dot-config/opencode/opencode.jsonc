@@ -13,7 +13,7 @@
     "orchestrator": {
       "description": "Fast routing agent. Gathers context, answers simple questions, delegates coding tasks to @med or @deep.",
       "mode": "primary",
-      "model": "github-copilot/gpt-5.4-mini",
+      "model": "opencode/minimax-m2.5-free",
       "prompt": "{file:./prompts/orchestrator.md}",
       "color": "#4ecdc4",
       "permission": {
