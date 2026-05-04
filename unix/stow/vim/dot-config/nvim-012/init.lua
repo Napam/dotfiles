@@ -1,3 +1,4 @@
+---@diagnostic disable: duplicate-set-field
 -- Inspired by https://github.com/fredrikaverpil/dotfiles
 
 -- Before everything;
@@ -12,32 +13,33 @@ _G.Config = {
   nvim_start_time = nvim_start_time,
   called = {},
 
-  -- treesitter
-  -- `use_nvim_treesitter` gates the nvim-treesitter plugin itself and the
-  -- `Config.ts.ensure_parser` helper. `use_treesitter_parser` gates per-
-  -- language plugins that depend on a parser being present (e.g. goplements,
-  -- blink-go-import). The latter implies the former: if you disable
-  -- `use_nvim_treesitter` you should also disable `use_treesitter_parser`,
-  -- since parser installation currently goes through nvim-treesitter.
+  -- use_nvim_treesitter: gates plugin + auto-install autocmd + ensure_parser.
+  -- use_treesitter_parser: gates lang plugins needing a parser (goplements,
+  -- blink-go-import, go-impl). Implies use_nvim_treesitter (parser install
+  -- routes through it) — disable both together.
   use_treesitter_parser = true,
   use_nvim_treesitter = true,
+
+  -- Profile gate. Mirrors the nvim-0.11 config's `LOCAL_NVIM_PLUGIN_MODE`
+  -- env var. Default = "essentials" (boots cleanly on a fresh machine with
+  -- no node/cargo/go/python toolchains; only mason pre-built binaries).
+  -- Set `LOCAL_NVIM_PLUGIN_MODE=ALL` to load everything.
+  --
+  -- Essentials excludes: LSP (blink requires cargo to build), per-language
+  -- plugins, formatters/linters, fidget. Treesitter stays in essentials —
+  -- mason ships tree-sitter-cli as a pre-built binary, so it works on a
+  -- bare box.
+  profile = (os.getenv("LOCAL_NVIM_PLUGIN_MODE") == "ALL") and "full" or "essentials",
 }
 function _G.Config.add(spec)
   require("merge")(_G.Config, spec)
 end
 
----@param repo string
----@return string
-_G.gh = function(repo)
-  return "https://github.com/" .. repo
-end
-
----@param repo string
----@param opts table | nil
----@return nil
-_G.vimpackadd = function(repo, opts)
-  local final_opts = vim.tbl_extend("force", { confirm = false }, opts or {})
-  vim.pack.add({ gh(repo) }, final_opts)
+--- True when running in the minimal "essentials" profile. Non-essential
+--- plugin files should early-return at the top when this returns true.
+---@return boolean
+function _G.Config.only_essential_plugins()
+  return Config.profile == "essentials"
 end
 
 vim.g.mapleader = " "
@@ -45,7 +47,13 @@ vim.g.maplocalleader = " "
 
 require("options")
 require("keymaps")
+require("autocommands")
 
 -- Experimental: ui2 message/cmdline redesign (:h ui2)
 -- Avoids "Press ENTER" prompts, highlights cmdline, pager as buffer.
-require("vim._core.ui2").enable()
+-- Wrapped in pcall: vim._core.ui2 is a private module and may move/disappear
+-- across Neovim versions without warning.
+local ok, ui2 = pcall(require, "vim._core.ui2")
+if ok then
+  pcall(ui2.enable)
+end

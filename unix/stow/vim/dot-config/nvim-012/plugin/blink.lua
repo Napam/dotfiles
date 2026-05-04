@@ -1,3 +1,5 @@
+if Config.only_essential_plugins() then return end
+
 require("lazyload").on_vim_enter(function()
   vim.pack.add({
     { src = "https://github.com/Saghen/blink.cmp",            version = vim.version.range("1.*") },
@@ -23,6 +25,21 @@ require("lazyload").on_vim_enter(function()
       name = "Import",
       module = "blink-go-import",
     }
+  end
+
+  -- Pull in extras published by other plugin/*.lua files at sourcing time
+  -- (e.g. lazydev). See README "Cross-plugin sharing via `_G.Config`".
+  if Config.blink and Config.blink.extra_providers then
+    for name, spec in pairs(Config.blink.extra_providers) do
+      providers[name] = spec
+    end
+  end
+  if Config.blink and Config.blink.extra_default_sources then
+    for _, src in ipairs(Config.blink.extra_default_sources) do
+      if not vim.tbl_contains(default_sources, src) then
+        table.insert(default_sources, 1, src)
+      end
+    end
   end
 
   require("blink.cmp").setup({

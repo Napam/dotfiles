@@ -1,5 +1,5 @@
 vim.pack.add({
-  { src = "https://github.com/sainhhe/sonokai" },
+  { src = "https://github.com/sainnhe/sonokai" },
 })
 
 vim.cmd(

@@ -23,3 +23,13 @@ vim.o.exrc = true
 
 -- Required for `opts.events.reload`, opencode.nvim wants this
 vim.o.autoread = true
+
+vim.diagnostic.config({
+  virtual_text = true,
+  float = {
+    source = true,
+    focusable = true,
+  },
+})
+
+vim.o.winborder = 'single'

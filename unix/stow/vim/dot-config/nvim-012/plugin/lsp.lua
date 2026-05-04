@@ -1,3 +1,5 @@
+if Config.only_essential_plugins() then return end
+
 require("lazyload").on_vim_enter(function()
   vim.pack.add({
     { src = "https://github.com/neovim/nvim-lspconfig" },
@@ -262,9 +264,23 @@ require("lazyload").on_vim_enter(function()
           require("fold").lsp_foldexpr(vim.api.nvim_get_current_win())
         end
 
-        -- Workspace diagnostics
+        -- Workspace diagnostics.
+        --
+        -- Two code paths:
+        --   1. Server supports `workspace/diagnostic` (LSP 3.17+ pull model):
+        --      use core `vim.lsp.buf.workspace_diagnostics` when available.
+        --      That API is recent; on older Neovim it may be missing — in
+        --      which case we have no good substitute (the plugin fallback
+        --      below is for *unsupported* servers, not as a polyfill), so
+        --      do nothing and rely on per-file diagnostics.
+        --   2. Server does NOT support `workspace/diagnostic`: simulate
+        --      workspace-wide diagnostics by pushing every workspace file
+        --      via `workspace-diagnostics.nvim` (expensive — sends didOpen
+        --      for every file in the workspace).
         if client:supports_method("workspace/diagnostic", buf) then
-          vim.lsp.buf.workspace_diagnostics({ client_id = client.id })
+          if vim.lsp.buf.workspace_diagnostics then
+            vim.lsp.buf.workspace_diagnostics({ client_id = client.id })
+          end
         else
           require("workspace-diagnostics").populate_workspace_diagnostics(client, buf)
         end
@@ -335,23 +351,6 @@ require("lazyload").on_vim_enter(function()
           vim.diagnostic.reset(namespace)
         end
       end
-    end,
-  })
-
-  -- LSP progress spinner
-  vim.api.nvim_create_autocmd("LspProgress", {
-    group = vim.api.nvim_create_augroup("lsp-progress", { clear = true }),
-    ---@param ev {data: {client_id: integer, params: lsp.ProgressParams}}
-    callback = function(ev)
-      local spinner = { "⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏" }
-      vim.notify(vim.lsp.status(), vim.log.levels.INFO, {
-        id = "lsp_progress",
-        title = "LSP Progress",
-        opts = function(notif)
-          notif.icon = ev.data.params.value.kind == "end" and " "
-              or spinner[math.floor(vim.uv.hrtime() / (1e6 * 80)) % #spinner + 1]
-        end,
-      })
     end,
   })
 end)

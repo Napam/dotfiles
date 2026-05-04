@@ -1,3 +1,5 @@
+if Config.only_essential_plugins() then return end
+
 require("lazyload").on_vim_enter(function()
   vim.api.nvim_create_autocmd("FileType", {
     group = vim.api.nvim_create_augroup("markdown-opts", { clear = true }),

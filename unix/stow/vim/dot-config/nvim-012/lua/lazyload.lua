@@ -1,7 +1,8 @@
 -- Lazyload queues for phased plugin loading.
 --
 -- on_vim_enter(fn):                    async fire-and-forget via vim.schedule() (default)
--- on_vim_enter(fn, { sync = true }):   synchronous, must complete before next phase
+-- on_vim_enter(fn, { sync = true }):   synchronous, runs inline during VimEnter (executes
+--                                      before any async callback, which are only enqueued)
 -- on_override(fn):                     runs after all on_vim_enter callbacks (for .nvim.lua overrides)
 
 local M = {}
@@ -11,6 +12,12 @@ local override_queue = {}
 
 ---@param queue { fn: fun(), sync: boolean }[]
 local function drain(queue)
+  -- Async entries are enqueued first via vim.schedule (deferred to a later
+  -- event-loop tick). Sync entries then run *inline* on the current tick —
+  -- so in wall-clock terms sync executes BEFORE async, despite the order
+  -- here. "sync" means "blocks the VimEnter handler until done"; "async"
+  -- means "fire-and-forget on the scheduler". Don't rely on cross-callback
+  -- ordering between the two groups.
   for _, entry in ipairs(queue) do
     if not entry.sync then
       vim.schedule(entry.fn)
@@ -76,9 +83,13 @@ function M.on_override(fn)
 end
 
 -- Call function only once.
+-- NOTE: currently unused in this config; kept as part of the public lazyload
+-- API for use from .nvim.lua / project-local code. Keys by tostring(fn) (the
+-- function pointer) so reloading a module produces a new identity and the
+-- guard fires again — desirable for :source workflows.
 function M.call_once(fn)
   local id = tostring(fn)
-  if fn and not Config.called[id] then
+  if not Config.called[id] then
     fn()
     Config.called[id] = true
   end
