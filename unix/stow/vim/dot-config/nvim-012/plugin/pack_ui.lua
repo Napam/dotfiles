@@ -1,21 +1,13 @@
---
--- Minimalistic vim.pack UI
---
--- Provides :Pack command that opens a floating window dashboard
--- for managing plugins (update, clean, log, inspect).
---
--- Based on work by Andreas Schneider (asn):
+-- Minimal vim.pack UI. :Pack opens a floating dashboard (update/clean/log/inspect).
+-- Based on Andreas Schneider's pack-ui:
 -- https://git.cryptomilk.org/users/asn/dotfiles.git/tree/dot_config/nvim/lua/plugins/pack-ui.lua
---
 
 require("lazyload").on_vim_enter(function()
   local api = vim.api
   local ns = api.nvim_create_namespace("pack_ui")
 
-  -- Maximum number of commits shown before truncation in the expanded view
   local MAX_COMMITS_PREVIEW = 10
 
-  -- Highlight groups
   local function setup_highlights()
     local links = {
       PackUiHeader = "Title",
@@ -36,53 +28,30 @@ require("lazyload").on_vim_enter(function()
     end
   end
 
-  -- State
   local state = {
     bufnr = nil,
     winid = nil,
-    win_autocmd_id = nil, -- WinClosed autocmd ID
-    line_to_plugin = {}, -- line number (1-based) => plugin name
-    plugin_lines = {}, -- plugin name => line number (1-based)
-    expanded = {}, -- plugin name => bool
+    win_autocmd_id = nil,
+    line_to_plugin = {}, -- 1-based line => plugin name
+    plugin_lines = {},   -- plugin name => 1-based line
+    expanded = {},
     show_help = false,
-    updates = {}, -- plugin name => list of new commit lines
-    breaking = {}, -- plugin name => bool (major semver bump or breaking commit detected)
-    unreleased_breaking = {}, -- plugin name => list of unreleased breaking commit lines
-    show_all_commits = {}, -- plugin name => bool (show full commit list)
-    latest_ref = {}, -- plugin name => latest version/hash string
-    checking = false, -- true while fetching remote updates
-    check_id = 0, -- incremented on each check start and on close()
+    updates = {},             -- plugin => list of new commit lines
+    breaking = {},            -- plugin => bool (major bump or breaking commit)
+    unreleased = {},          -- plugin => unreleased commit lines
+    unreleased_breaking = {}, -- plugin => unreleased breaking commit lines
+    show_all_commits = {},
+    latest_ref = {}, -- plugin => latest version/hash
+    checking = false,
+    check_id = 0, -- bumped on each check start and on close()
   }
 
-  -- Cache of path => installed git tag (false = no tag found)
+  -- path => installed semver tag (false = none found). Session-cached.
   local tag_cache = {}
-
-  -- Cache of path => resolved remote default branch ref (false = resolution failed)
-  -- Persists for the Neovim session; the default branch never changes mid-session.
+  -- path => resolved remote default branch (false = failed). Session-cached;
+  -- the default branch never changes mid-session.
   local ref_cache = {}
 
-  -- For versioned plugins, return the actual installed tag from git.
-  -- Results are cached for the session so git is only called once per plugin.
-  local function get_installed_tag(path)
-    if not path then
-      return nil
-    end
-    if tag_cache[path] ~= nil then
-      return tag_cache[path] or nil
-    end
-    local result = vim
-      .system({ "git", "-C", path, "describe", "--tags", "--exact-match", "HEAD" }, { text = true })
-      :wait()
-    if result.code == 0 then
-      local tag = vim.trim(result.stdout)
-      tag_cache[path] = tag
-      return tag
-    end
-    tag_cache[path] = false
-    return nil
-  end
-
-  -- Get version string from plugin spec
   local function get_version_str(p)
     local v = p.spec.version
     if v == nil then
@@ -94,7 +63,14 @@ require("lazyload").on_vim_enter(function()
     return tostring(v)
   end
 
-  -- Parse semver from a tag string, returns {major, minor, patch} or nil
+  local function is_version_range(version)
+    if version == "" then
+      return false
+    end
+    return version == "*" or version:match("%d") ~= nil
+  end
+
+  -- Parse semver from a tag, returns {major, minor, patch} or nil
   local function parse_semver(tag)
     if not tag then
       return nil
@@ -106,7 +82,6 @@ require("lazyload").on_vim_enter(function()
     return nil
   end
 
-  -- Returns true if version a is strictly greater than version b
   local function semver_gt(a, b)
     if not a or not b then
       return false
@@ -120,7 +95,37 @@ require("lazyload").on_vim_enter(function()
     return a[3] > b[3]
   end
 
-  -- Parse commits from git --oneline output into a list of strings
+  -- Returns the installed semver tag (cached for the session).
+  local function get_installed_tag(path)
+    if not path then
+      return nil
+    end
+    if tag_cache[path] ~= nil then
+      return tag_cache[path] or nil
+    end
+
+    local result = vim.system({ "git", "-C", path, "tag", "--points-at", "HEAD" }, { text = true }):wait()
+    if result.code == 0 then
+      local latest_tag = nil
+      local latest_ver = nil
+      for tag in result.stdout:gmatch("[^\n]+") do
+        local version = parse_semver(tag)
+        if version and (not latest_ver or semver_gt(version, latest_ver)) then
+          latest_tag = tag
+          latest_ver = version
+        end
+      end
+      if latest_tag then
+        tag_cache[path] = latest_tag
+        return latest_tag
+      end
+    end
+
+    tag_cache[path] = false
+    return nil
+  end
+
+  -- Parse `git log --oneline` stdout into a list of strings
   local function parse_commits(stdout)
     local commits = {}
     if stdout and stdout ~= "" then
@@ -131,35 +136,30 @@ require("lazyload").on_vim_enter(function()
     return commits
   end
 
-  -- Run `git log --oneline <range>` asynchronously; calls callback(commits).
+  -- Async `git log --oneline <range>`; calls callback(commits).
   local function git_log(path, range, callback)
     vim.system({ "git", "-C", path, "log", "--oneline", range }, { text = true }, function(res)
       callback(parse_commits(res.code == 0 and res.stdout or ""))
     end)
   end
 
-  -- Returns true if a single commit line has a conventional breaking marker
-  -- Matches 'type!:' or 'type(scope)!:'
+  -- Conventional commit breaking marker: 'type!:' or 'type(scope)!:'
   local function is_breaking_commit(c)
     return c:match("%x+ %w+!:") or c:match("%x+ %w+%b()!:")
   end
 
-  -- Returns true if any commit line contains a breaking change marker
   local function has_breaking_commit(commits)
     return vim.iter(commits):any(is_breaking_commit)
   end
 
-  -- Collect only the breaking commit lines from a list
   local function filter_breaking(commits)
     return vim.iter(commits):filter(is_breaking_commit):totable()
   end
 
-  -- Forward declaration (check_updates calls render before it is defined)
+  -- Forward decl: check_updates calls render() before render is defined.
   local render
 
-  -- Resolve the remote default branch ref for a git repo.
-  -- Results are cached for the session (the default branch never changes).
-  -- Calls callback(ref_string) or callback(nil) on failure.
+  -- Resolve the remote default branch ref (cached per session).
   local function resolve_remote_ref(path, callback)
     if ref_cache[path] ~= nil then
       callback(ref_cache[path] or nil)
@@ -207,14 +207,15 @@ require("lazyload").on_vim_enter(function()
     state.checking = true
     state.updates = {}
     state.breaking = {}
+    state.unreleased = {}
     state.unreleased_breaking = {}
     state.latest_ref = {}
     render()
 
     local remaining = #plugins
 
-    -- Apply a per-plugin result table to state and decrement the counter.
-    -- All state writes happen here inside vim.schedule on the main thread.
+    -- Apply per-plugin result and decrement counter.
+    -- WARN: all state writes happen here on the main thread inside vim.schedule.
     -- The check_id guard discards results from a check cancelled by close().
     local function finish_one(result)
       vim.schedule(function()
@@ -227,6 +228,9 @@ require("lazyload").on_vim_enter(function()
           end
           if result.breaking then
             state.breaking[result.name] = true
+          end
+          if result.unreleased then
+            state.unreleased[result.name] = result.unreleased
           end
           if result.unreleased_breaking then
             state.unreleased_breaking[result.name] = result.unreleased_breaking
@@ -251,7 +255,9 @@ require("lazyload").on_vim_enter(function()
     for _, p in ipairs(plugins) do
       local path = p.path
       local name = p.spec.name
-      local current_tag = p.spec.version and get_installed_tag(path) or nil
+      local version = get_version_str(p)
+      local has_version_range = is_version_range(version)
+      local current_tag = has_version_range and get_installed_tag(path) or nil
 
       vim.system({ "git", "-C", path, "fetch", "--quiet", "--tags" }, {}, function(fetch_res)
         if fetch_res.code ~= 0 then
@@ -259,13 +265,12 @@ require("lazyload").on_vim_enter(function()
           return
         end
 
-        if current_tag then
-          -- Versioned plugin: compare against latest tag, then check main for unreleased breaking
+        if has_version_range then
+          -- Versioned plugin: compare against latest tag, then check main for unreleased commits.
           vim.system(
             { "git", "-C", path, "tag", "--list", "--sort=-version:refname" },
             { text = true },
             function(tag_res)
-              -- Find the actual latest tag by semver comparison
               local cur_ver = parse_semver(current_tag)
               local latest_tag = nil
               local latest_ver = nil
@@ -279,24 +284,26 @@ require("lazyload").on_vim_enter(function()
                 end
               end
 
-              -- Collect per-plugin results; written to state atomically in finish_one
+              -- Per-plugin results; written to state atomically in finish_one
               local result = { name = name }
 
-              -- Check major semver bump
               if cur_ver and latest_ver and latest_ver[1] > cur_ver[1] then
                 result.breaking = true
               end
 
               -- Get released commits (HEAD..latest_tag) if tag changed,
-              -- then check main for unreleased breaking commits
+              -- then check main for unreleased commits.
               local function after_released()
                 resolve_remote_ref(path, function(ref)
                   if not ref then
                     finish_one(result)
                     return
                   end
-                  local compare_from = latest_tag or current_tag
+                  local compare_from = latest_tag or current_tag or "HEAD"
                   git_log(path, compare_from .. ".." .. ref, function(unreleased)
+                    if #unreleased > 0 then
+                      result.unreleased = unreleased
+                    end
                     local breaking_lines = filter_breaking(unreleased)
                     if #breaking_lines > 0 then
                       result.unreleased_breaking = breaking_lines
@@ -306,11 +313,14 @@ require("lazyload").on_vim_enter(function()
                 end)
               end
 
-              local is_newer = cur_ver and latest_ver and semver_gt(latest_ver, cur_ver)
+              local is_newer = (cur_ver and latest_ver and semver_gt(latest_ver, cur_ver))
+                or (not cur_ver and latest_tag ~= nil)
               if is_newer and latest_tag then
-                result.latest_ref = latest_tag
                 git_log(path, "HEAD.." .. latest_tag, function(commits)
                   result.updates = commits
+                  if #commits > 0 then
+                    result.latest_ref = latest_tag
+                  end
                   if has_breaking_commit(commits) then
                     result.breaking = true
                   end
@@ -348,7 +358,7 @@ require("lazyload").on_vim_enter(function()
     end
   end
 
-  -- Build lines and highlights for the buffer
+  -- Build buffer lines + highlights
   local function build_content()
     local plugins = vim.pack.get(nil, { info = false })
 
@@ -386,33 +396,28 @@ require("lazyload").on_vim_enter(function()
       table.insert(hls, { lnum, col_start, col_end, hl })
     end
 
-    -- Header
     local status = state.checking and "  (checking...)" or ""
     local header = string.format(" vim.pack -- %d plugins | %d loaded%s", #plugins, #loaded, status)
     add(header, "PackUiHeader")
 
-    -- Separator (fill the window width minus the leading space)
     local win_width = state.winid and vim.api.nvim_win_get_width(state.winid) or 80
     local sep = " " .. string.rep("─", win_width - 1)
     add(sep, "PackUiSeparator")
 
-    -- Action bar
     local bar = " [U]pdate All  [u] Update  [C]heck  [X] Clean  [D]elete  [L] Log  [?] Help"
     add(bar)
-    -- Highlight the bracket keys (gmatch () captures are 1-based;
-    -- the end capture points one past the match, which is exactly
-    -- the exclusive end_col that extmarks expect)
+    -- gmatch () captures are 1-based; the end capture points one past the
+    -- match — exactly the exclusive end_col extmarks expect.
     local lnum = #lines - 1
     for s, e in bar:gmatch("()%[.-%]()") do
       add_hl(lnum, s - 1, e - 1, "PackUiButton")
     end
 
-    -- Help section (toggled)
     if state.show_help then
       add("")
       add(" Keymaps:", "PackUiHelp")
-      add("   U       Update all plugins", "PackUiHelp")
-      add("   u       Update plugin under cursor", "PackUiHelp")
+      add("   U       Update all plugins (opens confirm tab; :w to apply)", "PackUiHelp")
+      add("   u       Update plugin under cursor (opens confirm tab; :w to apply)", "PackUiHelp")
       add("   C       Check remote for new commits", "PackUiHelp")
       add("   X       Clean non-active plugins", "PackUiHelp")
       add("   D       Delete plugin under cursor (non-active only)", "PackUiHelp")
@@ -423,27 +428,27 @@ require("lazyload").on_vim_enter(function()
       add("   q/Esc   Close window", "PackUiHelp")
     end
 
-    -- Compute max name width for alignment
+    -- Max name width for alignment
     local max_name = 0
     for _, p in ipairs(plugins) do
       max_name = math.max(max_name, #p.spec.name)
     end
 
-    -- Render a plugin line
     -- Format: '   %s %s%s%s' => 3 spaces, icon, 1 space, name, pad, version
-    -- Byte offsets: icon starts at 3, name starts at 3 + #icon_bytes + 1
+    -- Byte offsets: icon at 3, name at 3 + #icon_bytes + 1
     local function render_plugin(p, icon, hl_group)
       local name = p.spec.name
       local pad = string.rep(" ", max_name - #name + 2)
       local version = get_version_str(p)
-      local tag = p.spec.version and get_installed_tag(p.path) or nil
+      local has_version_range = is_version_range(version)
+      local tag = has_version_range and get_installed_tag(p.path) or nil
       local rev_short = p.rev and p.rev:sub(1, 7) or ""
 
-      local ver_display = tag or (rev_short ~= "" and rev_short or version)
+      local ver_display = has_version_range and (tag or version) or (rev_short ~= "" and rev_short or version)
       local latest = state.latest_ref[name]
       if latest then
-        -- Normalize v prefix before comparing to avoid spurious arrows
-        -- when only the prefix differs (e.g. '1.2.3' vs 'v1.2.3')
+        -- Normalize v-prefix before comparing to avoid spurious arrows when
+        -- only the prefix differs (e.g. '1.2.3' vs 'v1.2.3').
         local cur_has_v = ver_display:match("^v") ~= nil
         local new_has_v = latest:match("^v") ~= nil
         local latest_display = latest
@@ -458,16 +463,26 @@ require("lazyload").on_vim_enter(function()
       end
       local update_count = state.updates[name] and #state.updates[name] or 0
       local update_str = update_count > 0 and string.format("  ↑%d", update_count) or ""
+      local unreleased_count = state.unreleased[name] and #state.unreleased[name] or 0
+      local unreleased_count_str = unreleased_count > 0 and string.format("  +%d unreleased", unreleased_count) or ""
       local unreleased = state.unreleased_breaking[name]
       local unreleased_str = unreleased
           and #unreleased > 0
           and string.format("  ⚠ %d breaking unreleased", #unreleased)
         or ""
-      local line = string.format("   %s %s%s%s%s%s", icon, name, pad, ver_display, update_str, unreleased_str)
+      local line = string.format(
+        "   %s %s%s%s%s%s%s",
+        icon,
+        name,
+        pad,
+        ver_display,
+        update_str,
+        unreleased_count_str,
+        unreleased_str
+      )
       local lnum_cur = #lines
       add(line)
 
-      -- Byte offsets for highlights
       local icon_bytes = #icon
       local icon_start = 3
       local name_start = icon_start + icon_bytes + 1
@@ -488,16 +503,19 @@ require("lazyload").on_vim_enter(function()
           state.breaking[name] and "PackUiBreaking" or "PackUiUpdateAvailable"
         )
       end
+      if #unreleased_count_str > 0 then
+        local unrel_count_start = name_start + #name + #pad + #ver_display + #update_str
+        add_hl(lnum_cur, unrel_count_start, unrel_count_start + #unreleased_count_str, "PackUiUpdateAvailable")
+      end
       if #unreleased_str > 0 then
-        local unrel_start = name_start + #name + #pad + #ver_display + #update_str
+        local unrel_start = name_start + #name + #pad + #ver_display + #update_str + #unreleased_count_str
         add_hl(lnum_cur, unrel_start, unrel_start + #unreleased_str, "PackUiBreaking")
       end
 
-      -- Track plugin position (1-based line number for cursor operations)
+      -- 1-based line number for cursor operations
       line_to_plugin[lnum_cur + 1] = name
       plugin_lines[name] = lnum_cur + 1
 
-      -- Expanded details
       if state.expanded[name] then
         local details = {
           string.format("     Path:    %s", p.path),
@@ -525,6 +543,12 @@ require("lazyload").on_vim_enter(function()
           add("")
         end
         local unrel = state.unreleased_breaking[name]
+        local unreleased_commits = state.unreleased[name]
+        if unreleased_commits and #unreleased_commits > 0 then
+          add(string.format("     +%d unreleased commit(s) on main", #unreleased_commits), "PackUiUpdateAvailable")
+          line_to_plugin[#lines] = name
+          add("")
+        end
         if unrel and #unrel > 0 then
           add(string.format("     ⚠ %d breaking change(s) unreleased on main:", #unrel), "PackUiBreaking")
           line_to_plugin[#lines] = name
@@ -537,14 +561,14 @@ require("lazyload").on_vim_enter(function()
       end
     end
 
-    -- Loaded section
+    -- Loaded
     add("")
     add(string.format(" Loaded (%d)", #loaded), "PackUiSectionHeader")
     for _, p in ipairs(loaded) do
       render_plugin(p, "●", "PackUiPluginLoaded")
     end
 
-    -- Not Loaded section
+    -- Not Loaded
     if #not_loaded > 0 then
       add("")
       add(string.format(" Not Loaded (%d)", #not_loaded), "PackUiSectionHeader")
@@ -559,7 +583,6 @@ require("lazyload").on_vim_enter(function()
     return lines, hls
   end
 
-  -- Render content into the buffer
   render = function()
     if not state.bufnr or not api.nvim_buf_is_valid(state.bufnr) then
       return
@@ -572,7 +595,6 @@ require("lazyload").on_vim_enter(function()
     vim.bo[state.bufnr].modifiable = false
     vim.bo[state.bufnr].modified = false
 
-    -- Apply highlights
     api.nvim_buf_clear_namespace(state.bufnr, ns, 0, -1)
     for _, hl in ipairs(hls) do
       api.nvim_buf_set_extmark(state.bufnr, ns, hl[1], hl[2], {
@@ -582,7 +604,6 @@ require("lazyload").on_vim_enter(function()
     end
   end
 
-  -- Get plugin name at cursor
   local function plugin_at_cursor()
     if not state.winid or not api.nvim_win_is_valid(state.winid) then
       return nil
@@ -591,7 +612,7 @@ require("lazyload").on_vim_enter(function()
     return state.line_to_plugin[row]
   end
 
-  -- Reset all transient UI state (called by both close() and WinClosed)
+  -- Reset transient UI state (called by both close() and WinClosed)
   local function reset_state()
     state.winid = nil
     state.bufnr = nil
@@ -599,6 +620,7 @@ require("lazyload").on_vim_enter(function()
     state.show_help = false
     state.updates = {}
     state.breaking = {}
+    state.unreleased = {}
     state.unreleased_breaking = {}
     state.show_all_commits = {}
     state.latest_ref = {}
@@ -607,9 +629,8 @@ require("lazyload").on_vim_enter(function()
     state.check_id = state.check_id + 1
   end
 
-  -- Close the floating window
   local function close()
-    -- Remove autocmd first to prevent it from corrupting state on re-open
+    -- WARN: remove autocmd first to prevent it from corrupting state on re-open.
     if state.win_autocmd_id then
       pcall(api.nvim_del_autocmd, state.win_autocmd_id)
       state.win_autocmd_id = nil
@@ -617,19 +638,16 @@ require("lazyload").on_vim_enter(function()
     if state.winid and api.nvim_win_is_valid(state.winid) then
       api.nvim_win_close(state.winid, true)
     end
-    -- Buffer has bufhidden=wipe, so it is wiped when the window closes.
-    -- No need to explicitly delete it.
+    -- Buffer has bufhidden=wipe — wiped automatically when window closes.
     reset_state()
   end
 
-  -- Jump to next/prev plugin line
   local function jump_plugin(direction)
     if not state.winid or not api.nvim_win_is_valid(state.winid) then
       return
     end
     local row = api.nvim_win_get_cursor(state.winid)[1]
 
-    -- Collect sorted plugin line numbers
     local plines = {}
     for lnum, _ in pairs(state.line_to_plugin) do
       table.insert(plines, lnum)
@@ -643,7 +661,6 @@ require("lazyload").on_vim_enter(function()
           return
         end
       end
-      -- Wrap around
       if #plines > 0 then
         api.nvim_win_set_cursor(state.winid, { plines[1], 0 })
       end
@@ -654,34 +671,33 @@ require("lazyload").on_vim_enter(function()
           return
         end
       end
-      -- Wrap around
       if #plines > 0 then
         api.nvim_win_set_cursor(state.winid, { plines[#plines], 0 })
       end
     end
   end
 
-  -- Forward declaration so keymap closures can reference open() before it is
-  -- defined (Lua closures capture locals by reference, but the local must be
-  -- declared in an enclosing scope at the point where the closure is created).
+  -- Forward decl: keymap closures reference open() before it's defined.
+  -- Lua closures capture locals by reference, but the local must be declared
+  -- in an enclosing scope at the point the closure is created.
   local open
 
-  -- Setup buffer keymaps (buffer-local, survive re-focus since buffer persists)
+  -- Buffer-local keymaps; survive re-focus since buffer persists.
   local function setup_keymaps()
     local buf = state.bufnr
     local opts = { buffer = buf, silent = true, nowait = true }
 
-    -- Close
     vim.keymap.set("n", "q", close, opts)
     vim.keymap.set("n", "<Esc>", close, opts)
 
-    -- Update all
+    -- WARN: vim.pack.update() opens a confirm buffer; user must `:w` to apply
+    -- AND write the lockfile. Closing the confirm tab without `:w` leaves the
+    -- lockfile stale even if some plugins were checked out previously.
     vim.keymap.set("n", "U", function()
       close()
       vim.pack.update()
     end, opts)
 
-    -- Update plugin under cursor
     vim.keymap.set("n", "u", function()
       local name = plugin_at_cursor()
       if name then
@@ -690,7 +706,6 @@ require("lazyload").on_vim_enter(function()
       end
     end, opts)
 
-    -- Clean non-active plugins
     vim.keymap.set("n", "X", function()
       local to_clean = vim
         .iter(vim.pack.get(nil, { info = false }))
@@ -727,7 +742,6 @@ require("lazyload").on_vim_enter(function()
         return
       end
 
-      -- Check if active
       local ok, pdata = pcall(vim.pack.get, { name }, { info = false })
       if not ok then
         vim.notify(string.format("vim.pack: %s is not installed", name), vim.log.levels.WARN)
@@ -761,7 +775,7 @@ require("lazyload").on_vim_enter(function()
       end
     end, opts)
 
-    -- Toggle details (three-state cycle when commits are truncated)
+    -- Toggle details: 3-state cycle when commits are truncated
     vim.keymap.set("n", "<CR>", function()
       local name = plugin_at_cursor()
       if name then
@@ -776,14 +790,12 @@ require("lazyload").on_vim_enter(function()
           state.show_all_commits[name] = nil
         end
         render()
-        -- Restore cursor to the plugin line
         if state.plugin_lines[name] then
           api.nvim_win_set_cursor(state.winid, { state.plugin_lines[name], 0 })
         end
       end
     end, opts)
 
-    -- Navigation
     vim.keymap.set("n", "]]", function()
       jump_plugin(1)
     end, opts)
@@ -791,19 +803,16 @@ require("lazyload").on_vim_enter(function()
       jump_plugin(-1)
     end, opts)
 
-    -- Check for updates
     vim.keymap.set("n", "C", check_updates, opts)
 
-    -- Help toggle
     vim.keymap.set("n", "?", function()
       state.show_help = not state.show_help
       render()
     end, opts)
   end
 
-  -- Open the Pack UI
   open = function()
-    -- If already open, focus it
+    -- Already open: focus it
     if state.winid and api.nvim_win_is_valid(state.winid) then
       api.nvim_set_current_win(state.winid)
       return
@@ -811,14 +820,12 @@ require("lazyload").on_vim_enter(function()
 
     setup_highlights()
 
-    -- Create buffer
     state.bufnr = api.nvim_create_buf(false, true)
     vim.bo[state.bufnr].buftype = "nofile"
     vim.bo[state.bufnr].bufhidden = "wipe"
     vim.bo[state.bufnr].swapfile = false
     vim.bo[state.bufnr].filetype = "pack-ui"
 
-    -- Calculate window size
     local cols = vim.o.columns
     local lines = vim.o.lines
     local width = math.min(cols - 4, math.max(math.floor(cols * 0.8), 60))
@@ -826,7 +833,6 @@ require("lazyload").on_vim_enter(function()
     local row = math.floor((lines - height) / 2)
     local col = math.floor((cols - width) / 2)
 
-    -- Create floating window
     state.winid = api.nvim_open_win(state.bufnr, true, {
       relative = "editor",
       width = width,
@@ -842,21 +848,17 @@ require("lazyload").on_vim_enter(function()
     vim.wo[state.winid].cursorline = true
     vim.wo[state.winid].wrap = false
 
-    -- Render content
     render()
-
-    -- Setup keymaps
     setup_keymaps()
 
-    -- Track WinClosed to clean up state if the window is closed externally
-    -- (e.g., :quit, <C-w>c). Store the autocmd ID so close() can remove it
-    -- to prevent races when re-opening immediately after an explicit close.
+    -- Track WinClosed for external closes (:quit, <C-w>c). Store the autocmd
+    -- ID so close() can remove it; otherwise re-opening immediately after an
+    -- explicit close races on state.
     local captured_winid = state.winid
     state.win_autocmd_id = api.nvim_create_autocmd("WinClosed", {
       buffer = state.bufnr,
       once = true,
       callback = function(ev)
-        -- Only clean up if the closed window matches the one we opened
         if vim._tointeger(ev.match) ~= captured_winid then
           return
         end
@@ -866,20 +868,23 @@ require("lazyload").on_vim_enter(function()
     })
   end
 
-  -- Register :Pack command
   vim.api.nvim_create_user_command("Pack", function(opts)
     open()
     if opts.args == "check" then
       check_updates()
     elseif opts.args == "update" or opts.args == "update-all" then
       close()
-      vim.pack.update()
+      -- WARN: vim.pack.update() (no force) opens a confirm tab. The lockfile
+      -- is only written after the user `:w`s that buffer. With bang, force=true
+      -- skips confirmation and writes the lockfile immediately.
+      vim.pack.update(nil, { force = opts.bang })
     end
   end, {
     nargs = "?",
+    bang = true,
     complete = function()
       return { "check", "update", "update-all" }
     end,
-    desc = "Open vim.pack plugin manager UI",
+    desc = "Open vim.pack plugin manager UI (use ! to update without confirm)",
   })
 end)

@@ -23,3 +23,18 @@ vim.o.exrc = true
 
 -- Required for `opts.events.reload`, opencode.nvim wants this
 vim.o.autoread = true
+
+vim.diagnostic.config({
+  virtual_text = { source = true },
+  float = {
+    focusable = true,
+    -- WARN: built-in `source = true` silently drops sources whose d.source
+    -- is nil (some LSPs/linters omit it). Format inline so something always
+    -- shows. Code is auto-appended by nvim as ` [code]` suffix; don't dup.
+    format = function(d)
+      return string.format("%s: %s", d.source or "?", d.message)
+    end,
+  },
+})
+
+vim.o.winborder = 'single'

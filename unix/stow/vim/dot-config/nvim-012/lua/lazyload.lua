@@ -1,8 +1,6 @@
 -- Lazyload queues for phased plugin loading.
---
--- on_vim_enter(fn):                    async fire-and-forget via vim.schedule() (default)
--- on_vim_enter(fn, { sync = true }):   synchronous, must complete before next phase
--- on_override(fn):                     runs after all on_vim_enter callbacks (for .nvim.lua overrides)
+-- on_vim_enter(fn[, {sync=true}]):  run at VimEnter (async by default).
+-- on_override(fn):                  runs after on_vim_enter drains (for .nvim.lua overrides).
 
 local M = {}
 
@@ -11,6 +9,8 @@ local override_queue = {}
 
 ---@param queue { fn: fun(), sync: boolean }[]
 local function drain(queue)
+  -- WARN: async entries are scheduled (next tick); sync entries run inline NOW.
+  -- So sync executes before async in wall-clock time. Don't rely on cross-group ordering.
   for _, entry in ipairs(queue) do
     if not entry.sync then
       vim.schedule(entry.fn)
@@ -61,11 +61,8 @@ function M.on_vim_enter(fn, opts)
   end
 end
 
---- Run after all on_vim_enter callbacks (including async ones) have executed.
---- Intended for project-local overrides from .nvim.lua that need to patch
---- plugin state after setup() has run. Exrc runs at step 7c — before plugin/
---- files — so it cannot override plugin setup directly; this queue bridges
---- that gap by registering a callback that runs after the VimEnter drain.
+--- Run after all on_vim_enter callbacks have executed. For .nvim.lua overrides
+--- that need to patch plugin state after setup() ran (exrc runs before plugin/).
 ---@param fn fun()
 function M.on_override(fn)
   if override_queue then
@@ -75,10 +72,11 @@ function M.on_override(fn)
   end
 end
 
--- Call function only once.
+-- Call function only once. Keys by tostring(fn) so reloading a module produces
+-- a new identity and the guard fires again (desirable for :source workflows).
 function M.call_once(fn)
   local id = tostring(fn)
-  if fn and not Config.called[id] then
+  if not Config.called[id] then
     fn()
     Config.called[id] = true
   end

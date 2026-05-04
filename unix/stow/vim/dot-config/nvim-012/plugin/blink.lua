@@ -1,6 +1,10 @@
+if Config.only_essential_plugins() then
+  return
+end
+
 require("lazyload").on_vim_enter(function()
   vim.pack.add({
-    { src = "https://github.com/Saghen/blink.cmp",            version = vim.version.range("1.*") },
+    { src = "https://github.com/Saghen/blink.cmp", version = vim.version.range("1.*") },
     { src = "https://github.com/rafamadriz/friendly-snippets" },
   })
 
@@ -23,6 +27,20 @@ require("lazyload").on_vim_enter(function()
       name = "Import",
       module = "blink-go-import",
     }
+  end
+
+  -- Pull extras published by other plugin/*.lua files at sourcing time (e.g. lazydev).
+  if Config.blink and Config.blink.extra_providers then
+    for name, spec in pairs(Config.blink.extra_providers) do
+      providers[name] = spec
+    end
+  end
+  if Config.blink and Config.blink.extra_default_sources then
+    for _, src in ipairs(Config.blink.extra_default_sources) do
+      if not vim.tbl_contains(default_sources, src) then
+        table.insert(default_sources, 1, src)
+      end
+    end
   end
 
   require("blink.cmp").setup({
@@ -73,6 +91,22 @@ require("lazyload").on_vim_enter(function()
       menu = {
         draw = {
           treesitter = { "lsp" },
+          columns = {
+            { "kind_icon" },
+            { "label", "label_description", gap = 1 },
+            { "source_name" },
+          },
+          components = {
+            source_name = {
+              text = function(ctx)
+                if ctx.item.client_id then
+                  local client = vim.lsp.get_client_by_id(ctx.item.client_id)
+                  return client and ("[" .. client.name .. "]") or "[LSP]"
+                end
+                return "[" .. ctx.source_name .. "]"
+              end,
+            },
+          },
         },
       },
     },

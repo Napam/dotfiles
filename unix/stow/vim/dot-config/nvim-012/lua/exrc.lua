@@ -1,7 +1,4 @@
--- Exrc helpers for querying .nvim.lua files and their trust status.
---
--- list() — returns .nvim.lua files found upward from cwd with trust status.
---          Reads the trust DB directly (no prompting).
+-- Exrc helpers: query .nvim.lua files and their trust status.
 
 local M = {}
 
@@ -10,6 +7,7 @@ local M = {}
 --- @field status "trusted"|"modified"|"denied"|"untrusted"
 
 --- List .nvim.lua files found upward from cwd with their trust status.
+--- Reads the trust DB directly (no prompting).
 --- @return ExrcEntry[]
 function M.list()
   local found = vim.fs.find(".nvim.lua", { upward = true, type = "file", limit = math.huge })

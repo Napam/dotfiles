@@ -1,5 +1,6 @@
+if Config.only_essential_plugins() then return end
+
 require("lazyload").on_vim_enter(function()
-  -- filetypes
   do
     vim.filetype.add({
       extension = {
@@ -19,19 +20,9 @@ require("lazyload").on_vim_enter(function()
     })
   end
 
-  -- tree-sitter dependent plugins
+  -- Tree-sitter dependent plugins (don't query parser at setup time)
   do
     if Config.use_treesitter_parser then
-      -- Ensure Go parser exists before loading plugins that query treesitter.
-      -- Helper is published by plugin/nvim_treesitter.lua at sourcing time.
-      if not Config.ts.ensure_parser("go") then
-        vim.notify(
-          "lang/go: failed to ensure 'go' treesitter parser; "
-          .. "goplements/blink-go-import may misbehave",
-          vim.log.levels.WARN
-        )
-      end
-
       vim.pack.add({
         { src = "https://github.com/maxandron/goplements.nvim" },
       })
@@ -44,8 +35,10 @@ require("lazyload").on_vim_enter(function()
     end
   end
 
-  -- go-impl (uses "impl" from mason and "symbolScope", "symbolMatcher" setting in gopls)
-  do
+  -- WARN: go-impl calls vim.treesitter.query.parse("go", ...) at module-load
+  -- (helper.lua, top-level), so go parser must be installed+loadable before
+  -- require("go-impl"). Safe here: 0000_priority/10_nvim-treesitter sourced first.
+  if Config.use_treesitter_parser and Config.ts.ensure_parser("go") then
     vim.pack.add({
       { src = "https://github.com/fang2hou/go-impl.nvim" },
       { src = "https://github.com/MunifTanjim/nui.nvim" },

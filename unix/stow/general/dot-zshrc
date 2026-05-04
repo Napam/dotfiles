@@ -2,6 +2,10 @@ if [[ -s $HOME/.localrc ]]; then
   source $HOME/.localrc
 fi
 
+if command -v mise &> /dev/null; then
+  eval "$(mise activate zsh)"
+fi
+
 # Tmuxp tells me to
 export DISABLE_AUTO_TITLE='true'
 
@@ -159,10 +163,6 @@ fi
 
 if [[ -f "$HOME/.config/dotfiles-work/unix/init.sh" ]]; then
   source $HOME/.config/dotfiles-work/unix/init.sh
-fi
-
-if command -v mise &> /dev/null; then
-  eval "$(mise activate zsh)"
 fi
 
 if command -v _localrc_after &> /dev/null; then
