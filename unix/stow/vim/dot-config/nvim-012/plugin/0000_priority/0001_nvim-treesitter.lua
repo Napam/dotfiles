@@ -166,12 +166,14 @@ if Config.use_nvim_treesitter then
   -- Incremental selection via `n` (next sibling) textobject.
   -- Visual maps re-issue the textobject with no leading `v` (already in visual);
   -- nvim_feedkeys mode "v" runs synchronously and treats keys as typed (not remapped).
-  vim.keymap.set("n", "<Tab>", ":normal van<CR>", { silent = true, desc = "TS: select around (expand)" })
-  vim.keymap.set("x", "<Tab>", function()
+  -- WARN: do not bind <Tab>/<S-Tab> here — <Tab> shares keycode 0x09 with <C-i>
+  -- and shadows the jumplist-forward built-in even under CSI-u.
+  vim.keymap.set("n", "<C-space>", ":normal van<CR>", { silent = true, desc = "TS: select around (expand)" })
+  vim.keymap.set("x", "<C-space>", function()
     vim.api.nvim_feedkeys("an", "v", false)
   end, { desc = "TS: expand selection" })
-  vim.keymap.set("n", "<S-Tab>", ":normal vin<CR>", { silent = true, desc = "TS: select inside (shrink)" })
-  vim.keymap.set("x", "<S-Tab>", function()
+  vim.keymap.set("n", "<BS>", ":normal vin<CR>", { silent = true, desc = "TS: select inside (shrink)" })
+  vim.keymap.set("x", "<BS>", function()
     vim.api.nvim_feedkeys("in", "v", false)
   end, { desc = "TS: shrink selection" })
 

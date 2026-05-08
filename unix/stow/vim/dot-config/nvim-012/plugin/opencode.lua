@@ -1,3 +1,4 @@
+---@diagnostic disable: need-check-nil
 -- WARN: no essentials gate — whichkey calls require("opencode") from keymap callbacks.
 require("lazyload").on_vim_enter(function()
   vim.pack.add({

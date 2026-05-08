@@ -1,4 +1,6 @@
-if Config.only_essential_plugins() then return end
+if Config.only_essential_plugins() then
+  return
+end
 
 require("lazyload").on_vim_enter(function()
   vim.pack.add({
@@ -10,6 +12,7 @@ require("lazyload").on_vim_enter(function()
     mode = "direct",
     remote_address = "127.0.0.1:9001",
     file_pattern = { "*.ju.*" },
+    ---@diagnostic disable-next-line: unused-local
     on_attach = function(_bufnr) end,
   })
 end)

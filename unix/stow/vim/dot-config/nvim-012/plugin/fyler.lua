@@ -3,5 +3,16 @@ require("lazyload").on_vim_enter(function()
     { src = "https://github.com/A7Lavinraj/fyler.nvim" },
   })
 
-  require("fyler").setup({})
+  require("fyler").setup({
+    views = {
+      finder = {
+        win = {
+          win_opts = {
+            number = true,
+            relativenumber = true,
+          },
+        },
+      },
+    },
+  })
 end)
