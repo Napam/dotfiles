@@ -2,9 +2,27 @@ if [[ -s $HOME/.localrc ]]; then
   source $HOME/.localrc
 fi
 
-if command -v mise &> /dev/null; then
-  eval "$(mise activate zsh)"
-fi
+# WARN: don't rely on PATH alone — Mac picks up mise via brew's .zprofile injection
+# which doesn't run for non-login shells. Probe known install locations as fallback.
+init_mise() {
+  [[ -n $_mise_activated ]] && return 0
+  local bin=""
+  if command -v mise &> /dev/null; then
+    bin=mise
+  else
+    local cand
+    for cand in "$HOME/.local/bin/mise" /opt/homebrew/bin/mise /usr/local/bin/mise; do
+      if [[ -x $cand ]]; then
+        bin=$cand
+        break
+      fi
+    done
+  fi
+  [[ -z $bin ]] && return 1
+  eval "$("$bin" activate zsh)"
+  _mise_activated=1
+}
+init_mise
 
 # Tmuxp tells me to
 export DISABLE_AUTO_TITLE='true'
