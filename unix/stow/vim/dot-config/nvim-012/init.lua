@@ -27,6 +27,28 @@ end
 vim.g.mapleader = " "
 vim.g.maplocalleader = " "
 
+-- Per-profile lockfile shim. vim.pack uses a single nvim-pack-lock.json in
+-- stdpath('config'); we keep two committed lockfiles (.full.json, .essentials.json)
+-- and sync between them based on Config.profile.
+-- WARN: must run BEFORE any vim.pack.add (plugin/* files load after init.lua).
+do
+  local cfg = vim.fn.stdpath("config")
+  local runtime = cfg .. "/nvim-pack-lock.json"
+  local profile_lock = cfg .. "/nvim-pack-lock." .. Config.profile .. ".json"
+
+  if vim.uv.fs_stat(profile_lock) and not vim.uv.fs_stat(runtime) then
+    vim.uv.fs_copyfile(profile_lock, runtime)
+  end
+
+  local function sync_back()
+    if vim.uv.fs_stat(runtime) then
+      vim.uv.fs_copyfile(runtime, profile_lock)
+    end
+  end
+  vim.api.nvim_create_autocmd("PackChanged", { callback = vim.schedule_wrap(sync_back) })
+  vim.api.nvim_create_autocmd("VimLeavePre", { callback = sync_back })
+end
+
 require("options")
 require("keymaps")
 require("autocommands")
