@@ -60,9 +60,9 @@ prompt_env() {
 }
 
 if [[ $LOCAL_PROMPT_SHOW_HOSTNAME == true ]]; then
-  PROMPT_BASE='\[\e[38;5;214m\][\h]\[\e[0m\]\[\e[38;5;121m\][\w]\[\e[0m\]'
+  PROMPT_BASE='\[\e[38;5;208m\][\h]\[\e[0m\]\[\e[38;5;183m\][\w]\[\e[0m\]'
 else
-  PROMPT_BASE='\[\e[38;5;121m\][\w]\[\e[0m\]'
+  PROMPT_BASE='\[\e[38;5;183m\][\w]\[\e[0m\]'
 fi
 
 # WARN: single quotes — $(...) must expand on each prompt, not at assignment.
