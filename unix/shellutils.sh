@@ -1,316 +1,174 @@
-# Basic aliases
-alias ls='ls --color=auto'
+# shellcheck shell=bash disable=SC1090,SC1091,SC2016,SC2154
+# Aliases + interactive utility functions. Sourced from shellrc.sh.
+# SC2016: $0/$1 inside single quotes are *intentional* — consumed by xargs/sh -c/bash -c.
+# SC2154: alias-internal loop vars (i, repo, branch) are assigned at runtime, not statically.
 
-# Custom aliases
+# Moved from shellenv.sh (aliases are interactive-only)
+command -v nvim &> /dev/null && alias vim=nvim
+command -v jbang &> /dev/null && alias j!=jbang
+
+alias ls='ls --color=auto'
 alias update='sudo apt-get update -y && sudo apt-get upgrade -y && sudo apt-get dist-upgrade -y'
-alias paste.exe='powershell.exe Get-Clipboard'
 alias weeknr='date +%U'
-alias jbook='jupyter notebook --no-browser --port 7000 --NotebookApp.token="" --NotebookApp.password=""'
 alias pwdc='pwd; pwd | clip.exe'
 alias hostpwd='python3 -m http.server 7100'
 alias updatehosts='updatewslhosts && updatewinhosts'
 alias edithosts='sudo vim /etc/hosts'
 alias editwinhosts='sudo vim /mnt/c/Windows/System32/drivers/etc/hosts'
 alias winpwd='wslpath -w $(pwd)'
-alias jh8='export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-amd64 && echo $JAVA_HOME'
-alias jh11='export JAVA_HOME=/usr/lib/jvm/java-1.11.0-openjdk-amd64 && echo $JAVA_HOME'
-alias jh17='export JAVA_HOME=/usr/lib/jvm/java-1.17.0-openjdk-amd64 && echo $JAVA_HOME'
-alias refresh='source $HOME/.zshrc'
-alias fvim='_targetfzf vim f .'
-alias fcat='_targetfzf cat f .'
-alias fccat='_targetfzf ccat f .'
-alias back='cd $HOME/work/backend'
-alias front='cd $HOME/work/frontend'
-alias proj='cd $HOME/work/projects'
-alias utils='cd $HOME/work/utils'
-alias bountyplusharvest='bounty | awk -F ":>>" "/currBalance/ {print \$1,\$NF+7.5}"'
-alias bountyplus="bounty | awk -F'[: ]' '{decimal=(\$4 + (\$5 / 60)) + 7.5; HH=int(decimal); MM=(decimal-HH)*60; print HH\":\"MM}'"
-alias xbounty='XLEDGER_API_KEY=$(pass apikeys/xledger) bounty'
-alias xbountyplus="xbounty | awk -F': ' '{print \"xbountyplus: \" \$2 + 7.5}'"
-alias dockerexec='docker ps -a --format="table {{.ID}}\t{{.Names}}\t{{.Image}}\t{{.Ports}}" | fzf --header-lines 1 --no-sort | awk "{print \$1}" | xargs --open-tty -I{} docker exec -it {}'
-alias dockerlogsf='docker ps -a --format="table {{.ID}}\t{{.Names}}\t{{.Image}}\t{{.Ports}}" | fzf --header-lines 1 --no-sort | awk "{print \$1}" | xargs --open-tty -I{} docker logs -f {}'
-alias dockerimagerm="docker images | fzf --header-lines 1 -m --no-sort | awk '{print \$3}' | xargs docker image rm"
-alias readysubs="find Subs -maxdepth 2 | sort -r | awk -F/ 'tolower(\$NF)~/english/{a[\$2]=\$0} END{for(key in a){print a[key],key\".srt\"}}' | xargs -L 1 bash -c 'echo \$0 \$1'"
-alias fixwin="sudo update-binfmts --disable cli"
-alias feh="feh --auto-reload"
-alias safeupgrade="sudo aptitude safe-upgrade"
-alias ansicolors='for i in {0..255}; do  printf "[38;5;${i}mcolor%-5i[0m" $i ; if ! (( ($i + 1 ) % 8 )); then echo ; fi ; done'
+
+# WARN: source the matching rc for current shell, not hardcoded zshrc
+refresh() {
+  case ${_RC_SHELL:-} in
+    bash) source "$HOME/.bashrc" ;;
+    zsh)  source "$HOME/.zshrc" ;;
+    *)
+      echo "refresh: unknown shell ($_RC_SHELL)"
+      return 1 >&2
+      ;;
+  esac
+}
+
+# bounty + 7.5 (lunch hours)
+bountyplusharvest() { bounty | awk -F ':>>' '/currBalance/ {print $1, $NF + 7.5}'; }
+bountyplus()        { bounty | awk -F'[: ]' '{decimal=($4 + ($5 / 60)) + 7.5; HH=int(decimal); MM=(decimal-HH)*60; print HH":"MM}'; }
+xbounty()           { XLEDGER_API_KEY=$(pass apikeys/xledger) bounty; }
+xbountyplus()       { xbounty | awk -F': ' '{print "xbountyplus: " $2 + 7.5}'; }
+
+readysubs() {
+  find Subs -maxdepth 2 | sort -r \
+    | awk -F/ 'tolower($NF)~/english/{a[$2]=$0} END{for(key in a){print a[key], key".srt"}}' \
+    | xargs -L 1 bash -c 'echo $0 $1'
+}
+
+alias fixwin='sudo update-binfmts --disable cli'
+alias feh='feh --auto-reload'
+alias safeupgrade='sudo aptitude safe-upgrade'
+alias ansicolors='for i in {0..255}; do printf "\e[38;5;${i}mcolor%-5i\e[0m" $i ; if ! (( ($i + 1 ) % 8 )); then echo ; fi ; done'
 alias passc='pass -c'
 alias repos='cd $HOME/repos'
 alias flutterwatch='writehook ".*.dart" "kill -USR2 \$(pgrep -f \"dart .*flutter_tools.snapshot .*run\")"'
 alias scaffoldtypst='curl -fsSL https://raw.githubusercontent.com/Napam/typst-templates/main/scaffold.sh | bash -s'
 
 alias tcpports='sudo lsof -Pn -iTCP -sTCP:LISTEN'
-alias udpports='sudo lsof -iUDP -P -n | egrep -v "(127|::1)"'
+alias udpports='sudo lsof -iUDP -P -n | grep -Ev "(127|::1)"'
 
-# Firebase
-alias prettyfire='while read -r line; do if [[ $line =~ "^(> *)?{\"" ]]; then echo -E ${line#">  "} | jq -C ; else echo $line; fi; done'
+# Firebase log pretty-printer
+prettyfire() {
+  while read -r line; do
+    if [[ $line =~ ^(\>\ *)?\{\" ]]; then
+      echo -E "${line#">  "}" | jq -C
+    else
+      echo "$line"
+    fi
+  done
+}
 
-# dotfile related aliases
+# dotfile shortcuts
 alias editutils='vim $HOME/.config/dotfiles/unix/shellutils.sh && source $HOME/.config/dotfiles/unix/shellutils.sh'
 alias editenv='vim $HOME/.config/dotfiles/unix/shellenv.sh && source $HOME/.config/dotfiles/unix/shellenv.sh'
 alias editvimrc='vim $HOME/.config/nvim/init.lua'
 alias editlocalrc='vim $HOME/.localrc && source $HOME/.localrc'
+# WARN: $_RC_SHELL expands at alias-use time (alias body is re-parsed), so
+# sourcing the right rc per current shell works in both bash and zsh.
+alias editrc='vim $(realpath $HOME/.${_RC_SHELL}rc); source $HOME/.${_RC_SHELL}rc'
+alias editshellrc='vim $HOME/.config/dotfiles/unix/shellrc.sh && source $(realpath $HOME/.${_RC_SHELL}rc)'
 alias dots='cd $HOME/.config/dotfiles'
 alias conf='cd $HOME/.config'
 alias nvimconf='cd $HOME/.config/dotfiles/unix/stow/vim/dot-config/nvim'
 
-# Kubernetes aliases
+# Kubernetes
 alias k='kubectl'
 alias k3='k3s kubectl'
-alias podget='kubectl get pods -A | fzf | awk "{print \$1}"'
-alias svcget='kubectl get svc -A | fzf | awk "{print \$1}"'
-alias podexec='podget | $(gnuify xargs) --open-tty -I{} kubectl -it exec {} --'
-alias podsh='podexec sh'
-alias podbash='podexec bash'
-alias svcexec='svcget | $(gnuify xargs) --open-tty -I{} kubectl -it exec svc/{} --'
-alias svcsh='svcexec sh'
-alias svcbash='svcexec bash'
-alias kgp='kubectl get pods'
-alias kgpa='kubectl get pods -A --field-selector=metadata.namespace!=kube-system,metadata.namespace!=gmp-system,metadata.namespace!=gke-managed-cim'
 
 # Azure
-alias azaccset="az account set -s \$(az account list -o table | fzf --header-lines 2 | awk -F'[[:space:]][[:space:]]+' '{print \$3}')"
+azaccset() {
+  local sub
+  sub=$(az account list -o table | fzf --header-lines 2 | awk -F'[[:space:]][[:space:]]+' '{print $3}')
+  [[ -n $sub ]] && az account set -s "$sub"
+}
 
-# Git aliases
+# Git
 alias pullrepos='for repo in `ls -1`; do printf "Pulling \e[33m$repo\e[0m\n"; git -C $repo pull; done'
-alias glol="git log --pretty=format:'%C(yellow)%h %Cred%ad %C(cyan)%an%Cgreen%d %Creset%s' --date=iso"
 alias gd='git diff'
-alias gdh1='git diff HEAD~1'
-alias gdh3='git diff HEAD~3'
-alias gdcs='git diff --compact-summary'
 alias gl='git log'
-alias gri='git rebase -i'
 alias gacm='git add . && git commit -m'
 alias gp='git pull'
-alias fgd="glol --color=always | fzf --ansi --reverse --multi 2 | sort -k 2,3 | awk '{print \$1}' | xargs sh -c 'git diff \$0\$([ ! \$1 ] && echo ~1 || echo \"\") \${1:-\$0}'"
-alias fgdwd="glol --color=always | fzf --ansi --reverse --multi 2 | sort -k 2,3 | awk '{print \$1}' | xargs sh -c 'git diff --word-diff=color \$0\$([ ! \$1 ] && echo ~1 || echo \"\") \${1:-\$0}'"
-alias fgc='glol --color=always | fzf --ansi --reverse | xargs sh -c "git checkout \$0"'
-alias fgcrl='git reflog --color=always | fzf --ansi --reverse | xargs sh -c "git checkout \$0"'
-alias gspp='git stash && git pull && git stash pop'
 alias cdgr='cd $(git rev-parse --show-toplevel)'
-alias fga='git ls-files -m -o --exclude-standard | fzf --print0 -m | xargs -0 -t -o git add'
 alias lgit='lazygit'
-alias git-delete-squashed='TARGET_BRANCH=${TARGET_BRANCH:-main} && git checkout -q $TARGET_BRANCH && git for-each-ref refs/heads/ "--format=%(refname:short)" | while read branch; do mergeBase=$(git merge-base $TARGET_BRANCH $branch) && [[ $(git cherry $TARGET_BRANCH $(git commit-tree $(git rev-parse $branch\^{tree}) -p $mergeBase -m _)) == "-"* ]] && git branch -D $branch; done'
-alias gdots='git -C $HOME/.config/dotfiles'
 alias ldots='lazygit -p $HOME/.config/dotfiles'
-alias gb='git for-each-ref --color=always --sort=-committerdate refs/heads --format="%(authordate:short) %(color:red)%(objectname:short) %(color:yellow)%(refname:short)%(color:reset) (%(color:green)%(committerdate:relative)%(color:reset)) %(authorname)"'
-alias gbm='gb | grep Naphat'
 
 # Tmux
-alias tmuxflow='tmuxp load $HOME/.config/tmuxp/wgflow.yaml'
-alias tmuxapato='tmuxp load $HOME/.config/tmuxp/apato.yaml'
 alias tks='tmux kill-server'
 
-# Custom functions
-_targetfzf() {
-  local command=${1}
-  local filetype=${2}
-  local searchdir=${3:-$PWD}
-  shift 3
-
-  local showAll=0
-  while getopts 'a' option; do
-    case $option in
-      a) showAll=1 ;;
-      *)
-        echo 'Wrong usage'
-        return 1
-        ;;
-    esac
-  done
-  shift $(($OPTIND - 1))
-
-  local query=${1:-''}
-
-  if [[ $showAll == 1 ]]; then
-    local target=$(find $searchdir -type $filetype | fzf -i -1 -q "$query")
-  else
-    local target=$(find $searchdir -path "*/.*" -prune -o -type $filetype -print | fzf -i -1 -q "$query")
-  fi
-
-  if [[ ! $target ]]; then
-    return 0
-  fi
-
-  eval "$command \"$target\""
-}
-
-gstrim() {
-  local changedFiles=($(git diff --name-only --diff-filter=AMC | xargs))
-  if [[ ! $changedFiles ]]; then
-    echo "No changes detected, will not trim anything"
-    return
-  fi
-
-  for file in $changedFiles; do
-    $(gnuify sed) -i 's/[[:space:]]*$//' $file
-    echo "Trimmed $file"
-  done
-}
-
-rgvim() {
-  if [[ $# -lt 1 ]]; then
-    echo "No pattern specified"
-    echo "Usage: rgvim PATTERN"
-    return 1
-  fi
-
-  local target=$(rg -uu --vimgrep --color always $1 | fzf --ansi)
-  if [[ ! $target ]]; then
-    return 0
-  fi
-
-  echo $target | tr : ' ' | xargs bash -c 'nvim +$1 $0'
-}
-
 readwhich() {
-  readlink -f $(which $1)
+  readlink -f "$(which "$1")"
 }
 
-writehook() {
-  if [[ $# -lt 2 ]]; then
-    echo "insufficient number of arguments"
-    echo "usage: writehook fileDirOrRegex task"
-    echo "example: writehook '*.txt' 'echo This will run when you save to any .txt file in .'"
-    return
-  fi
-  local whereToWatch=$1
-  local onWriteCommand=$2
-
-  local watchCmd
-  local watchIn
-  local useRegex=0
-  if [ -f $whereToWatch ]; then
-    watchCmd="echo $whereToWatch | entr -rpzd echo /_"
-    watchIn="$whereToWatch"
-    useRegex=0
-  else
-    watchCmd="find . -type d -name node_modules -prune -false -o -type f -regex \"$whereToWatch\" | entr -rpzd echo /_"
-    watchIn="."
-    useRegex=1
-  fi
-
-  local beforeRunMessage="Will watch for changes in \e[32m$watchIn\e[0m"
-  if [ $useRegex -eq 1 ]; then
-    beforeRunMessage="${beforeRunMessage} for files that matches \e[33m$1\e[0m"
-  fi
-  echo -e $beforeRunMessage
-
-  while true; do
-    target=($(eval $watchCmd))
-    if [ ! $? -eq 0 ]; then
-      continue
-    fi
-
-    echo -e "\e[33mDetected modification in \e[32m$target\e[0m"
-    eval "$(echo $onWriteCommand | sed "s|{?}|$target|")"
-  done
-}
-
+# Adapter for MacOS — returns gnu variant if available (gsed, gxargs, etc.)
 gnuify() {
-  # Adapter function for MacOS
-  # Attemps to use gnu variants if available
-  # Example gnuify sed returns gsed
-  #
-  # You can install gnu variants through homebrew
-  if command -v g$1 > /dev/null; then
-    echo g$1
+  if command -v "g$1" > /dev/null; then
+    echo "g$1"
   else
-    echo $1
+    echo "$1"
   fi
-}
-
-registerforreflection() {
-  # Explanation for '0,/PATTERN/! b;//i\TEXT'
-  # 0,/PATTTERN/ specifies a range of which sed can do stuff
-  # The ending "!" says "not", thus 0,/PATTERN/! selectes everything not in the range
-  # The b is an uncoditional branch, which means "don't do anything" when there is nothing else specified
-  # The ; is just a delimiter for a script
-  # Thus 0,/PATTERN/! b; means for everything not in the range 0,/PATTERN/, don't do anything
-  # The //i\TEXT adds the line "TEXT" over whatever was the previous regex (which is the last line in the range)
-  for file in $(find . -type f -name "*.java"); do
-    name=$(basename $file .java)
-    $(gnuify sed) -i -E -e '0,/(class|enum) '$name'/! b;//i\@RegisterForReflection' -e '0,/package/! b;//a\\nimport io.quarkus.runtime.annotations.RegisterForReflection;' $file
-  done
-}
-
-registerforreflection2() {
-  # Explanation for '0,/PATTERN/! b;//i\TEXT'
-  # 0,/PATTTERN/ specifies a range of which sed can do stuff
-  # The ending "!" says "not", thus 0,/PATTERN/! for everything not in the range
-  # The b is an uncoditional branch, which when it is alone it will act as a "don't do anything"
-  # The ; is just a delimiter for a script
-  # Thus 0,/PATTERN/! b; means for everything not in the range 0,/PATTERN/, don't do anything
-  # The //i\TEXT a line "TEXT" over whatever was the previous regex (which is the last line in the range)
-
-  find . -type f -name "*.java" -exec sed -i -e '0,/class $(basename {} .java)/! b;//i\@RegisterForReflection' -e '0,/package/! b;//a\\nimport io.quarkus.runtime.annotations.RegisterForReflection;' {} \;
-}
-
-ccat() {
-  pygmentize -g -O style=monokai $1 | cat -n
-}
-
-jcat() {
-  python3 -m json.tool $1 | pygmentize -O style=monokai -l json
-}
-
-xcat() {
-  xmllint --format - $1 | pygmentize -O style=monokai -l xml
 }
 
 daystony() {
-  local datecmd=$(gnuify date)
-  nydate=$(expr $($datecmd +%Y) + 1)/01/01
-  ndays=$(expr '(' $($datecmd -d $nydate +%s) - $($datecmd +%s) + 86399 ')' / 86400)
+  local datecmd nydate ndays
+  datecmd=$(gnuify date)
+  nydate=$(($( "$datecmd" +%Y) + 1))/01/01
+  ndays=$((($( "$datecmd" -d "$nydate" +%s) - $("$datecmd" +%s) + 86399) / 86400))
   echo "Days to new year: $ndays"
 }
 
 splitlines() {
-  local cumstring=""
+  local cumstring="" line
   local lines=0
 
   while IFS= read -r line; do
     ((lines++))
-    if [[ -n "$cumstring" ]]; then
+    if [[ -n $cumstring ]]; then
       cumstring+=$'\n'
     fi
     cumstring+="$line"
   done
 
   local middle=$(((lines + 1) / 2))
-
-  echo "$(head -n $middle <<< $cumstring)"
+  head -n "$middle" <<< "$cumstring"
   echo
-  echo "$(tail -n +$((middle + 1)) <<< $cumstring)"
+  tail -n +$((middle + 1)) <<< "$cumstring"
 }
 
 gitclean() {
   echo "Pruning stale tracking branches"
   git remote prune origin
 
+  local todelete confirm
   todelete=$(git branch -v | awk '$3~/\[gone\]/ {print $1}')
-  if [ -z "$todelete" ]; then
+  if [[ -z $todelete ]]; then
     printf "No branches to delete\n"
+    return
+  fi
+
+  printf "Are you sure you want to delete:\n\e[33m%s\e[0m\n(y/n): " "$todelete"
+  read -r confirm
+  if [[ $confirm == [yY] || $confirm == [yY][eE][sS] ]]; then
+    printf '%s\n' "$todelete" | xargs -r git branch -D
   else
-    printf "Are you sure you want to delete:\n\e[33m$todelete\e[0m\n(y/n): "
-    read confirm
-    if [[ $confirm == [yY] || $confirm == [yY][eE][sS] ]]; then
-      printf "$todelete" | xargs -r git branch -D
-    else
-      printf "Operation cancelled\n"
-    fi
+    printf "Operation cancelled\n"
   fi
 }
 
 genpass() {
   local length=${1:-16}
-  local pass=$(openssl rand -base64 $length | tr -d '/=+\n' | cut -c1-$length)
-  echo $pass
+  local pass
+  pass=$(openssl rand -base64 "$length" | tr -d '/=+\n' | cut -c1-"$length")
+  echo "$pass"
 }
 
 localrctemplate() {
-  cat << EOF
+  cat << 'EOF'
 # export LOCAL_TMUX=true
 # export LOCAL_PROMPT_SHOW_HOSTNAME=true
 # export LOCAL_NVIM_PLUGIN_MODE="ALL"
@@ -321,138 +179,46 @@ localrctemplate() {
 EOF
 }
 
-# 256色のカラーパレットを表示する
-#  bash と zsh にて実行可能
-
+# 256-color palette display (works in bash and zsh)
 color256() {
-  target_shell=$1
-
-  if [ -z "$1" ]; then
-      target_shell=$(basename "$SHELL")
-  fi
-
-  if [ "$target_shell" = "bash" ]; then
-      bash <<< 'for code in {0..255}; do echo -n "[38;05;${code}m $(printf %03d $code)"; [ $((${code} % 16)) -eq 15 ] && echo; done'
-  elif [ "$target_shell" = "zsh" ]; then
-      zsh  <<< 'for code in {000..255}; do print -nP -- "%F{$code}$code %f"; [ $((${code} % 16)) -eq 15 ] && echo; done'
-  else
-      echo "error: Invalid argument ($target)"
-      echo "Usage: $0 [bash|zsh]"
-  fi
+  local target_shell=${1:-$(basename "$SHELL")}
+  case $target_shell in
+    bash) bash <<< 'for code in {0..255}; do echo -n "[38;05;${code}m $(printf %03d $code)"; [ $((${code} % 16)) -eq 15 ] && echo; done' ;;
+    zsh)  zsh  <<< 'for code in {000..255}; do print -nP -- "%F{$code}$code %f"; [ $((${code} % 16)) -eq 15 ] && echo; done' ;;
+    *)
+      echo "error: Invalid argument ($target_shell)" >&2
+      echo "Usage: color256 [bash|zsh]" >&2
+      return 1
+      ;;
+  esac
 }
 
 color16() {
-echo "  On White(47)     On Black(40)     On Default     Color Code"
-
-echo -e "\
-\033[47m\033[1;37m  White        \033[0m  \
-\033[40m\033[1;37m  White        \033[0m  \
-\033[1;37m  White        \033[0m\
-  1;37\
-"
-
-echo -e "\
-\033[47m\033[37m  Light Gray   \033[0m  \
-\033[40m\033[37m  Light Gray   \033[0m  \
-\033[37m  Light Gray   \033[0m  \
-37\
-"
-
-echo -e "\
-\033[47m\033[1;30m  Gray         \033[0m  \
-\033[40m\033[1;30m  Gray         \033[0m  \
-\033[1;30m  Gray         \033[0m  \
-1;30\
-"
-
-echo -e "\
-\033[47m\033[30m  Black        \033[0m  \
-\033[40m\033[30m  Black        \033[0m  \
-\033[30m  Black        \033[0m  \
-30\
-"
-
-echo -e "\
-\033[47m\033[31m  Red          \033[0m  \
-\033[40m\033[31m  Red          \033[0m  \
-\033[31m  Red          \033[0m  \
-31\
-"
-
-echo -e "\
-\033[47m\033[1;31m  Light Red    \033[0m  \
-\033[40m\033[1;31m  Light Red    \033[0m  \
-\033[1;31m  Light Red    \033[0m  \
-1;31\
-"
-
-echo -e "\
-\033[47m\033[32m  Green        \033[0m  \
-\033[40m\033[32m  Green        \033[0m  \
-\033[32m  Green        \033[0m  \
-32\
-"
-
-echo -e "\
-\033[47m\033[1;32m  Light Green  \033[0m  \
-\033[40m\033[1;32m  Light Green  \033[0m  \
-\033[1;32m  Light Green  \033[0m  \
-1;32\
-"
-
-echo -e "\
-\033[47m\033[33m  Brown        \033[0m  \
-\033[40m\033[33m  Brown        \033[0m  \
-\033[33m  Brown        \033[0m  \
-33\
-"
-
-echo -e "\
-\033[47m\033[1;33m  Yellow       \033[0m  \
-\033[40m\033[1;33m  Yellow       \033[0m  \
-\033[1;33m  Yellow       \033[0m  \
-1;33\
-"
-
-echo -e "\
-\033[47m\033[34m  Blue         \033[0m  \
-\033[40m\033[34m  Blue         \033[0m  \
-\033[34m  Blue         \033[0m  \
-34\
-"
-
-echo -e "\
-\033[47m\033[1;34m  Light Blue   \033[0m  \
-\033[40m\033[1;34m  Light Blue   \033[0m  \
-\033[1;34m  Light Blue   \033[0m  \
-1;34\
-"
-
-echo -e "\
-\033[47m\033[35m  Purple       \033[0m  \
-\033[40m\033[35m  Purple       \033[0m  \
-\033[35m  Purple       \033[0m  \
-35\
-"
-
-echo -e "\
-\033[47m\033[1;35m  Pink         \033[0m  \
-\033[40m\033[1;35m  Pink         \033[0m  \
-\033[1;35m  Pink         \033[0m  \
-1;35\
-"
-
-echo -e "\
-\033[47m\033[36m  Cyan         \033[0m  \
-\033[40m\033[36m  Cyan         \033[0m  \
-\033[36m  Cyan         \033[0m  \
-36\
-"
-
-echo -e "\
-\033[47m\033[1;36m  Light Cyan   \033[0m  \
-\033[40m\033[1;36m  Light Cyan   \033[0m  \
-\033[1;36m  Light Cyan   \033[0m  \
-1;36\
-"
+  echo "  On White(47)     On Black(40)     On Default     Color Code"
+  local rows=(
+    "1;37:White"
+    "37:Light Gray"
+    "1;30:Gray"
+    "30:Black"
+    "31:Red"
+    "1;31:Light Red"
+    "32:Green"
+    "1;32:Light Green"
+    "33:Brown"
+    "1;33:Yellow"
+    "34:Blue"
+    "1;34:Light Blue"
+    "35:Purple"
+    "1;35:Pink"
+    "36:Cyan"
+    "1;36:Light Cyan"
+  )
+  local row code label pad
+  for row in "${rows[@]}"; do
+    code=${row%%:*}
+    label=${row#*:}
+    pad=$(printf '%-13s' "$label")
+    printf '\033[47m\033[%sm  %s  \033[0m  \033[40m\033[%sm  %s  \033[0m  \033[%sm  %s  \033[0m  %s\n' \
+      "$code" "$pad" "$code" "$pad" "$code" "$pad" "$code"
+  done
 }

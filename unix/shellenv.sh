@@ -1,22 +1,26 @@
-case "$(uname -sr)" in
-  Darwin*)
-    IS_MAC=1
-    ;;
+# shellcheck shell=bash disable=SC1090,SC1091
+# Sourced from interactive rc files. Must be safe for repeated sourcing.
+# No prompts, no exec, no interactive-only constructs (those live in shellrc.sh / rc files).
 
-  Linux*Microsoft*)
-    IS_WSL=1
-    ;;
-
-  Linux*)
-    IS_LINUX=1
-    ;;
-
-  CYGWIN* | MINGW* | MINGW32* | MSYS*)
-    IS_WINDOWS=1
-    ;;
+case "$(uname -s)" in
+  Darwin) export IS_MAC=1 ;;
+  Linux)
+    if [[ -f /proc/sys/fs/binfmt_misc/WSLInterop ||
+          -f /proc/sys/fs/binfmt_misc/WSLInterop-late ||
+          $(uname -r) =~ (microsoft|WSL2) ]]; then
+      export IS_WSL=1
+    else
+      export IS_LINUX=1
+    fi
+       ;;
 esac
 
-if [[ $IS_MAC ]]; then
+# WARN: must run before anything else that probes brew bins (must be early)
+if [[ ${IS_MAC-} ]] && [[ -x /opt/homebrew/bin/brew ]]; then
+  eval "$(/opt/homebrew/bin/brew shellenv)"
+fi
+
+if [[ ${IS_MAC-} ]]; then
   export XDG_CONFIG_HOME="$HOME/.config"
 fi
 
@@ -28,119 +32,65 @@ if [[ $ZSH_VERSION ]]; then
   export CLICOLOR=1
   export LSCOLORS=gxFxCxDxBxegedabagaced
   export LS_COLORS='di=1;36:ln=35:so=32:pi=33:ex=31:bd=34;46:cd=34;43:su=30;41:sg=30;46:tw=30;42:ow=30;43'
+elif [[ $BASH_VERSION ]]; then
+  HISTSIZE=240000
+  HISTFILESIZE=240000
+  HISTCONTROL=ignoreboth
 fi
 
-# Homebrew bin, should be far in front of PATH such that brew install binaries comes before usr/bin stuff
-if [[ -d /opt/homebrew/bin ]]; then
-  export PATH="/opt/homebrew/bin:$PATH"
-fi
+# WARN: brew shellenv above already prepends /opt/homebrew/bin; the helper below is the Linux fallback.
+path_prepend() { case ":$PATH:" in *":$1:"*) ;; *) PATH="$1:$PATH" ;; esac  }
+path_append()  { case ":$PATH:" in *":$1:"*) ;; *) PATH="$PATH:$1" ;; esac  }
 
-# Use bob if available, should be far in front of PATH such that bob install binaries comes before usr/bin and brew stuff
-if [[ -d "$HOME/.local/share/bob/nvim-bin" ]]; then
-  export PATH="$HOME/.local/share/bob/nvim-bin:$PATH"
-fi
+[[ -d /opt/homebrew/bin ]] && path_prepend /opt/homebrew/bin
+# bob-managed nvim — must precede brew/usr nvim
+[[ -d "$HOME/.local/share/bob/nvim-bin" ]] && path_prepend "$HOME/.local/share/bob/nvim-bin"
+[[ -d /snap/bin ]] && path_prepend /snap/bin
+path_append "$HOME/.local/bin"
 
-# Snap should also be far in front
-if [[ -d /snap/bin ]]; then
-  export PATH="/snap/bin:$PATH"
-fi
-
-# Programs in home local bin
-export PATH="$PATH:$HOME/.local/bin"
-
-# GCC
-export LD_LIBRARY_PATH="/lib:/usr/lib:/usr/local/lib"
-
-# GO
 export GOPATH="$HOME/.go"
-if [[ -d $GOPATH ]]; then
-  export PATH="$PATH:$GOPATH/bin"
-fi
+[[ -d $GOPATH/bin ]] && path_append "$GOPATH/bin"
 
 export BUN_BIN="$HOME/.bun/bin"
-if [[ -d $BUN_BIN ]]; then
-  export PATH="$BUN_BIN:$PATH"
+[[ -d $BUN_BIN ]] && path_prepend "$BUN_BIN"
+
+[[ -d "$HOME/.jbang/bin" ]] && path_prepend "$HOME/.jbang/bin"
+
+path_prepend "$HOME/.yarn/bin"
+path_prepend "$HOME/.config/yarn/global/node_modules/.bin"
+
+if [[ ${IS_MAC-} ]]; then
+  export PNPM_HOME="$HOME/Library/pnpm"
+  path_prepend "$PNPM_HOME"
 fi
 
-# Lua
-export LUA_CPATH="$LUA_CPATH;?.dylib"
+export PATH
 
 if command -v nvim &> /dev/null; then
-  # Use nvim instead
-  alias vim=nvim
   export EDITOR=nvim
   export GIT_EDITOR=nvim
 else
   export EDITOR=vim
   export GIT_EDITOR=vim
 fi
+export KUBE_EDITOR=nvim
 
 export NVM_DIR="$HOME/.nvm"
 [[ -s "$NVM_DIR/nvm.sh" ]] && source "$NVM_DIR/nvm.sh"
 
-# yarn bin to path
-export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"
-
-if [[ $IS_MAC ]]; then
-  _java_home=$(/usr/libexec/java_home 2> /dev/null)
-  [[ -n $_java_home ]] && export JAVA_HOME="$_java_home"
-  unset _java_home
-else
-  export JAVA_HOME="/usr/lib/jvm/java-1.17.0-openjdk-amd64"
-fi
+# JAVA_HOME managed by mise (see shellrc.sh: mise activate).
 export JAVA_TOOL_OPTIONS="-Djdk.xml.totalEntitySizeLimit=0 -Djdk.xml.entityExpansionLimit=0"
 
-# Add JBang to environment
-alias j!=jbang
-export PATH="$HOME/.jbang/bin:$PATH"
-
-# Rust cargo
 [[ -s $HOME/.cargo/env ]] && source "$HOME/.cargo/env"
 
-# pnpm
-if [[ $IS_MAC ]]; then
-  export PNPM_HOME="/Users/naphat/Library/pnpm"
-  case ":$PATH:" in
-    *":$PNPM_HOME:"*) ;;
-    *) export PATH="$PNPM_HOME:$PATH" ;;
-  esac
-fi
-
-# Flutter and Dart (Flutter includes Dart)
-[[ -d /opt/flutter ]] && export PATH="$PATH:/opt/flutter/bin"
-
-# venvy
 export VENVY_SRC_DIR="$HOME/.local/src/venvy"
 [[ -f $VENVY_SRC_DIR/venvy.sh ]] && source "$VENVY_SRC_DIR/venvy.sh"
 
-# kubectl editor
-export KUBE_EDITOR=nvim
-
 export GREP_COLORS='ms=01;31:mc=01;31:sl=:cx=:fn=36:ln=32:bn=32:se=33'
 
-# zsh-vi-mode
-if [[ $ZSH_VERSION ]]; then
-  [[ -e $HOME/.zsh-vi-mode ]] && source "$HOME/.zsh-vi-mode/zsh-vi-mode.zsh"
-fi
+# tmuxp tells me to
+export DISABLE_AUTO_TITLE='true'
 
-should_start_tmux() {
-  # tmux must be available
-  command -v tmux > /dev/null 2>&1 || return 1
-  # interactive shells only
-  case $- in
-    *i*) ;;
-    *) return 1 ;;
-  esac
-  # skip if already inside a multiplexer
-  case ${TERM-} in
-    screen* | tmux*) return 1 ;;
-  esac
-  # skip if already inside a tmux session
-  [ -z "${TMUX-}" ] || return 1
-  # opt-in: only start when LOCAL_TMUX=true
-  [ "${LOCAL_TMUX-}" = true ] || return 1
-}
-
-if should_start_tmux; then
-  exec tmux
-fi
+export SCREENDIR="$HOME/.screen"
+# WARN: SC2174 — separate mkdir + chmod because `-m` with `-p` only applies to deepest dir
+[[ -d $SCREENDIR ]] || { mkdir -p "$SCREENDIR" && chmod 700 "$SCREENDIR"; }

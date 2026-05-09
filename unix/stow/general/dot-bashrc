@@ -8,155 +8,56 @@ case $- in
       *) return;;
 esac
 
-HISTCONTROL=ignoreboth
-HISTSIZE=1000
-HISTFILESIZE=2000
 shopt -s histappend
 shopt -s checkwinsize
 
-if [[ -s "$HOME/.localrc" ]]; then
-  source "$HOME/.localrc"
-fi
-
-# WARN: don't rely on PATH alone — Mac picks up mise via brew's .zprofile injection
-# which doesn't run for bash. Probe known install locations as fallback.
-init_mise() {
-  [[ -n $_mise_activated ]] && return 0
-  local bin=""
-  if command -v mise &> /dev/null; then
-    bin=mise
-  else
-    local cand
-    for cand in "$HOME/.local/bin/mise" /opt/homebrew/bin/mise /usr/local/bin/mise; do
-      if [[ -x $cand ]]; then
-        bin=$cand
-        break
-      fi
-    done
-  fi
-  [[ -z $bin ]] && return 1
-  eval "$("$bin" activate bash)"
-  _mise_activated=1
-}
+_RC_SHELL=bash
+source "$HOME/.config/dotfiles/unix/shellrc.sh"
 init_mise
 
-# Tmuxp tells me to
-export DISABLE_AUTO_TITLE='true'
+# Readline equivalents to zsh zstyle completion behavior
+bind 'set completion-ignore-case on'
+bind 'set completion-map-case on'
+bind 'set show-all-if-ambiguous on'
+bind 'set show-all-if-unmodified on'
+bind 'set colored-stats on'
+bind 'set menu-complete-display-prefix on'
+bind '"\C-H":backward-kill-word'
 
-init_completions() {
-  # Readline equivalents to zsh zstyle completion behavior
-  bind 'set completion-ignore-case on'
-  bind 'set completion-map-case on'
-  bind 'set show-all-if-ambiguous on'
-  bind 'set show-all-if-unmodified on'
-  bind 'set colored-stats on'
-  bind 'set menu-complete-display-prefix on'
-
-  # CTRL+Backspace -> backward-kill-word
-  bind '"\C-H":backward-kill-word'
-
-  # bash-completion (Homebrew + Linux)
-  if [[ -r /opt/homebrew/etc/profile.d/bash_completion.sh ]]; then
-    source /opt/homebrew/etc/profile.d/bash_completion.sh
-  elif [[ -r /usr/local/etc/profile.d/bash_completion.sh ]]; then
-    source /usr/local/etc/profile.d/bash_completion.sh
-  elif ! shopt -oq posix; then
-    if [[ -r /usr/share/bash-completion/bash_completion ]]; then
-      source /usr/share/bash-completion/bash_completion
-    elif [[ -r /etc/bash_completion ]]; then
-      source /etc/bash_completion
-    fi
+# bash-completion (Homebrew + Linux)
+if [[ -r /opt/homebrew/etc/profile.d/bash_completion.sh ]]; then
+  source /opt/homebrew/etc/profile.d/bash_completion.sh
+elif [[ -r /usr/local/etc/profile.d/bash_completion.sh ]]; then
+  source /usr/local/etc/profile.d/bash_completion.sh
+elif ! shopt -oq posix; then
+  if [[ -r /usr/share/bash-completion/bash_completion ]]; then
+    source /usr/share/bash-completion/bash_completion
+  elif [[ -r /etc/bash_completion ]]; then
+    source /etc/bash_completion
   fi
+fi
+_load_eval_completions
 
-  if command -v kubectl &> /dev/null; then
-    source <(kubectl completion bash)
-  fi
-
-  if command -v k3d &> /dev/null; then
-    source <(k3d completion bash)
-  fi
-
-  if command -v just &> /dev/null; then
-    source <(just --completions bash)
-  fi
-
-  if command -v fzf &> /dev/null; then
-    eval "$(fzf --bash)"
-  fi
-
-  if command -v zoxide &> /dev/null; then
-    eval "$(zoxide init bash)"
-  fi
-
-  if command -v mise &> /dev/null; then
-    eval "$(mise completion bash)"
-  fi
-
-  [[ -s $HOME/.local/src/venvy ]] && source "$HOME/.local/src/venvy/completions/init.sh"
-
-  [[ -s "$NVM_DIR/bash_completion" ]] && source "$NVM_DIR/bash_completion"
-}
-
-# Wraps text in ANSI color N (256-color).
 # WARN: uses raw readline non-printing markers \001 \002 (not bash's \[ \]) because
 # this output is injected into PS1 via $(...) AFTER bash has expanded PS1, so \[ \]
 # would print literally. \001 \002 are interpreted by readline directly.
 __pc() { printf '\001\e[38;5;%sm\002%s\001\e[0m\002' "$1" "$2"; }
 
-git_current_branch() {
-  local ref
-  ref=$(git symbolic-ref --quiet HEAD 2> /dev/null)
-  local ret=$?
-  if [[ $ret != 0 ]]; then
-    [[ $ret == 128 ]] && return
-    ref=$(git rev-parse --short HEAD 2> /dev/null) || return
-  fi
-  echo "${ref#refs/heads/}"
-}
-
-parse_git_dirty() {
-  local status
-  status=$(git status --porcelain 2> /dev/null | tail -n 1)
-  if [[ -n $status ]]; then
-    __pc 1 '*'
-  fi
-}
-
 git_custom_status() {
   local cb
   cb=$(git_current_branch)
-  if [[ -n $cb ]]; then
-    printf '%s%s' "$(parse_git_dirty)" "$(__pc 2 "[${cb}]")"
-  fi
+  [[ -z $cb ]] && return
+  git_is_dirty && __pc 1 '*'
+  __pc 2 "[$cb]"
 }
-
-if [[ -d "$HOME/.config/dotfiles" ]]; then
-  source "$HOME/.config/dotfiles/unix/shellutils.sh"
-  source "$HOME/.config/dotfiles/unix/shellenv.sh"
-fi
 
 prompt_env() {
-  # WARN: probe ENV through `sh -c` to detect *exported* (vs shell-local) like zshrc does
-  local is_exported
-  is_exported=$(sh -c 'echo $ENV')
-  [[ -z $is_exported ]] && return
-
-  if [[ $ENV == *prod* || $ENV == *live* ]]; then
-    __pc 9 "[$ENV]"
-  elif [[ $ENV == *dev* || $ENV == *test* || $ENV == *stage* || $ENV == *qa* ]]; then
-    __pc 223 "[$ENV]"
-  elif [[ -n $ENV ]]; then
-    __pc 242 "[$ENV]"
-  fi
+  case $(prompt_env_category) in
+    prod)    __pc 9 "[$ENV]" ;;
+    nonprod) __pc 223 "[$ENV]" ;;
+    other)   __pc 242 "[$ENV]" ;;
+  esac
 }
-
-init_completions
-
-alias editrc='vim $(realpath $HOME/.bashrc); source $HOME/.bashrc'
-
-export SCREENDIR=$HOME/.screen
-# WARN: SC2174 — separate mkdir + chmod because `-m` with `-p` only applies to the deepest dir
-[[ -d $SCREENDIR ]] || { mkdir -p "$SCREENDIR" && chmod 700 "$SCREENDIR"; }
 
 if [[ $LOCAL_PROMPT_SHOW_HOSTNAME == true ]]; then
   PROMPT_BASE='\[\e[38;5;214m\][\h]\[\e[0m\]\[\e[38;5;121m\][\w]\[\e[0m\]'
@@ -167,33 +68,9 @@ fi
 # WARN: single quotes — $(...) must expand on each prompt, not at assignment.
 PS1='$(git_custom_status)'"${PROMPT_BASE}"'$(prompt_env)$ '
 
-if [[ -f "$HOME/.local/src/kube-ps1/kube-ps1.sh" ]]; then
-  source "$HOME/.local/src/kube-ps1/kube-ps1.sh"
-  # All KUBE_PS1_* vars below are consumed by kube-ps1.sh (sourced above)
-  KUBE_PS1_PREFIX=$'\001\e[38;5;154m\002['
-  KUBE_PS1_SUFFIX=$'\001\e[38;5;154m\002]\001\e[0m\002'
-  KUBE_PS1_CTX_COLOR='154'
-  KUBE_PS1_NS_COLOR='154'
-  KUBE_PS1_DIVIDER=$'\001\e[38;5;154m\002|'
-  KUBE_PS1_SYMBOL_ENABLE='false'
-  KUBE_PS1_NS_ENABLE='true'
+if init_kube_ps1; then
   PS1='$(git_custom_status)$(kube_ps1)'"${PROMPT_BASE}"'$(prompt_env)$ '
 fi
 
-if command -v direnv &> /dev/null; then
-  eval "$(direnv hook bash)"
-fi
-
-if [[ -f "$HOME/.config/dotfiles-private/unix/init.sh" ]]; then
-  source "$HOME/.config/dotfiles-private/unix/init.sh"
-fi
-
-if [[ -f "$HOME/.config/dotfiles-work/unix/init.sh" ]]; then
-  source "$HOME/.config/dotfiles-work/unix/init.sh"
-fi
-
-if command -v _localrc_after &> /dev/null; then
-  _localrc_after
-fi
-
-[[ -f "$HOME/.cargo/env" ]] && source "$HOME/.cargo/env"
+init_epilogue
+maybe_exec_tmux
