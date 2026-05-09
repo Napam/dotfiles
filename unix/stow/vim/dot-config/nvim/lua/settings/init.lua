@@ -1,6 +1,0 @@
-require("settings.options")
-require("settings.keymaps")
-require("settings.completion")
-require("settings.animate")
-require("settings.autocommands")
-require("settings.autoroot")
