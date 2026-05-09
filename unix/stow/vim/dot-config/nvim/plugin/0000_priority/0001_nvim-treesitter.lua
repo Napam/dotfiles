@@ -228,17 +228,20 @@ if Config.use_nvim_treesitter then
       multiwindow = true,
     })
 
-    -- Injection-only parsers: never primary for any filetype, so the FileType
-    -- autocmd below never installs them. Pulled in via `; inject` from other
-    -- parsers and our queries/ (sql ← go/python, bash ← yaml, css ← templ,
-    -- promql ← yaml, jsdoc/comment/regex/markdown_inline ← stock injections).
-    -- Without these the host language's comments/strings render as one flat highlight.
-    -- Deferred to VimEnter so cold-compile doesn't block first-buffer paint.
+    -- Injection-only parsers: never primary. FileType autocmd never installs them.
+    -- ; inject pulls these in from other parsers and queries/.
+    -- sql ← go/python, bash ← yaml, css ← templ, promql ← yaml.
+    -- jsdoc/comment/regex/markdown_inline ← stock injections.
+    -- markdown ← python markdown(...); html ← ecma innerHTML / markdown HTML blocks; luadoc ← lua ---@.
+    -- Deferred to VimEnter to avoid blocking first-buffer paint.
     for _, lang in ipairs({
       "jsdoc",
       "comment",
       "regex",
       "markdown_inline",
+      "markdown",
+      "html",
+      "luadoc",
       "sql",
       "bash",
       "css",
@@ -248,10 +251,10 @@ if Config.use_nvim_treesitter then
     end
   end)
 
-  -- WARN: registered at sourcing time (not VimEnter) so it runs before LSP's
-  -- FileType handlers, preventing races with plugins that use treesitter
-  -- queries on LspAttach. ensure_parser below blocks UI up to 30s on first
-  -- encounter of a new language (typical 1-3s).
+  -- WARN: registered at sourcing time (not VimEnter) → runs before LSP's
+  -- FileType handlers. avoids races with plugins using treesitter queries
+  -- on LspAttach. ensure_parser below blocks UI up to 30s on first encounter
+  -- of new language (typical 1-3s).
   vim.api.nvim_create_autocmd("FileType", {
     group = vim.api.nvim_create_augroup("treesitter-start", { clear = true }),
     callback = function(event)

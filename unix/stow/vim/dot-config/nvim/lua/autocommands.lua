@@ -41,6 +41,23 @@ vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
   end,
 })
 
+-- Default foldexpr to treesitter when a parser is available.
+-- LSP foldingRange overrides this per-window on attach (plugin/lsp.lua).
+vim.api.nvim_create_autocmd("FileType", {
+  group = UserGroup,
+  desc = "Set treesitter foldexpr when parser available",
+  callback = function(args)
+    if pcall(vim.treesitter.get_parser, args.buf) then
+      for _, win in ipairs(vim.fn.win_findbuf(args.buf)) do
+        -- WARN: don't clobber LSP foldexpr if already set on this window.
+        if vim.wo[win].foldexpr ~= "v:lua.vim.lsp.foldexpr()" then
+          require("fold").treesitter_foldexpr(win)
+        end
+      end
+    end
+  end,
+})
+
 local root_cache = {}
 
 local find_root = function(buf_id, names)

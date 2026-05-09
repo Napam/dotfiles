@@ -2,9 +2,9 @@
 # Aliases + interactive utility functions. Sourced from shellrc.sh.
 # SC2016: $0/$1 inside single quotes are *intentional* — consumed by xargs/sh -c/bash -c.
 # SC2154: alias-internal loop vars (i, repo, branch) are assigned at runtime, not statically.
+#
 
 alias ls='ls --color=auto'
-alias update='sudo apt-get update -y && sudo apt-get upgrade -y && sudo apt-get dist-upgrade -y'
 alias weeknr='date +%U'
 alias pwdc='pwd; pwd | clip.exe'
 alias hostpwd='python3 -m http.server 7100'
@@ -12,6 +12,37 @@ alias updatehosts='updatewslhosts && updatewinhosts'
 alias edithosts='sudo vim /etc/hosts'
 alias editwinhosts='sudo vim /mnt/c/Windows/System32/drivers/etc/hosts'
 alias winpwd='wslpath -w $(pwd)'
+
+update() {
+  local rc=0 ran=0
+
+  if command -v brew &> /dev/null; then
+    ran=1
+    echo "==> brew"
+    brew update && brew upgrade && brew cleanup && brew autoremove || rc=1
+  fi
+
+  if command -v apt-get &> /dev/null; then
+    ran=1
+    echo "==> apt-get"
+    sudo apt-get update \
+      && sudo apt-get dist-upgrade -y \
+      && sudo apt-get autoremove -y \
+      && sudo apt-get autoclean || rc=1
+  fi
+
+  if command -v dnf &> /dev/null; then
+    ran=1
+    echo "==> dnf"
+    sudo dnf upgrade --refresh -y && sudo dnf autoremove -y || rc=1
+  fi
+
+  if ((!ran)); then
+    echo "update: no supported package manager found (brew, apt-get, or dnf)" >&2
+    return 1
+  fi
+  return $rc
+}
 
 # WARN: source the matching rc for current shell, not hardcoded zshrc
 refresh() {

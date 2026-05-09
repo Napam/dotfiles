@@ -11,6 +11,14 @@ end
 ---@param win integer window handle
 function M.lsp_foldexpr(win)
   vim.wo[win][0].foldexpr = "v:lua.vim.lsp.foldexpr()"
+  vim.wo[win][0].foldmethod = "expr"
+end
+
+--- Treesitter-based foldexpr fallback (used when no LSP foldingRange).
+---@param win integer window handle
+function M.treesitter_foldexpr(win)
+  vim.wo[win][0].foldexpr = "v:lua.vim.treesitter.foldexpr()"
+  vim.wo[win][0].foldmethod = "expr"
 end
 
 return M

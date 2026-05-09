@@ -38,3 +38,29 @@ vim.diagnostic.config({
 })
 
 vim.o.winborder = 'single'
+
+-- Folds open by default; foldcolumn shows fold markers in gutter.
+-- foldtext wired to fold.lua; foldexpr defaults to treesitter (autocommands.lua),
+-- LSP overrides per-window on attach (plugin/lsp.lua) when foldingRange supported.
+vim.o.foldlevel = 99
+vim.o.foldlevelstart = 99
+vim.o.foldcolumn = "1"
+vim.opt.fillchars = {
+  eob = " ",
+  fold = " ",
+  foldopen = "▾",
+  foldsep = " ",
+  foldclose = "▸",
+}
+vim.o.foldtext = "v:lua.require'fold'.foldtext()"
+
+-- WARN: session restore (sessionoptions+=folds,localoptions in plugin/persistence.lua)
+-- and :loadview both write window-local foldlevel from when the session was saved,
+-- overriding the global=99. Re-assert open-by-default per window after those events,
+-- and after a foldexpr recompute (BufWinEnter fires when buffer first shown in window).
+vim.api.nvim_create_autocmd({ "BufWinEnter", "SessionLoadPost" }, {
+  group = vim.api.nvim_create_augroup("user_folds_open", { clear = true }),
+  callback = function()
+    vim.wo.foldlevel = 99
+  end,
+})

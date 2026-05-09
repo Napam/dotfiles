@@ -84,13 +84,7 @@ require("lazyload").on_vim_enter(function()
     { "<leader>lR", "<cmd>LspRestart<cr>", desc = "Restart LSP" },
     { "<leader>la", "<cmd>lua vim.lsp.buf.code_action()<cr>", desc = "Code action" },
     { "<leader>ld", "<cmd>Telescope diagnostics<cr>", desc = "Open telescope diagnostics" },
-    {
-      "<leader>lf",
-      function()
-        require("conform").format({ bufnr = vim.api.nvim_get_current_buf(), lsp_format = "fallback" })
-      end,
-      desc = "Format",
-    },
+    -- WARN: <leader>lf (Format) lives in plugin/conform.lua to co-locate with conform setup.
     {
       "<leader>lj",
       function()

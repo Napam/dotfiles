@@ -2,6 +2,7 @@
 return {
   settings = {
     tailwindCSS = {
+      colorDecorators = false,
       experimental = {
         classRegex = {
           "\\w+Class=\\{?['\"]([^'\"]*)\\}?",

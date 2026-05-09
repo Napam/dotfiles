@@ -91,6 +91,7 @@ if not Config.only_essential_plugins() then
     "ruff",
     "rust-analyzer",
     "stylua",
+    "sql-formatter",
     "superhtml",
     "tailwindcss-language-server",
     "templ",

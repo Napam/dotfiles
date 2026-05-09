@@ -27,7 +27,7 @@ return {
       gofumpt = false, -- handled by conform
       semanticTokens = false, -- treesitter handles highlighting
       staticcheck = true,
-      templateExtensions = { "templ", "gotmpl", "gohtml", "tmpl" },
+      templateExtensions = {"gotmpl", "gohtml", "tmpl" },
       vulncheck = "imports",
       -- "all" (vs default "workspace") so go-impl picker can match stdlib/deps
       -- (e.g. typing "reader" surfaces io.Reader).
