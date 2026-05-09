@@ -7,9 +7,13 @@ _RC_SHELL=zsh
 source "$HOME/.config/dotfiles/unix/shellrc.sh"
 
 autoload -Uz compinit && compinit
+
 # WARN: must run AFTER compinit — mise activation registers compdef hooks
 # which require compinit to be loaded first.
 init_mise
+init_editor
+[[ $EDITOR == nvim ]] && alias vim=nvim
+
 zstyle ':completion:*' menu select
 zstyle ':completion:*' list-colors '${(s.:.)LS_COLORS}'
 zstyle ':completion:*' matcher-list 'm:{[:lower:][:upper:]-_}={[:upper:][:lower:]_-}' 'r:|=*' 'l:|=* r:|=*'

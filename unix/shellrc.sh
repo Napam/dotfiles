@@ -34,6 +34,28 @@ init_mise() {
   _mise_activated=1
 }
 
+# WARN: call AFTER init_mise so mise-managed nvim wins over system nvim.
+# WARN: .localrc may pre-set EDITOR (sourced earlier); honor it.
+init_editor() {
+  if [[ -z ${EDITOR-} ]]; then
+    if command -v nvim &> /dev/null; then
+      EDITOR='nvim'
+    elif command -v vim &> /dev/null; then
+      EDITOR='vim'
+    elif command -v vi &> /dev/null; then
+      EDITOR='vi'
+    else
+      echo "init_editor: no editor found (tried nvim, vim, vi)" >&2
+      return 1
+    fi
+  fi
+  export EDITOR
+  export VISUAL=$EDITOR
+  export GIT_EDITOR=$EDITOR
+  export KUBE_EDITOR=$EDITOR
+  export SUDO_EDITOR=$EDITOR
+}
+
 git_current_branch() {
   local ref ret
   ref=$(git symbolic-ref --quiet HEAD 2> /dev/null)

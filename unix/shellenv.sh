@@ -66,15 +66,6 @@ fi
 
 export PATH
 
-if command -v nvim &> /dev/null; then
-  export EDITOR=nvim
-  export GIT_EDITOR=nvim
-else
-  export EDITOR=vim
-  export GIT_EDITOR=vim
-fi
-export KUBE_EDITOR=nvim
-
 export NVM_DIR="$HOME/.nvm"
 [[ -s "$NVM_DIR/nvm.sh" ]] && source "$NVM_DIR/nvm.sh"
 

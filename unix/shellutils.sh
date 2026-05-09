@@ -3,10 +3,6 @@
 # SC2016: $0/$1 inside single quotes are *intentional* — consumed by xargs/sh -c/bash -c.
 # SC2154: alias-internal loop vars (i, repo, branch) are assigned at runtime, not statically.
 
-# Moved from shellenv.sh (aliases are interactive-only)
-command -v nvim &> /dev/null && alias vim=nvim
-command -v jbang &> /dev/null && alias j!=jbang
-
 alias ls='ls --color=auto'
 alias update='sudo apt-get update -y && sudo apt-get upgrade -y && sudo apt-get dist-upgrade -y'
 alias weeknr='date +%U'

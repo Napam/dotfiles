@@ -14,6 +14,8 @@ shopt -s checkwinsize
 _RC_SHELL=bash
 source "$HOME/.config/dotfiles/unix/shellrc.sh"
 init_mise
+init_editor
+[[ $EDITOR == nvim ]] && alias vim=nvim
 
 # Readline equivalents to zsh zstyle completion behavior
 bind 'set completion-ignore-case on'
