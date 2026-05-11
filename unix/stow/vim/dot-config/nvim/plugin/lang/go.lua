@@ -1,43 +1,38 @@
-if Config.only_essential_plugins() then return end
+if Config.only_essential_plugins() then
+  return
+end
 
 require("lazyload").on_vim_enter(function()
-  do
-    vim.filetype.add({
-      extension = {
-        gotmpl = "gotmpl",
-        gohtml = "gotmpl",
-      },
-      pattern = {
-        [".*%.go%.tmpl"] = "gotmpl",
-      },
+  vim.filetype.add({
+    extension = {
+      gotmpl = "gotmpl",
+      gohtml = "gotmpl",
+    },
+    pattern = {
+      [".*%.go%.tmpl"] = "gotmpl",
+    },
+  })
+
+  vim.api.nvim_create_autocmd("FileType", {
+    pattern = { "go", "gomod", "gowork", "gohtml", "gotmpl" },
+    callback = function()
+      vim.opt_local.expandtab = false
+    end,
+  })
+
+  -- Tree-sitter dependent plugins (safe at setup; no parser query until use).
+  if Config.use_treesitter_parser then
+    vim.pack.add({
+      { src = "https://github.com/maxandron/goplements.nvim" },
+      { src = "https://github.com/edte/blink-go-import.nvim" },
     })
-
-    vim.api.nvim_create_autocmd("FileType", {
-      pattern = { "go", "gomod", "gowork", "gohtml", "gotmpl" },
-      callback = function()
-        vim.opt_local.expandtab = false
-      end,
-    })
-  end
-
-  -- Tree-sitter dependent plugins (don't query parser at setup time)
-  do
-    if Config.use_treesitter_parser then
-      vim.pack.add({
-        { src = "https://github.com/maxandron/goplements.nvim" },
-      })
-      require("goplements").setup()
-
-      vim.pack.add({
-        { src = "https://github.com/edte/blink-go-import.nvim" },
-      })
-      require("blink-go-import").setup()
-    end
+    require("goplements").setup()
+    require("blink-go-import").setup()
   end
 
   -- WARN: go-impl calls vim.treesitter.query.parse("go", ...) at module-load
   -- (helper.lua, top-level), so go parser must be installed+loadable before
-  -- require("go-impl"). Safe here: 0000_priority/10_nvim-treesitter sourced first.
+  -- require("go-impl"). Safe here: 0000_priority/0001_nvim-treesitter sourced first.
   if Config.use_treesitter_parser and Config.ts.ensure_parser("go") then
     vim.pack.add({
       { src = "https://github.com/fang2hou/go-impl.nvim" },

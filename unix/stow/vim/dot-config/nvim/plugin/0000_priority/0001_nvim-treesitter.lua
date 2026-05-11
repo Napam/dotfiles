@@ -1,4 +1,4 @@
--- Source-time load (after 00_mason): puts nvim-treesitter on rtp + exposes
+-- Source-time load (after 0000_mason): puts nvim-treesitter on rtp + exposes
 -- Config.ts.ensure_parser before any later plugin/ file is sourced.
 Config.ts = Config.ts or {}
 
@@ -32,9 +32,13 @@ end
 --- Sign parser .so on macOS to prevent code-signature crashes.
 ---@param parser_name string
 local function sign_parser_macos(parser_name)
-  if vim.fn.has("mac") ~= 1 then return end
+  if vim.fn.has("mac") ~= 1 then
+    return
+  end
   local parser_path = parser_so_path(parser_name)
-  if vim.fn.filereadable(parser_path) ~= 1 then return end
+  if vim.fn.filereadable(parser_path) ~= 1 then
+    return
+  end
   local out = vim.fn.system({ "codesign", "--force", "--sign", "-", parser_path })
   if vim.v.shell_error ~= 0 then
     vim.notify(
@@ -49,18 +53,14 @@ end
 ---@param lang string
 ---@return boolean success
 function Config.ts.ensure_parser(lang)
-  if not Config.use_nvim_treesitter then return false end
+  if not Config.use_nvim_treesitter then
+    return false
+  end
 
   -- WARN: do NOT pcall this. `language.add` returns `nil, errmsg` on missing
   -- parser (no throw), so `if pcall(...)` is always true and bypasses install.
-  if vim.treesitter.language.add(lang) then return true end
-
-  local ok_add, add_err = pcall(vim.pack.add, {
-    { src = "https://github.com/nvim-treesitter/nvim-treesitter", version = "main" },
-  })
-  if not ok_add then
-    vim.notify(("ensure_parser(%s): vim.pack.add failed: %s"):format(lang, add_err), vim.log.levels.WARN)
-    return false
+  if vim.treesitter.language.add(lang) then
+    return true
   end
 
   local ok_req, parsers = pcall(require, "nvim-treesitter.parsers")
@@ -111,17 +111,40 @@ function Config.ts.ensure_parser(lang)
   end
 
   if not pcall(vim.treesitter.language.add, lang) then
-    vim.notify(
-      ("ensure_parser(%s): .so exists but failed to load (codesign/ABI?)"):format(lang),
-      vim.log.levels.WARN
-    )
+    vim.notify(("ensure_parser(%s): .so exists but failed to load (codesign/ABI?)"):format(lang), vim.log.levels.WARN)
     return false
   end
 
-  -- Empty query exercises queries dir + .so (what consumers like go-impl do at module-load).
-  if not pcall(vim.treesitter.query.parse, lang, "") then
+  -- Verify queries discoverable on rtp (highlights is canonical).
+  -- WARN: nvim_get_runtime_file caches; freshly-installed query symlinks may
+  -- not appear until rtp cache is busted. Re-set rtp to fire OptionSet, which
+  -- invalidates both treesitter's query cache and the runtime path scanner.
+  local function find_query()
+    return vim.treesitter.query.get_files(lang, "highlights")
+  end
+  local query_files = find_query()
+  if #query_files == 0 then
+    -- WARN: assigning rtp to its current value still fires OptionSet runtimepath.
+    vim.opt.rtp = vim.opt.rtp:get()
+    vim.wait(500, function()
+      query_files = find_query()
+      return #query_files > 0
+    end, 50)
+  end
+  if #query_files == 0 then
+    -- Fallback: probe disk directly. If the .scm exists but rtp scan won't
+    -- find it, the file is still usable — vim.treesitter.start handles it.
+    local scm = vim.fs.joinpath(vim.fn.stdpath("data"), "site", "queries", lang, "highlights.scm")
+    if vim.uv.fs_stat(scm) then
+      -- Verify the query actually parses; fs_stat alone proves nothing.
+      if pcall(vim.treesitter.query.get, lang, "highlights") then
+        return true
+      end
+    end
+    local query_dir = vim.fs.joinpath(vim.fn.stdpath("data"), "site", "queries", lang)
+    local on_disk = vim.uv.fs_stat(query_dir) ~= nil
     vim.notify(
-      ("ensure_parser(%s): parser loaded but query.parse failed (queries missing?)"):format(lang),
+      ("ensure_parser(%s): no highlights.scm (queries dir on disk: %s)"):format(lang, tostring(on_disk)),
       vim.log.levels.WARN
     )
     return false
@@ -131,25 +154,30 @@ function Config.ts.ensure_parser(lang)
 end
 
 if Config.use_nvim_treesitter then
-  -- WARN: PackChanged fires during vim.pack.add's clone, BEFORE the new plugin's
-  -- plugin/*.lua is sourced. :TSUpdate inline raises E492 (cmd not registered).
-  -- Defer to next tick so vim.pack.add unwinds and rtp sourcing completes.
-  vim.api.nvim_create_autocmd("PackChanged", {
-    group = vim.api.nvim_create_augroup("treesitter-pack-changed", { clear = true }),
-    callback = function(ev)
-      if ev.data.spec.name == "nvim-treesitter" then
-        vim.defer_fn(function()
-          vim.cmd("TSUpdate")
-        end, 0)
-      end
-    end,
-  })
-
   vim.pack.add({
     { src = "https://github.com/nvim-treesitter/nvim-treesitter", version = "main" },
     { src = "https://github.com/nvim-treesitter/nvim-treesitter-context" },
     { src = "https://github.com/nvim-treesitter/nvim-treesitter-textobjects", version = "main" },
   })
+
+  -- WARN: vim.pack.add during init.lua sourcing only does :packadd! (rtp only,
+  -- no plugin/ source) — see :h vim.pack.add() `load` default. Without this,
+  -- nvim-treesitter's user commands (:TSInstall etc.) and any plugin-time
+  -- registration aren't available until :packloadall fires before VimEnter.
+  -- Force source now so ensure_parser sees a fully-initialized plugin.
+  local ok_pa, pa_err = pcall(vim.cmd.packadd, "nvim-treesitter")
+  if not ok_pa then
+    vim.notify(("packadd nvim-treesitter failed: %s"):format(pa_err), vim.log.levels.ERROR)
+  end
+
+  -- HACK: silence nvim-treesitter's per-parser install chatter ("Installing
+  -- parser", "Language installed", "Downloading ..."). Emitted via nvim_echo
+  -- from log.lua's Logger:info — no config knob, so neuter the method.
+  -- warn/error still surface.
+  local ok_log, log = pcall(require, "nvim-treesitter.log")
+  if ok_log and log and log.Logger then
+    log.Logger.info = function() end
+  end
 
   require("nvim-treesitter-textobjects").setup({
     select = {
@@ -259,18 +287,26 @@ if Config.use_nvim_treesitter then
     callback = function(event)
       local bufnr = event.buf
       local ft = event.match
-      if ft == "" then return end
+      if ft == "" then
+        return
+      end
 
       local lang = vim.treesitter.language.get_lang(ft)
-      if not lang then return end
+      if not lang then
+        return
+      end
 
       local ok = pcall(vim.treesitter.start, bufnr, lang)
-      if ok then return end
+      if ok then
+        return
+      end
 
       -- get_lang() falls back to ft for unmapped FTs (plugin floats: blink-cmp-menu,
       -- msg, ...). Skip langs nvim-treesitter doesn't know to avoid :messages spam.
       local parsers = require("nvim-treesitter.parsers")
-      if not parsers[lang] then return end
+      if not parsers[lang] then
+        return
+      end
 
       if Config.ts.ensure_parser(lang) then
         pcall(vim.treesitter.start, bufnr, lang)

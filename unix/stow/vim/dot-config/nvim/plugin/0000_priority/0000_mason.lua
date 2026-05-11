@@ -1,5 +1,5 @@
--- Source-time load (not on_vim_enter): mason bin must be on PATH before
--- sibling 0000_priority/ files spawn binaries.
+-- WARN: source-time load — mason bin must be on PATH before sibling
+-- 0000_priority/ files spawn binaries.
 vim.pack.add({
   { src = "https://github.com/mason-org/mason.nvim" },
   { src = "https://github.com/mason-org/mason-lspconfig.nvim" },
@@ -9,38 +9,81 @@ vim.pack.add({
 -- WARN: prepend so mason bins shadow stale system bins (e.g. system tree-sitter).
 require("mason").setup({ PATH = "prepend" })
 require("mason-lock").setup({})
+
+-- HACK: mason-lock notifies "Wrote Mason lockfile" on every package install
+-- success (~40x on cold install). Silence the success notify; keep errors.
+do
+  local ml = require("mason-lock")
+  local orig = ml.write_lockfile
+  ---@diagnostic disable-next-line: duplicate-set-field
+  ml.write_lockfile = function(...)
+    local notify = vim.notify
+    ---@diagnostic disable-next-line: duplicate-set-field
+    vim.notify = function(msg, level, opts)
+      if type(msg) == "string" and msg:find("Wrote Mason lockfile", 1, true) then
+        return
+      end
+      return notify(msg, level, opts)
+    end
+    local ok, err = pcall(orig, ...)
+    vim.notify = notify
+    if not ok then
+      error(err)
+    end
+  end
+end
+
 -- automatic_enable=false: vim.lsp.enable() handled in plugin/lsp.lua. Kept for
--- the mason<->lspconfig name aliases (e.g. :MasonInstall lua_ls -> lua-language-server).
+-- mason<->lspconfig name aliases (e.g. lua_ls -> lua-language-server).
 require("mason-lspconfig").setup({ automatic_enable = false })
 
 local mason_registry = require("mason-registry")
 
--- Sync-bootstrap tools needed before background install completes. Only
--- tree-sitter-cli today: required by Config.ts.ensure_parser
--- (10_nvim-treesitter.lua); without it the first parser compile silently
--- fails (mise doesn't ship tree-sitter; mason's CLI isn't on PATH yet).
--- Cost: ~15s refresh + ~5-15s install on FIRST launch only; subsequent runs
--- short-circuit on the 24h registry TTL + pkg:is_installed().
-local critical_sync = { "tree-sitter-cli" }
-
-local refreshed = false
-mason_registry.refresh(function()
-  refreshed = true
-end)
-if not vim.wait(15000, function()
-  return refreshed
-end, 50) then
-  vim.notify("mason: registry refresh timed out (15s)", vim.log.levels.WARN)
+local function install_pkg(name, on_done)
+  local ok, pkg = pcall(mason_registry.get_package, name)
+  if not ok then
+    if on_done then
+      on_done(false, "package not found")
+    end
+    return
+  end
+  if pkg:is_installed() then
+    if on_done then
+      on_done(true)
+    end
+    return
+  end
+  pkg:install({}, function(success, err)
+    if on_done then
+      on_done(success, err)
+    end
+  end)
 end
 
-for _, name in ipairs(critical_sync) do
-  local ok, pkg = pcall(mason_registry.get_package, name)
-  if ok and not pkg:is_installed() then
+-- WARN: tree-sitter-cli must exist before Config.ts.ensure_parser
+-- (0001_nvim-treesitter.lua); first parser compile silently fails otherwise.
+-- Cost: ~15s refresh + ~5-15s install on FIRST launch only.
+local critical_sync = { "tree-sitter-cli" }
+
+-- PERF: file-on-disk sentinel skips the sync block (~13ms) on warm cache.
+local ts_bin = vim.fs.joinpath(vim.fn.stdpath("data"), "mason", "bin", "tree-sitter")
+if vim.uv.fs_stat(ts_bin) == nil then
+  local refreshed = false
+  mason_registry.refresh(function()
+    refreshed = true
+  end)
+  if not vim.wait(15000, function()
+    return refreshed
+  end, 50) then
+    vim.notify("mason: registry refresh timed out (15s)", vim.log.levels.WARN)
+  end
+
+  for _, name in ipairs(critical_sync) do
     local done = false
-    pkg:install({}, function(success, err)
+    install_pkg(name, function(success, err)
       done = true
       if not success then
-        vim.notify(("mason: failed to install %q: %s"):format(name, err), vim.log.levels.ERROR)
+        vim.notify(("mason: failed to install %q: %s"):format(name, err or "unknown error"), vim.log.levels.ERROR)
       end
     end)
     if not vim.wait(60000, function()
@@ -51,11 +94,8 @@ for _, name in ipairs(critical_sync) do
   end
 end
 
--- Background install. essentials = pre-built binaries (no node/cargo/go/python
--- build) so the essentials profile boots on a bare machine. extras add when
--- not in essentials-only profile. tree-sitter-cli handled in critical_sync above.
--- WARN: stylua's mason installer requires `unzip` on PATH; bare VMs may lack
--- it. Kept in extras (not essentials) so essentials boots cleanly.
+-- essentials = pre-built binaries only, so bare machines boot.
+-- WARN: stylua needs `unzip` on PATH; kept in extras to avoid breaking essentials.
 local ensure_installed = {
   "actionlint",
   "hadolint",
@@ -85,7 +125,6 @@ if not Config.only_essential_plugins() then
     "impl",
     "json-lsp",
     "markdownlint",
-    "nil-ls",
     "prettierd",
     "protolint",
     "ruff",
@@ -107,19 +146,18 @@ if not Config.only_essential_plugins() then
   })
 end
 
--- refresh() short-circuits on warm cache (24h TTL); install loop runs
--- immediately on cold, after sync refresh on warm.
+-- refresh() short-circuits on warm cache (24h TTL).
 mason_registry.refresh(function()
   for _, pkg_name in ipairs(ensure_installed) do
-    local ok, pkg = pcall(mason_registry.get_package, pkg_name)
-    if ok and not pkg:is_installed() then
-      pkg:install({}, function(success, err)
-        if not success then
-          vim.schedule(function()
-            vim.notify(("mason: background install of %q failed: %s"):format(pkg_name, err), vim.log.levels.WARN)
-          end)
-        end
-      end)
-    end
+    install_pkg(pkg_name, function(success, err)
+      if not success then
+        vim.schedule(function()
+          vim.notify(
+            ("mason: background install of %q failed: %s"):format(pkg_name, err or "unknown error"),
+            vim.log.levels.WARN
+          )
+        end)
+      end
+    end)
   end
 end)
