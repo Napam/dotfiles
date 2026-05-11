@@ -1,35 +1,59 @@
 -- Source-time load (after 00_mason): puts nvim-treesitter on rtp + exposes
--- Config.ts.ensure_parser before any later plugin/ file is sourced. See README.
+-- Config.ts.ensure_parser before any later plugin/ file is sourced.
 Config.ts = Config.ts or {}
 
---- Sign a parser .so on macOS to prevent code-signature crashes.
+-- Injection-only parsers (never primary; FileType autocmd never installs them).
+-- Pulled in via `; inject` from stock and queries/. Sources:
+--   sql ← go/python   bash ← yaml         css ← templ/svelte   promql ← yaml
+--   js/ts ← svelte    md ← python md(...) html ← ecma/markdown luadoc ← lua ---@
+--   jsdoc/comment/regex/markdown_inline ← stock injections
+local INJECTION_PARSERS = {
+  "jsdoc",
+  "comment",
+  "regex",
+  "markdown_inline",
+  "markdown",
+  "html",
+  "luadoc",
+  "sql",
+  "bash",
+  "css",
+  "promql",
+  "javascript",
+  "typescript",
+}
+
+---@param lang string
+---@return string
+local function parser_so_path(lang)
+  return vim.fs.joinpath(vim.fn.stdpath("data"), "site", "parser", lang .. ".so")
+end
+
+--- Sign parser .so on macOS to prevent code-signature crashes.
 ---@param parser_name string
 local function sign_parser_macos(parser_name)
-  if vim.fn.has("mac") ~= 1 then
-    return
-  end
-  local parser_path = vim.fn.stdpath("data") .. "/site/parser/" .. parser_name .. ".so"
-  if vim.fn.filereadable(parser_path) == 1 then
-    vim.fn.system({ "codesign", "--force", "--sign", "-", parser_path })
+  if vim.fn.has("mac") ~= 1 then return end
+  local parser_path = parser_so_path(parser_name)
+  if vim.fn.filereadable(parser_path) ~= 1 then return end
+  local out = vim.fn.system({ "codesign", "--force", "--sign", "-", parser_path })
+  if vim.v.shell_error ~= 0 then
+    vim.notify(
+      ("sign_parser_macos(%s): codesign failed (exit %d): %s"):format(parser_name, vim.v.shell_error, out),
+      vim.log.levels.WARN
+    )
   end
 end
 
 --- Idempotent parser install. Returns true if already loadable; otherwise
---- ensures nvim-treesitter is on rtp, installs synchronously (≤30s, blocks UI),
---- codesigns on macOS.
+--- installs synchronously (≤30s, blocks UI), codesigns on macOS.
 ---@param lang string
 ---@return boolean success
 function Config.ts.ensure_parser(lang)
-  if not Config.use_nvim_treesitter then
-    return false
-  end
+  if not Config.use_nvim_treesitter then return false end
 
-  -- WARN: do NOT wrap this in pcall. `language.add` returns `nil, errmsg` on
-  -- missing parser (no throw), so `if pcall(...)` is always true and bypasses
-  -- the install logic below.
-  if vim.treesitter.language.add(lang) then
-    return true
-  end
+  -- WARN: do NOT pcall this. `language.add` returns `nil, errmsg` on missing
+  -- parser (no throw), so `if pcall(...)` is always true and bypasses install.
+  if vim.treesitter.language.add(lang) then return true end
 
   local ok_add, add_err = pcall(vim.pack.add, {
     { src = "https://github.com/nvim-treesitter/nvim-treesitter", version = "main" },
@@ -52,15 +76,11 @@ function Config.ts.ensure_parser(lang)
     return false
   end
 
-  -- WARN: without tree-sitter CLI, nvim-treesitter's compile returns an error
-  -- string instead of throwing — the async Task completes "successfully" and
-  -- :wait returns normally, masking failure. Pre-flight check.
+  -- WARN: without tree-sitter CLI, install Task completes "successfully" and
+  -- :wait returns normally, masking the compile failure. Pre-flight check.
   if vim.fn.executable("tree-sitter") ~= 1 then
     vim.notify(
-      (
-        "ensure_parser(%s): `tree-sitter` CLI not on PATH; cannot compile parser. "
-        .. "Check that mason successfully installed `tree-sitter-cli`."
-      ):format(lang),
+      ("ensure_parser(%s): `tree-sitter` CLI not on PATH; check mason installed `tree-sitter-cli`."):format(lang),
       vim.log.levels.WARN
     )
     return false
@@ -76,13 +96,12 @@ function Config.ts.ensure_parser(lang)
 
   sign_parser_macos(lang)
 
-  -- WARN: nvim-treesitter's Task completes "successfully" even when the
-  -- compile errored (logged but not propagated). Strict verify: .so on disk,
-  -- dlopens, queries parse.
-  local parser_path = vim.fn.stdpath("data") .. "/site/parser/" .. lang .. ".so"
+  -- WARN: nvim-treesitter Task "succeeds" even on compile error (logged, not
+  -- propagated). Strict verify: .so on disk, dlopens, queries parse.
+  local parser_path = parser_so_path(lang)
   if vim.fn.filereadable(parser_path) ~= 1 then
     vim.notify(
-      ("ensure_parser(%s): .so not found at %s after install (compile likely failed; check :messages)"):format(
+      ("ensure_parser(%s): .so missing at %s after install (compile likely failed; :messages)"):format(
         lang,
         parser_path
       ),
@@ -93,14 +112,13 @@ function Config.ts.ensure_parser(lang)
 
   if not pcall(vim.treesitter.language.add, lang) then
     vim.notify(
-      ("ensure_parser(%s): .so exists but failed to load (codesign/ABI issue?)"):format(lang),
+      ("ensure_parser(%s): .so exists but failed to load (codesign/ABI?)"):format(lang),
       vim.log.levels.WARN
     )
     return false
   end
 
-  -- Empty query exercises the queries directory + parser .so (what
-  -- consumers like go-impl call at module-load).
+  -- Empty query exercises queries dir + .so (what consumers like go-impl do at module-load).
   if not pcall(vim.treesitter.query.parse, lang, "") then
     vim.notify(
       ("ensure_parser(%s): parser loaded but query.parse failed (queries missing?)"):format(lang),
@@ -113,11 +131,11 @@ function Config.ts.ensure_parser(lang)
 end
 
 if Config.use_nvim_treesitter then
-  -- WARN: PackChanged fires during vim.pack.add's clone phase, BEFORE the
-  -- newly-added plugin's plugin/*.lua is sourced. Calling :TSUpdate inline
-  -- raises E492 (command not yet registered). Defer to next tick so the
-  -- vim.pack.add call frame unwinds and rtp sourcing completes first.
+  -- WARN: PackChanged fires during vim.pack.add's clone, BEFORE the new plugin's
+  -- plugin/*.lua is sourced. :TSUpdate inline raises E492 (cmd not registered).
+  -- Defer to next tick so vim.pack.add unwinds and rtp sourcing completes.
   vim.api.nvim_create_autocmd("PackChanged", {
+    group = vim.api.nvim_create_augroup("treesitter-pack-changed", { clear = true }),
     callback = function(ev)
       if ev.data.spec.name == "nvim-treesitter" then
         vim.defer_fn(function()
@@ -163,11 +181,10 @@ if Config.use_nvim_treesitter then
     end, { desc = spec.desc })
   end
 
-  -- Incremental selection via `n` (next sibling) textobject.
-  -- Visual maps re-issue the textobject with no leading `v` (already in visual);
-  -- nvim_feedkeys mode "v" runs synchronously and treats keys as typed (not remapped).
-  -- WARN: do not bind <Tab>/<S-Tab> here — <Tab> shares keycode 0x09 with <C-i>
-  -- and shadows the jumplist-forward built-in even under CSI-u.
+  -- Incremental selection via `n` (next sibling) textobject. Visual maps re-issue
+  -- the textobject without leading `v`; nvim_feedkeys "v" is sync, treats keys as typed.
+  -- WARN: don't bind <Tab>/<S-Tab> — <Tab> shares keycode 0x09 with <C-i> and
+  -- shadows jumplist-forward even under CSI-u.
   vim.keymap.set("n", "<C-space>", ":normal van<CR>", { silent = true, desc = "TS: select around (expand)" })
   vim.keymap.set("x", "<C-space>", function()
     vim.api.nvim_feedkeys("an", "v", false)
@@ -228,59 +245,32 @@ if Config.use_nvim_treesitter then
       multiwindow = true,
     })
 
-    -- Injection-only parsers: never primary. FileType autocmd never installs them.
-    -- ; inject pulls these in from other parsers and queries/.
-    -- sql ← go/python, bash ← yaml, css ← templ, promql ← yaml.
-    -- jsdoc/comment/regex/markdown_inline ← stock injections.
-    -- markdown ← python markdown(...); html ← ecma innerHTML / markdown HTML blocks; luadoc ← lua ---@.
-    -- Deferred to VimEnter to avoid blocking first-buffer paint.
-    for _, lang in ipairs({
-      "jsdoc",
-      "comment",
-      "regex",
-      "markdown_inline",
-      "markdown",
-      "html",
-      "luadoc",
-      "sql",
-      "bash",
-      "css",
-      "promql",
-    }) do
+    -- Deferred so cold compile doesn't block first-buffer paint. See INJECTION_PARSERS above.
+    for _, lang in ipairs(INJECTION_PARSERS) do
       Config.ts.ensure_parser(lang)
     end
   end)
 
-  -- WARN: registered at sourcing time (not VimEnter) → runs before LSP's
-  -- FileType handlers. avoids races with plugins using treesitter queries
-  -- on LspAttach. ensure_parser below blocks UI up to 30s on first encounter
-  -- of new language (typical 1-3s).
+  -- WARN: registered at sourcing (not VimEnter) so it runs before LSP's FileType
+  -- handlers — avoids races with plugins using treesitter on LspAttach.
+  -- ensure_parser blocks UI ≤30s on first encounter (typical 1-3s).
   vim.api.nvim_create_autocmd("FileType", {
     group = vim.api.nvim_create_augroup("treesitter-start", { clear = true }),
     callback = function(event)
       local bufnr = event.buf
       local ft = event.match
-      if ft == "" then
-        return
-      end
+      if ft == "" then return end
 
       local lang = vim.treesitter.language.get_lang(ft)
-      if not lang then
-        return
-      end
+      if not lang then return end
 
       local ok = pcall(vim.treesitter.start, bufnr, lang)
-      if ok then
-        return
-      end
+      if ok then return end
 
-      -- get_lang() falls back to the ft name for unmapped FTs (plugin UI floats
-      -- like "blink-cmp-menu", "msg"). Skip langs nvim-treesitter doesn't know
-      -- to avoid spamming :messages. parsers module is cached after first require.
+      -- get_lang() falls back to ft for unmapped FTs (plugin floats: blink-cmp-menu,
+      -- msg, ...). Skip langs nvim-treesitter doesn't know to avoid :messages spam.
       local parsers = require("nvim-treesitter.parsers")
-      if not parsers[lang] then
-        return
-      end
+      if not parsers[lang] then return end
 
       if Config.ts.ensure_parser(lang) then
         pcall(vim.treesitter.start, bufnr, lang)
