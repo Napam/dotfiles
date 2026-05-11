@@ -1,4 +1,6 @@
-if Config.only_essential_plugins() then return end
+if Config.only_essential_plugins() then
+  return
+end
 
 require("lazyload").on_vim_enter(function()
   vim.pack.add({

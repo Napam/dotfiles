@@ -17,7 +17,8 @@ require("lazyload").on_vim_enter(function()
   set({ "n", "v" }, "<c-x>", mc.deleteCursor)
   set("n", "<c-leftmouse>", mc.handleMouse)
 
-  -- Layer mappings only apply when multiple cursors exist (overlap-safe).
+  -- WARN: <leader>x layer shadows "Extra diagnostics" prefix from
+  -- 0002_whichkey_keymaps.lua while a cursor session is active.
   mc.addKeymapLayer(function(layerSet)
     layerSet({ "n", "x" }, "<left>", mc.prevCursor)
     layerSet({ "n", "x" }, "<right>", mc.nextCursor)
@@ -31,6 +32,9 @@ require("lazyload").on_vim_enter(function()
     end)
   end)
 
+  -- WARN: <leader>a collides with "AI" prefix (aa/at/as/al) in
+  -- 0002_whichkey_keymaps.lua. Two-key AI mappings shadow this; alignCursors
+  -- only fires after timeoutlen with no continuation.
   set("n", "<leader>a", mc.alignCursors)
   set("v", "s", mc.splitCursors)
   set("v", "I", mc.insertVisual)
