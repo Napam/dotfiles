@@ -31,7 +31,11 @@ local function sync_back()
   end
 end
 
-local function read_lock(path)
+function M.runtime_path()
+  return runtime
+end
+
+function M.read_lock(path)
   local f = io.open(path, "r")
   if not f then
     return nil, "file not found"
@@ -53,7 +57,7 @@ end
 -- { "plugins": { <name>: { "rev": ..., "src": ..., ["version"]: ... } } }.
 local function sorted_json_encode(tbl)
   local function encode(v, indent)
-    if type(v) ~= "table" or vim.islist(v) then
+    if type(v) ~= "table" or (vim.islist(v) and #v > 0) then
       return vim.json.encode(v)
     end
     local keys = vim.tbl_keys(v)
@@ -89,8 +93,8 @@ end
 local function sync_to(target)
   local source = (target == "essentials") and "full" or "essentials"
   local src_path, tgt_path = lock_path(source), lock_path(target)
-  local src_lock, src_err = read_lock(src_path)
-  local tgt_lock, tgt_err = read_lock(tgt_path)
+  local src_lock, src_err = M.read_lock(src_path)
+  local tgt_lock, tgt_err = M.read_lock(tgt_path)
   if not src_lock or not src_lock.plugins then
     vim.notify(
       "PackLockSyncTo: cannot read " .. src_path .. ": " .. (src_err or "missing plugins table"),
@@ -155,6 +159,8 @@ local function sync_to(target)
 end
 
 function M.setup()
+  -- WARN: switching profiles mid-machine leaves stale runtime lock until :qa
+  -- flushes both profiles via VimLeavePre full_sync.
   if vim.uv.fs_stat(profile_lock()) and not vim.uv.fs_stat(runtime) then
     local ok, err = vim.uv.fs_copyfile(profile_lock(), runtime)
     if not ok then
@@ -185,12 +191,14 @@ function M.setup()
   -- lockfiles once per batch instead of N times. Use vim.fn.timer_start (number
   -- IDs) — vim.defer_fn returns a uv_timer_t userdata which timer_stop rejects.
   -- Callback runs on the main event loop, so vim.uv.fs_* sync + vim.notify are safe.
+  local function full_sync()
+    sync_back()
+    sync_to((Config.profile == "essentials") and "full" or "essentials")
+  end
   local sync_timer = nil
   local function flush_sync()
     sync_timer = nil
-    sync_back()
-    local other = (Config.profile == "essentials") and "full" or "essentials"
-    sync_to(other)
+    full_sync()
   end
   local function debounced_sync()
     if sync_timer then
@@ -208,9 +216,7 @@ function M.setup()
         vim.fn.timer_stop(sync_timer)
         sync_timer = nil
       end
-      sync_back()
-      local other = (Config.profile == "essentials") and "full" or "essentials"
-      sync_to(other)
+      full_sync()
     end,
   })
 end

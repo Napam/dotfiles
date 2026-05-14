@@ -33,18 +33,27 @@ require("lazyload").on_vim_enter(function()
     winid = nil,
     win_autocmd_id = nil,
     line_to_plugin = {}, -- 1-based line => plugin name
-    plugin_lines = {},   -- plugin name => 1-based line
+    plugin_lines = {}, -- plugin name => 1-based line
     expanded = {},
     show_help = false,
-    updates = {},             -- plugin => list of new commit lines
-    breaking = {},            -- plugin => bool (major bump or breaking commit)
-    unreleased = {},          -- plugin => unreleased commit lines
+    updates = {}, -- plugin => list of new commit lines
+    breaking = {}, -- plugin => bool (major bump or breaking commit)
+    unreleased = {}, -- plugin => unreleased commit lines
     unreleased_breaking = {}, -- plugin => unreleased breaking commit lines
     show_all_commits = {},
     latest_ref = {}, -- plugin => latest version/hash
     checking = false,
+    restoring = false,
     check_id = 0, -- bumped on each check start and on close()
   }
+
+  local function clear_check_state()
+    state.updates = {}
+    state.breaking = {}
+    state.unreleased = {}
+    state.unreleased_breaking = {}
+    state.latest_ref = {}
+  end
 
   -- path => installed semver tag (false = none found). Session-cached.
   local tag_cache = {}
@@ -193,7 +202,7 @@ require("lazyload").on_vim_enter(function()
 
   -- Fetch all plugins and check for new commits on the remote
   local function check_updates()
-    if state.checking then
+    if state.checking or state.restoring then
       return
     end
 
@@ -205,18 +214,12 @@ require("lazyload").on_vim_enter(function()
     state.check_id = state.check_id + 1
     local my_check_id = state.check_id
     state.checking = true
-    state.updates = {}
-    state.breaking = {}
-    state.unreleased = {}
-    state.unreleased_breaking = {}
-    state.latest_ref = {}
+    clear_check_state()
     render()
 
     local remaining = #plugins
 
-    -- Apply per-plugin result and decrement counter.
-    -- WARN: all state writes happen here on the main thread inside vim.schedule.
-    -- The check_id guard discards results from a check cancelled by close().
+    -- WARN: check_id guard discards results from a check cancelled by close().
     local function finish_one(result)
       vim.schedule(function()
         if state.check_id ~= my_check_id then
@@ -358,7 +361,180 @@ require("lazyload").on_vim_enter(function()
     end
   end
 
-  -- Build buffer lines + highlights
+  -- Restore all plugins to revisions in the runtime lockfile.
+  -- For each entry: install if missing, then `git checkout <rev>` (detached).
+  -- Async via vim.system; reports a summary when all plugins finish.
+  -- WARN: does not coordinate with an open vim.pack.update() confirm tab —
+  -- if one is open, restoring concurrently can race on the lockfile write.
+  local function restore_from_lock()
+    if state.checking or state.restoring then
+      vim.notify("vim.pack: busy, try again", vim.log.levels.WARN)
+      return
+    end
+
+    local packlock = require("packlock")
+    local lock_path = packlock.runtime_path()
+    local lock, err = packlock.read_lock(lock_path)
+    if not lock then
+      vim.notify("vim.pack: lockfile read failed (" .. lock_path .. "): " .. tostring(err), vim.log.levels.ERROR)
+      return
+    end
+    if type(lock.plugins) ~= "table" then
+      vim.notify("vim.pack: invalid lockfile (missing plugins table)", vim.log.levels.ERROR)
+      return
+    end
+
+    local entries = {}
+    for name, entry in pairs(lock.plugins) do
+      if type(entry) == "table" and entry.rev then
+        table.insert(entries, { name = name, rev = entry.rev, src = entry.src, version = entry.version })
+      end
+    end
+    if #entries == 0 then
+      vim.notify("vim.pack: lockfile has no plugins", vim.log.levels.INFO)
+      return
+    end
+
+    local msg = string.format("Restore %d plugin(s) to lockfile revisions?", #entries)
+    if vim.fn.confirm(msg, "&Yes\n&No", 2, "Question") ~= 1 then
+      return
+    end
+
+    local installed = {}
+    for _, p in ipairs(vim.pack.get(nil, { info = false })) do
+      installed[p.spec.name] = p.path
+    end
+
+    state.restoring = true
+    state.check_id = state.check_id + 1
+    local my_check_id = state.check_id
+    -- Clear stale per-plugin update state up-front so the UI doesn't show
+    -- "↑N" arrows from a prior check while restore is in progress.
+    clear_check_state()
+    render()
+
+    local remaining = #entries
+    local restored, skipped, errors = 0, 0, 0
+
+    local function finish_all()
+      if state.check_id ~= my_check_id then
+        -- Restore was cancelled mid-flight (e.g. window closed). Disk state
+        -- may be partially mutated; surface a brief notice so the user knows.
+        -- WARN: HEAD may have moved on some plugins; drop stale tag cache.
+        tag_cache = {}
+        vim.notify(
+          string.format("vim.pack: restore cancelled (%d done, %d errors)", restored, errors),
+          vim.log.levels.WARN
+        )
+        return
+      end
+      state.restoring = false
+      -- HEAD changed; drop tag cache so re-renders re-resolve installed tags.
+      tag_cache = {}
+      render()
+      vim.notify(
+        string.format("vim.pack: restored %d, skipped %d, errors %d", restored, skipped, errors),
+        errors > 0 and vim.log.levels.WARN or vim.log.levels.INFO
+      )
+    end
+
+    -- WARN: called both sync (skip/error path) and from vim.schedule (async
+    -- path); safe because Lua for loop is single-threaded, so remaining only
+    -- reaches 0 after all loop iterations have queued their callbacks.
+    local function one_done()
+      remaining = remaining - 1
+      if remaining == 0 then
+        finish_all()
+      end
+    end
+
+    local function checkout(entry, path)
+      vim.system({ "git", "-C", path, "checkout", "--quiet", entry.rev }, { text = true }, function(res)
+        vim.schedule(function()
+          if state.check_id ~= my_check_id then
+            one_done()
+            return
+          end
+          if res.code == 0 then
+            restored = restored + 1
+          else
+            errors = errors + 1
+            local git_err = vim.trim((res.stderr or "") ~= "" and res.stderr or (res.stdout or ""))
+            vim.notify(
+              string.format("vim.pack: %s checkout %s failed: %s", entry.name, entry.rev:sub(1, 7), git_err),
+              vim.log.levels.ERROR
+            )
+          end
+          one_done()
+        end)
+      end)
+    end
+
+    -- Check for uncommitted changes before checkout. Warn but proceed; git
+    -- will refuse and surface a clear error if the working tree conflicts.
+    -- WARN: --untracked-files=no — :helptags ALL generates doc/tags in every
+    -- plugin and many upstreams don't .gitignore it, so untracked files are
+    -- noise here. Only tracked-file modifications can be clobbered by checkout.
+    local function with_dirty_check(entry, path)
+      vim.system({ "git", "-C", path, "status", "--porcelain", "--untracked-files=no" }, { text = true }, function(res)
+        vim.schedule(function()
+          if state.check_id ~= my_check_id then
+            one_done()
+            return
+          end
+          if res.code == 0 and vim.trim(res.stdout) ~= "" then
+            vim.notify(
+              string.format("vim.pack: %s has uncommitted changes, attempting checkout anyway", entry.name),
+              vim.log.levels.WARN
+            )
+          end
+          checkout(entry, path)
+        end)
+      end)
+    end
+
+    for _, entry in ipairs(entries) do
+      local path = installed[entry.name]
+      if path and vim.uv.fs_stat(path) then
+        with_dirty_check(entry, path)
+      elseif entry.src then
+        -- WARN: vim.pack.add is synchronous and runs inside this loop; with N
+        -- missing plugins it blocks the UI for ~N clones. Acceptable since
+        -- restores typically have 0–few missing entries (lockfile matches an
+        -- already-installed set). If this changes, batch into a single add call.
+        local spec = { src = entry.src, name = entry.name }
+        if entry.version then
+          spec.version = entry.version
+        end
+        local add_ok, add_err = pcall(vim.pack.add, { spec }, { load = false })
+        if add_ok then
+          local plugins = vim.pack.get({ entry.name }, { info = false })
+          if plugins and plugins[1] and plugins[1].path and vim.uv.fs_stat(plugins[1].path) then
+            with_dirty_check(entry, plugins[1].path)
+          else
+            errors = errors + 1
+            vim.notify(string.format("vim.pack: %s installed but path missing", entry.name), vim.log.levels.ERROR)
+            one_done()
+          end
+        else
+          errors = errors + 1
+          vim.notify(
+            string.format("vim.pack: %s install failed: %s", entry.name, tostring(add_err)),
+            vim.log.levels.ERROR
+          )
+          one_done()
+        end
+      else
+        skipped = skipped + 1
+        vim.notify(
+          string.format("vim.pack: %s not installed and no src in lock, skipping", entry.name),
+          vim.log.levels.WARN
+        )
+        one_done()
+      end
+    end
+  end
+
   local function build_content()
     local plugins = vim.pack.get(nil, { info = false })
 
@@ -396,7 +572,7 @@ require("lazyload").on_vim_enter(function()
       table.insert(hls, { lnum, col_start, col_end, hl })
     end
 
-    local status = state.checking and "  (checking...)" or ""
+    local status = state.checking and "  (checking...)" or (state.restoring and "  (restoring...)" or "")
     local header = string.format(" vim.pack -- %d plugins | %d loaded%s", #plugins, #loaded, status)
     add(header, "PackUiHeader")
 
@@ -404,7 +580,7 @@ require("lazyload").on_vim_enter(function()
     local sep = " " .. string.rep("─", win_width - 1)
     add(sep, "PackUiSeparator")
 
-    local bar = " [U]pdate All  [u] Update  [C]heck  [X] Clean  [D]elete  [L] Log  [?] Help"
+    local bar = " [U]pdate All  [u] Update  [C]heck  [R]estore  [X] Clean  [D]elete  [L] Log  [?] Help"
     add(bar)
     -- gmatch () captures are 1-based; the end capture points one past the
     -- match — exactly the exclusive end_col extmarks expect.
@@ -419,6 +595,7 @@ require("lazyload").on_vim_enter(function()
       add("   U       Update all plugins (opens confirm tab; :w to apply)", "PackUiHelp")
       add("   u       Update plugin under cursor (opens confirm tab; :w to apply)", "PackUiHelp")
       add("   C       Check remote for new commits", "PackUiHelp")
+      add("   R       Restore all plugins to revisions in lockfile", "PackUiHelp")
       add("   X       Clean non-active plugins", "PackUiHelp")
       add("   D       Delete plugin under cursor (non-active only)", "PackUiHelp")
       add("   L       Open update log file", "PackUiHelp")
@@ -618,13 +795,10 @@ require("lazyload").on_vim_enter(function()
     state.bufnr = nil
     state.expanded = {}
     state.show_help = false
-    state.updates = {}
-    state.breaking = {}
-    state.unreleased = {}
-    state.unreleased_breaking = {}
+    clear_check_state()
     state.show_all_commits = {}
-    state.latest_ref = {}
     state.checking = false
+    state.restoring = false
     -- Invalidate any in-flight check_updates callbacks
     state.check_id = state.check_id + 1
   end
@@ -805,6 +979,8 @@ require("lazyload").on_vim_enter(function()
 
     vim.keymap.set("n", "C", check_updates, opts)
 
+    vim.keymap.set("n", "R", restore_from_lock, opts)
+
     vim.keymap.set("n", "?", function()
       state.show_help = not state.show_help
       render()
@@ -859,7 +1035,7 @@ require("lazyload").on_vim_enter(function()
       buffer = state.bufnr,
       once = true,
       callback = function(ev)
-        if vim._tointeger(ev.match) ~= captured_winid then
+        if tonumber(ev.match) ~= captured_winid then
           return
         end
         state.win_autocmd_id = nil
