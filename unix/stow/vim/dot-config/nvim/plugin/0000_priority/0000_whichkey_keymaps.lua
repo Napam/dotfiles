@@ -84,7 +84,7 @@ map("n", "<leader>gk", "<cmd>Gitsigns prev_hunk<cr>", { desc = "Previous hunk" }
 map("n", "<leader>gr", "<cmd>Gitsigns reset_hunk<cr>", { desc = "Reset hunk" })
 
 -- WARN: <leader>lf (Format) lives in plugin/conform.lua.
-map("n", "<leader>lR", "<cmd>LspRestart<cr>", { desc = "Restart LSP" })
+map("n", "<leader>lR", "<cmd>lsp restart<cr>", { desc = "Restart LSP" })
 map("n", "<leader>la", vim.lsp.buf.code_action, { desc = "Code action" })
 map("n", "<leader>ld", function()
   Snacks.picker.diagnostics()
