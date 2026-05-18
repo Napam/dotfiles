@@ -82,5 +82,20 @@
     "summary": {
       "model": "github-copilot/gpt-5.4-mini"
     }
+  },
+  // ─── Ollama (local models) ──────────────────────────────────────────────
+  // Ollama runs an OpenAI-compatible API at localhost:11434/v1
+  "provider": {
+    "ollama": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Ollama",
+      "options": {
+        "baseURL": "http://localhost:11434/v1"
+      },
+      "models": {
+        "gemma4:26b": { "name": "Gemma 4 26B" },
+        "qwen3.6:latest": { "name": "Qwen 3.6" }
+      }
+    }
   }
 }
