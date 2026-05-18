@@ -44,7 +44,11 @@ require("lazyload").on_vim_enter(function()
     latest_ref = {}, -- plugin => latest version/hash
     checking = false,
     restoring = false,
-    check_id = 0, -- bumped on each check start and on close()
+    -- Cancellation token. Captured at callback creation; compared on
+    -- callback completion — mismatch = stale callback, drop the result.
+    -- Bumped on every check/restore start and by reset_state() (which
+    -- close() calls). Never bumped directly by close().
+    check_id = 0,
   }
 
   local function clear_check_state()
@@ -72,7 +76,7 @@ require("lazyload").on_vim_enter(function()
     return tostring(v)
   end
 
-  local function is_version_range(version)
+  local function has_semver_version(version)
     if version == "" then
       return false
     end
@@ -153,6 +157,11 @@ require("lazyload").on_vim_enter(function()
   end
 
   -- Conventional commit breaking marker: 'type!:' or 'type(scope)!:'
+  -- WARN: only detects subject-line markers. `BREAKING CHANGE:` /
+  -- `BREAKING-CHANGE:` footers in the commit body are missed because all
+  -- callers feed `git log --oneline` output (subjects only). Accepted
+  -- false-negative; switching to `--format=%B` would require multi-line
+  -- parsing across every git_log call.
   local function is_breaking_commit(c)
     return c:match("%x+ %w+!:") or c:match("%x+ %w+%b()!:")
   end
@@ -219,9 +228,14 @@ require("lazyload").on_vim_enter(function()
 
     local remaining = #plugins
 
-    -- WARN: check_id guard discards results from a check cancelled by close().
+    -- WARN: decrement happens before staleness check; on a stale callback
+    -- this decrements the (orphaned) counter from a prior run, harmless.
+    -- Avoids an extra branch for the common live-callback case.
+    -- Stale callbacks must NOT touch state.checking (belongs to successor
+    -- check or reset_state()).
     local function finish_one(result)
       vim.schedule(function()
+        remaining = remaining - 1
         if state.check_id ~= my_check_id then
           return
         end
@@ -242,7 +256,6 @@ require("lazyload").on_vim_enter(function()
             state.latest_ref[result.name] = result.latest_ref
           end
         end
-        remaining = remaining - 1
         if remaining == 0 then
           state.checking = false
           for name, commits in pairs(state.updates) do
@@ -259,16 +272,26 @@ require("lazyload").on_vim_enter(function()
       local path = p.path
       local name = p.spec.name
       local version = get_version_str(p)
-      local has_version_range = is_version_range(version)
-      local current_tag = has_version_range and get_installed_tag(path) or nil
+      local has_semver = has_semver_version(version)
+      local current_tag = has_semver and get_installed_tag(path) or nil
 
-      vim.system({ "git", "-C", path, "fetch", "--quiet", "--tags" }, {}, function(fetch_res)
+      -- Only fetch tags for versioned plugins; non-versioned ones compare
+      -- against the default branch and don't need tag refs.
+      local fetch_args = { "git", "-C", path, "fetch", "--quiet" }
+      if has_semver then
+        table.insert(fetch_args, "--tags")
+      end
+      -- WARN: 30s timeout — without it a slow/unreachable remote hangs the
+      -- fetch indefinitely, leaving state.checking == true forever and
+      -- blocking restore + future :Pack C invocations for the session.
+      -- Timeout surfaces as a non-zero result.code, routed to the error path.
+      vim.system(fetch_args, { timeout = 30000 }, function(fetch_res)
         if fetch_res.code ~= 0 then
           finish_one(nil)
           return
         end
 
-        if has_version_range then
+        if has_semver then
           -- Versioned plugin: compare against latest tag, then check main for unreleased commits.
           vim.system(
             { "git", "-C", path, "tag", "--list", "--sort=-version:refname" },
@@ -373,7 +396,7 @@ require("lazyload").on_vim_enter(function()
     end
 
     local packlock = require("packlock")
-    local lock_path = packlock.runtime_path()
+    local lock_path = packlock.profile_lock()
     local lock, err = packlock.read_lock(lock_path)
     if not lock then
       vim.notify("vim.pack: lockfile read failed (" .. lock_path .. "): " .. tostring(err), vim.log.levels.ERROR)
@@ -413,17 +436,49 @@ require("lazyload").on_vim_enter(function()
     clear_check_state()
     render()
 
+    -- WARN: must pause BEFORE the first vim.pack.add (missing-plugin path) so
+    -- the resulting PackChanged doesn't fire sync_back and clobber the
+    -- committed lockfile with the still-stale runtime file.
+    packlock.pause_sync()
+
     local remaining = #entries
     local restored, skipped, errors = 0, 0, 0
+
+    -- WARN: copy the committed lockfile verbatim to runtime rather than
+    -- rebuilding from vim.pack.get(), so the runtime is byte-for-byte
+    -- identical to what sync_back would propagate on VimLeavePre. A
+    -- reconstructed lockfile may differ in field set/formatting (vim.pack's
+    -- schema is not pinned), producing a false git diff.
+    local function sync_runtime_from_committed()
+      local ok, err = vim.uv.fs_copyfile(lock_path, packlock.runtime_path())
+      if not ok then
+        vim.notify("vim.pack: failed to sync runtime from lockfile: " .. tostring(err), vim.log.levels.ERROR)
+      end
+    end
 
     local function finish_all()
       if state.check_id ~= my_check_id then
         -- Restore was cancelled mid-flight (e.g. window closed). Disk state
         -- may be partially mutated; surface a brief notice so the user knows.
+        -- WARN: must clear state.restoring or a follow-up :Pack R in the same
+        -- session is blocked by the busy guard. No render — window is closed.
+        state.restoring = false
         -- WARN: HEAD may have moved on some plugins; drop stale tag cache.
         tag_cache = {}
+        -- Sync runtime to reflect the lockfile we just restored to before
+        -- resuming sync, so the next sync_back doesn't clobber the committed
+        -- lockfile with pre-restore state.
+        sync_runtime_from_committed()
+        packlock.resume_sync()
+        -- Push committed lockfile to the other profile too. Raw git checkout
+        -- bypasses vim.pack, so no PackChanged fires to drive the usual sync.
+        packlock.sync_cross_profile()
         vim.notify(
-          string.format("vim.pack: restore cancelled (%d done, %d errors)", restored, errors),
+          string.format(
+            "vim.pack: restore cancelled (%d done, %d errors); lockfile is authoritative, re-run :Pack R to converge",
+            restored,
+            errors
+          ),
           vim.log.levels.WARN
         )
         return
@@ -431,6 +486,9 @@ require("lazyload").on_vim_enter(function()
       state.restoring = false
       -- HEAD changed; drop tag cache so re-renders re-resolve installed tags.
       tag_cache = {}
+      sync_runtime_from_committed()
+      packlock.resume_sync()
+      packlock.sync_cross_profile()
       render()
       vim.notify(
         string.format("vim.pack: restored %d, skipped %d, errors %d", restored, skipped, errors),
@@ -576,7 +634,7 @@ require("lazyload").on_vim_enter(function()
     local header = string.format(" vim.pack -- %d plugins | %d loaded%s", #plugins, #loaded, status)
     add(header, "PackUiHeader")
 
-    local win_width = state.winid and vim.api.nvim_win_get_width(state.winid) or 80
+    local win_width = state.winid and api.nvim_win_get_width(state.winid) or 80
     local sep = " " .. string.rep("─", win_width - 1)
     add(sep, "PackUiSeparator")
 
@@ -617,11 +675,11 @@ require("lazyload").on_vim_enter(function()
       local name = p.spec.name
       local pad = string.rep(" ", max_name - #name + 2)
       local version = get_version_str(p)
-      local has_version_range = is_version_range(version)
-      local tag = has_version_range and get_installed_tag(p.path) or nil
+      local has_semver = has_semver_version(version)
+      local tag = has_semver and get_installed_tag(p.path) or nil
       local rev_short = p.rev and p.rev:sub(1, 7) or ""
 
-      local ver_display = has_version_range and (tag or version) or (rev_short ~= "" and rev_short or version)
+      local ver_display = has_semver and (tag or version) or (rev_short ~= "" and rev_short or version)
       local latest = state.latest_ref[name]
       if latest then
         -- Normalize v-prefix before comparing to avoid spurious arrows when
@@ -801,6 +859,10 @@ require("lazyload").on_vim_enter(function()
     state.restoring = false
     -- Invalidate any in-flight check_updates callbacks
     state.check_id = state.check_id + 1
+    -- WARN: drop tag_cache too. close() is called before vim.pack.update(),
+    -- which moves HEADs without firing our restore path, leaving cached tags
+    -- stale on next :Pack open.
+    tag_cache = {}
   end
 
   local function close()
@@ -822,8 +884,11 @@ require("lazyload").on_vim_enter(function()
     end
     local row = api.nvim_win_get_cursor(state.winid)[1]
 
+    -- WARN: navigate by plugin_lines (header lines only). line_to_plugin
+    -- maps every rendered row (including expanded details) to its owning
+    -- plugin, so iterating it would step through detail rows.
     local plines = {}
-    for lnum, _ in pairs(state.line_to_plugin) do
+    for _, lnum in pairs(state.plugin_lines) do
       table.insert(plines, lnum)
     end
     table.sort(plines)
@@ -916,12 +981,12 @@ require("lazyload").on_vim_enter(function()
         return
       end
 
-      local ok, pdata = pcall(vim.pack.get, { name }, { info = false })
-      if not ok then
+      local pdata = vim.pack.get({ name }, { info = false })
+      if #pdata == 0 then
         vim.notify(string.format("vim.pack: %s is not installed", name), vim.log.levels.WARN)
         return
       end
-      if #pdata > 0 and pdata[1].active then
+      if pdata[1].active then
         vim.notify(string.format("vim.pack: %s is active, remove from config first", name), vim.log.levels.WARN)
         return
       end
@@ -1044,16 +1109,17 @@ require("lazyload").on_vim_enter(function()
     })
   end
 
-  vim.api.nvim_create_user_command("Pack", function(opts)
+  api.nvim_create_user_command("Pack", function(opts)
+    -- WARN: vim.pack.update() (no force) opens a confirm tab. The lockfile
+    -- is only written after the user `:w`s that buffer. With bang, force=true
+    -- skips confirmation and writes the lockfile immediately.
+    if opts.args == "update" or opts.args == "update-all" then
+      vim.pack.update(nil, { force = opts.bang })
+      return
+    end
     open()
     if opts.args == "check" then
       check_updates()
-    elseif opts.args == "update" or opts.args == "update-all" then
-      close()
-      -- WARN: vim.pack.update() (no force) opens a confirm tab. The lockfile
-      -- is only written after the user `:w`s that buffer. With bang, force=true
-      -- skips confirmation and writes the lockfile immediately.
-      vim.pack.update(nil, { force = opts.bang })
     end
   end, {
     nargs = "?",

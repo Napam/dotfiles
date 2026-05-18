@@ -15,16 +15,39 @@ local function lock_path(p)
   return cfg .. "/nvim-pack-lock." .. p .. ".json"
 end
 
-local function profile_lock()
+function M.profile_lock()
   return lock_path(Config.profile)
 end
 
+-- WARN: pause_count gates sync_back/sync_to from PackChanged and VimLeavePre.
+-- Refcounted so nested pause_sync calls compose (inner resume_sync must not
+-- re-enable sync mid-operation for an outer caller). Callers (e.g. pack_ui
+-- restore) must ensure the runtime lockfile matches what they want propagated
+-- BEFORE the final resume_sync(), otherwise the next PackChanged will clobber
+-- the committed lockfile with stale runtime data.
+local pause_count = 0
+
+function M.pause_sync()
+  pause_count = pause_count + 1
+end
+
+function M.resume_sync()
+  if pause_count == 0 then
+    vim.notify("packlock: resume_sync() called with no matching pause", vim.log.levels.ERROR)
+    return
+  end
+  pause_count = pause_count - 1
+end
+
 local function sync_back()
+  if pause_count > 0 then
+    return
+  end
   if vim.uv.fs_stat(runtime) then
-    local ok, err = vim.uv.fs_copyfile(runtime, profile_lock())
+    local ok, err = vim.uv.fs_copyfile(runtime, M.profile_lock())
     if not ok then
       vim.notify(
-        "PackLockSync: failed to copy runtime to " .. profile_lock() .. ": " .. tostring(err),
+        "PackLockSync: failed to copy runtime to " .. M.profile_lock() .. ": " .. tostring(err),
         vim.log.levels.ERROR
       )
     end
@@ -49,12 +72,21 @@ function M.read_lock(path)
   if type(decoded) ~= "table" then
     return nil, "invalid schema (not a table)"
   end
+  -- Plugins field is optional (a fresh/empty lockfile may omit it) but if
+  -- present must be a table — sync_to and callers iterate it via pairs().
+  if decoded.plugins ~= nil and type(decoded.plugins) ~= "table" then
+    return nil, "invalid schema (plugins is not a table)"
+  end
   return decoded
 end
 
 -- Pretty-print to match vim.pack's on-disk format (2-space indent, sorted keys)
 -- so committed lockfile diffs stay minimal. Schema:
 -- { "plugins": { <name>: { "rev": ..., "src": ..., ["version"]: ... } } }.
+-- WARN: assumes a flat object-only schema. Non-empty arrays are delegated to
+-- vim.json.encode (one-line, no recursion), so arrays-of-objects would not get
+-- sorted keys; empty tables serialize as "{}" (object), not "[]". Fine for the
+-- current schema (no arrays); revisit if vim.pack ever adds list-valued fields.
 local function sorted_json_encode(tbl)
   local function encode(v, indent)
     if type(v) ~= "table" or (vim.islist(v) and #v > 0) then
@@ -76,13 +108,28 @@ local function sorted_json_encode(tbl)
 end
 
 local function write_lock(path, tbl)
-  local f = io.open(path, "w")
+  local f, open_err = io.open(path, "w")
   if not f then
-    return false
+    return false, open_err or "io.open failed"
   end
-  f:write(sorted_json_encode(tbl) .. "\n")
+  -- WARN: pcall the write so a disk-full / I/O error doesn't leak the handle.
+  local ok, write_err = pcall(function()
+    f:write(sorted_json_encode(tbl) .. "\n")
+  end)
   f:close()
+  if not ok then
+    return false, tostring(write_err)
+  end
   return true
+end
+
+--- Returns the profile in `profiles` that is not `p`. Assumes a two-profile
+--- world (asserts otherwise); revisit if a third profile is added.
+---@param p string
+---@return string
+local function other_profile(p)
+  assert(#profiles == 2, "other_profile assumes exactly two profiles")
+  return profiles[1] == p and profiles[2] or profiles[1]
 end
 
 --- Sync overlapping plugins from source → target. Target's package set is
@@ -91,7 +138,10 @@ end
 --- are untouched; source-only plugins are ignored.
 ---@param target "essentials"|"full"
 local function sync_to(target)
-  local source = (target == "essentials") and "full" or "essentials"
+  if pause_count > 0 then
+    return
+  end
+  local source = other_profile(target)
   local src_path, tgt_path = lock_path(source), lock_path(target)
   local src_lock, src_err = M.read_lock(src_path)
   local tgt_lock, tgt_err = M.read_lock(tgt_path)
@@ -111,6 +161,8 @@ local function sync_to(target)
   end
 
   local updated, unchanged, target_only = 0, 0, 0
+  -- Safe: pairs allows replacing values for existing keys mid-iteration;
+  -- only adding/removing keys is undefined.
   for name, tgt_entry in pairs(tgt_lock.plugins) do
     local src_entry = src_lock.plugins[name]
     if src_entry then
@@ -129,43 +181,68 @@ local function sync_to(target)
     end
   end
 
-  if not write_lock(tgt_path, tgt_lock) then
-    vim.notify("PackLockSyncTo: failed to write " .. tgt_path, vim.log.levels.ERROR)
-    return
+  -- Skip the write when no overlapping rev differed; target file is
+  -- unchanged. Avoids touching mtime and producing a no-op git diff if the
+  -- pretty-printer's output ever drifts from the on-disk format.
+  if updated > 0 then
+    local ok, write_err = write_lock(tgt_path, tgt_lock)
+    if not ok then
+      vim.notify("PackLockSyncTo: failed to write " .. tgt_path .. ": " .. tostring(write_err), vim.log.levels.ERROR)
+      return
+    end
   end
 
   if target == Config.profile then
-    local ok, err = vim.uv.fs_copyfile(tgt_path, runtime)
-    if not ok then
+    local cp_ok, cp_err = vim.uv.fs_copyfile(tgt_path, runtime)
+    if not cp_ok then
       vim.notify(
-        "PackLockSyncTo: failed to copy " .. tgt_path .. " to " .. runtime .. ": " .. tostring(err),
+        "PackLockSyncTo: failed to copy " .. tgt_path .. " to " .. runtime .. ": " .. tostring(cp_err),
         vim.log.levels.ERROR
       )
     end
   end
 
-  vim.notify(
-    string.format(
-      "PackLockSyncTo %s: %d rev(s) updated from %s, %d already matching, %d %s-only kept as-is",
-      target,
-      updated,
-      source,
-      unchanged,
-      target_only,
-      target
-    ),
-    vim.log.levels.INFO
-  )
+  -- Skip the notification when no revs changed; PackChanged-driven syncs
+  -- after every :Pack U would otherwise spam an info popup on every save.
+  if updated > 0 then
+    vim.notify(
+      string.format(
+        "PackLockSyncTo %s: %d rev(s) updated from %s, %d already matching, %d %s-only kept as-is",
+        target,
+        updated,
+        source,
+        unchanged,
+        target_only,
+        target
+      ),
+      vim.log.levels.INFO
+    )
+  end
+end
+
+--- Propagate the current profile's committed lockfile to the other profile.
+--- Used by pack_ui restore: raw `git checkout` bypasses vim.pack, so no
+--- PackChanged fires to trigger the normal cross-profile sync. Call after
+--- resume_sync() (sync_to bails when pause_count > 0).
+function M.sync_cross_profile()
+  sync_to(other_profile(Config.profile))
 end
 
 function M.setup()
-  -- WARN: switching profiles mid-machine leaves stale runtime lock until :qa
-  -- flushes both profiles via VimLeavePre full_sync.
-  if vim.uv.fs_stat(profile_lock()) and not vim.uv.fs_stat(runtime) then
-    local ok, err = vim.uv.fs_copyfile(profile_lock(), runtime)
+  assert(
+    type(Config) == "table" and type(Config.profile) == "string",
+    "packlock: Config.profile must be set before setup()"
+  )
+  -- WARN: always overwrite runtime from the committed profile lockfile at
+  -- startup so a Config.profile switch between sessions picks up the new
+  -- profile's revs. The previous session's VimLeavePre already flushed any
+  -- unsaved runtime state into the committed lockfile, so the runtime file
+  -- has no information not already on disk in the committed form.
+  if vim.uv.fs_stat(M.profile_lock()) then
+    local ok, err = vim.uv.fs_copyfile(M.profile_lock(), runtime)
     if not ok then
       vim.notify(
-        "PackLockSync: failed to copy " .. profile_lock() .. " to " .. runtime .. ": " .. tostring(err),
+        "PackLockSync: failed to copy " .. M.profile_lock() .. " to " .. runtime .. ": " .. tostring(err),
         vim.log.levels.ERROR
       )
     end
@@ -173,8 +250,8 @@ function M.setup()
 
   vim.api.nvim_create_user_command("PackLockSyncTo", function(opts)
     local target = opts.fargs[1]
-    if target ~= "essentials" and target ~= "full" then
-      vim.notify("PackLockSyncTo: target must be 'essentials' or 'full'", vim.log.levels.ERROR)
+    if not vim.tbl_contains(profiles, target) then
+      vim.notify("PackLockSyncTo: target must be one of: " .. table.concat(profiles, ", "), vim.log.levels.ERROR)
       return
     end
     sync_to(target)
@@ -193,7 +270,7 @@ function M.setup()
   -- Callback runs on the main event loop, so vim.uv.fs_* sync + vim.notify are safe.
   local function full_sync()
     sync_back()
-    sync_to((Config.profile == "essentials") and "full" or "essentials")
+    sync_to(other_profile(Config.profile))
   end
   local sync_timer = nil
   local function flush_sync()
@@ -207,8 +284,14 @@ function M.setup()
     sync_timer = vim.fn.timer_start(200, flush_sync)
   end
 
-  vim.api.nvim_create_autocmd("PackChanged", { callback = debounced_sync })
+  -- WARN: augroup with clear=true makes setup() idempotent — a dev reload
+  -- (re-source init.lua) otherwise stacks duplicate PackChanged/VimLeavePre
+  -- handlers, firing full_sync N times per event.
+  local group = vim.api.nvim_create_augroup("PackLockSync", { clear = true })
+
+  vim.api.nvim_create_autocmd("PackChanged", { group = group, callback = debounced_sync })
   vim.api.nvim_create_autocmd("VimLeavePre", {
+    group = group,
     callback = function()
       -- Flush any pending debounce synchronously before quit so a quit during
       -- the 200ms window can't leave the cross-profile lockfile stale.
