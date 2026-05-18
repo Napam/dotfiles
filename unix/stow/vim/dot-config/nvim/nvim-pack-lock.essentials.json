@@ -37,7 +37,7 @@
       "src": "https://github.com/zapling/mason-lock.nvim"
     },
     "mason-lspconfig.nvim": {
-      "rev": "eaa34887d444cb002e1b165fac399ae4bbc771f7",
+      "rev": "7b01e2974a47d489bb92f47a41e4c0088ea8f86e",
       "src": "https://github.com/mason-org/mason-lspconfig.nvim"
     },
     "mason.nvim": {
@@ -75,7 +75,7 @@
       "version": "'main'"
     },
     "opencode.nvim": {
-      "rev": "a89f9b90e2709f7350743bf2d38e80bc4fd5379d",
+      "rev": "47ce74944142d2f2e8e52a8f93801ed9eee68497",
       "src": "https://github.com/nickjvandyke/opencode.nvim"
     },
     "persistence.nvim": {

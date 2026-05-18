@@ -1,7 +1,7 @@
 {
   "plugins": {
     "SchemaStore.nvim": {
-      "rev": "1c28767e3a7f3c9b7c5cc66e7f16b268c964e2c9",
+      "rev": "c5d25c4f5624a25f71865d29223603802dfc7d2f",
       "src": "https://github.com/b0o/SchemaStore.nvim"
     },
     "async.nvim": {
@@ -94,7 +94,7 @@
       "src": "https://github.com/zapling/mason-lock.nvim"
     },
     "mason-lspconfig.nvim": {
-      "rev": "eaa34887d444cb002e1b165fac399ae4bbc771f7",
+      "rev": "7b01e2974a47d489bb92f47a41e4c0088ea8f86e",
       "src": "https://github.com/mason-org/mason-lspconfig.nvim"
     },
     "mason.nvim": {
@@ -130,11 +130,11 @@
       "src": "https://github.com/kndndrj/nvim-dbee"
     },
     "nvim-lint": {
-      "rev": "665525810630701b84181e4d9eefd24b49845b29",
+      "rev": "8b06eeec3c674744b993caecd73343df108c052d",
       "src": "https://github.com/mfussenegger/nvim-lint"
     },
     "nvim-lspconfig": {
-      "rev": "8f7e64066e2641d5e7d494962a9c7051e3d38dd5",
+      "rev": "3de240997fc3208eb29df5e5c17ba4665961bd84",
       "src": "https://github.com/neovim/nvim-lspconfig"
     },
     "nvim-surround": {
@@ -160,7 +160,7 @@
       "src": "https://github.com/jbyuki/one-small-step-for-vimkind"
     },
     "opencode.nvim": {
-      "rev": "a89f9b90e2709f7350743bf2d38e80bc4fd5379d",
+      "rev": "47ce74944142d2f2e8e52a8f93801ed9eee68497",
       "src": "https://github.com/nickjvandyke/opencode.nvim"
     },
     "persistence.nvim": {
