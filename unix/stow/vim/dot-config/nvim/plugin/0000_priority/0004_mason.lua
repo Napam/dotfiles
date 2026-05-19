@@ -113,6 +113,7 @@ if not Config.only_essential_plugins() then
     "biome",
     "buf",
     "codelldb",
+    "codebook",
     "debugpy",
     "delve",
     "dockerfile-language-server",

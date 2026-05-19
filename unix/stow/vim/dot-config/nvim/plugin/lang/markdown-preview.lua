@@ -1,54 +1,39 @@
--- Browser-preview alternative to render-markdown.nvim (in-buffer).
 -- WARN: build hook runs upstream app/install.sh to fetch a pre-built binary.
 -- Without it, plugin falls back to `node app/index.js` which needs `tslib` that
 -- install.sh does not provide.
 if Config.only_essential_plugins() then return end
 
-local app_dir = vim.fn.stdpath("data") .. "/site/pack/core/opt/markdown-preview.nvim/app"
+local pack_build = require("pack_build")
 
-local function binary_present()
-  return #vim.fn.glob(app_dir .. "/bin/markdown-preview-*", false, true) > 0
-end
+local PACK_NAME = "markdown-preview.nvim"
+local BIN_GLOB = "bin/markdown-preview-*"
 
-local function run_installer(reason)
-  local installer = app_dir .. "/install.sh"
-  if vim.fn.executable(installer) ~= 1 then
-    vim.notify("markdown-preview: install.sh not found at " .. installer, vim.log.levels.WARN)
-    return
-  end
-  vim.notify("markdown-preview: running app/install.sh (" .. reason .. ") ...")
-  vim.system({ installer }, { cwd = app_dir }, function(out)
-    vim.schedule(function()
-      if out.code ~= 0 then
-        vim.notify("markdown-preview: install.sh failed: " .. (out.stderr or ""), vim.log.levels.ERROR)
-      elseif not binary_present() then
-        vim.notify("markdown-preview: install.sh succeeded but no binary in app/bin (unsupported platform?)", vim.log.levels.ERROR)
-      else
-        vim.notify("markdown-preview: build complete")
-      end
-    end)
-  end)
-end
+local ensure = pack_build.setup(PACK_NAME, "app", { check_binary = BIN_GLOB })
 
--- WARN: register PackChanged eagerly (top-level, NOT inside on_vim_enter)
--- so it fires on first bootstrap regardless of when vim.pack.add runs.
-vim.api.nvim_create_autocmd("PackChanged", {
-  callback = function(ev)
-    if ev.data.spec.name ~= "markdown-preview.nvim" then return end
-    run_installer("PackChanged")
-  end,
-})
+-- WARN: set g:mkdp_filetypes BEFORE vim.pack.add. mkdp.vim guards with
+-- `if !exists(...)` so a later assignment is ignored.
+vim.g.mkdp_filetypes = { "markdown" }
 
 require("lazyload").on_vim_enter(function()
   vim.pack.add({
     { src = "https://github.com/iamcco/markdown-preview.nvim" },
   })
 
-  -- Safety net: PackChanged only fires on install/update. If the plugin dir
-  -- exists from a prior startup but the binary is missing, repair here.
-  if not binary_present() then
-    run_installer("missing binary")
-  end
+  ensure()
 
-  vim.g.mkdp_filetypes = { "markdown" }
+  -- WARN: mkdp registers `:MarkdownPreview` as a -buffer command via a
+  -- BufEnter,FileType autocmd installed when its plugin file sources. Since
+  -- we load it at VimEnter (after FileType/BufEnter have already fired for
+  -- the startup buffer), re-fire FileType so the command attaches to it.
+  for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+    if vim.api.nvim_buf_is_loaded(buf) then
+      local ft = vim.bo[buf].filetype
+      if ft == "markdown" then
+        -- WARN: `buffer` and `pattern` are mutually exclusive in nvim_exec_autocmds.
+        -- Use `buffer` only; mkdp's `FileType markdown` autocmd matches because
+        -- this buffer's filetype is already "markdown".
+        vim.api.nvim_exec_autocmds("FileType", { buffer = buf })
+      end
+    end
+  end
 end)

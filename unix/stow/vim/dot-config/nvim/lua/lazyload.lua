@@ -13,25 +13,30 @@ local function drain(queue)
   -- So sync executes before async in wall-clock time. Don't rely on cross-group ordering.
   for _, entry in ipairs(queue) do
     if not entry.sync then
-      vim.schedule(entry.fn)
+      vim.schedule(function()
+        local ok, serr = pcall(entry.fn)
+        if not ok then
+          vim.notify("lazyload: error: " .. tostring(serr), vim.log.levels.ERROR)
+        end
+      end)
     end
   end
   for _, entry in ipairs(queue) do
     if entry.sync then
-      entry.fn()
+      local ok, err = pcall(entry.fn)
+      if not ok then
+        vim.notify("lazyload: error: " .. tostring(err), vim.log.levels.ERROR)
+      end
     end
   end
 end
 
 local function drain_override()
-  if not override_queue then
-    return
-  end
-  for _, entry in ipairs(override_queue) do
+  for _, fn in ipairs(override_queue) do
     vim.schedule(function()
-      local ok, err = pcall(entry.fn)
+      local ok, err = pcall(fn)
       if not ok then
-        vim.notify((".nvim.lua override error:\n%s"):format(err), vim.log.levels.ERROR)
+        vim.notify("lazyload: error: " .. tostring(err), vim.log.levels.ERROR)
       end
     end)
   end
@@ -43,7 +48,9 @@ vim.api.nvim_create_autocmd("VimEnter", {
   callback = function()
     drain(vim_enter_queue)
     vim_enter_queue = nil
-    drain_override()
+    -- WARN: schedule drain_override so it runs AFTER all async on_vim_enter
+    -- entries scheduled by drain() above. Calling directly would race them.
+    vim.schedule(drain_override)
   end,
 })
 
@@ -66,19 +73,9 @@ end
 ---@param fn fun()
 function M.on_override(fn)
   if override_queue then
-    table.insert(override_queue, { fn = fn })
+    table.insert(override_queue, fn)
   else
     vim.schedule(fn)
-  end
-end
-
--- Call function only once. Keys by tostring(fn) so reloading a module produces
--- a new identity and the guard fires again (desirable for :source workflows).
-function M.call_once(fn)
-  local id = tostring(fn)
-  if not Config.called[id] then
-    fn()
-    Config.called[id] = true
   end
 end
 
