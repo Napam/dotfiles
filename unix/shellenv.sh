@@ -69,9 +69,6 @@ export PATH
 export NVM_DIR="$HOME/.nvm"
 [[ -s "$NVM_DIR/nvm.sh" ]] && source "$NVM_DIR/nvm.sh"
 
-# JAVA_HOME managed by mise (see shellrc.sh: mise activate).
-export JAVA_TOOL_OPTIONS="-Djdk.xml.totalEntitySizeLimit=0 -Djdk.xml.entityExpansionLimit=0"
-
 [[ -s $HOME/.cargo/env ]] && source "$HOME/.cargo/env"
 
 export VENVY_SRC_DIR="$HOME/.local/src/venvy"
