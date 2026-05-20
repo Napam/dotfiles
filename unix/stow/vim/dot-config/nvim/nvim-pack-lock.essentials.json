@@ -21,7 +21,7 @@
       "src": "https://github.com/lewis6991/gitsigns.nvim"
     },
     "grug-far.nvim": {
-      "rev": "a5875fde04e2940a5060f8df9c453bcfcfe0a5c0",
+      "rev": "5506c2f59dc9ab2ed6c233585412b24d31d51521",
       "src": "https://github.com/MagicDuck/grug-far.nvim"
     },
     "kanagawa.nvim": {
@@ -45,7 +45,7 @@
       "src": "https://github.com/mason-org/mason.nvim"
     },
     "mini.icons": {
-      "rev": "9c7b1b90b15bdd69c52f6e31889dbc9987c30ec4",
+      "rev": "520995f1d75da0e4cc901ee95080b1ff2bc46b94",
       "src": "https://github.com/nvim-mini/mini.icons"
     },
     "mini.pairs": {
@@ -75,7 +75,7 @@
       "version": "'main'"
     },
     "opencode.nvim": {
-      "rev": "47ce74944142d2f2e8e52a8f93801ed9eee68497",
+      "rev": "bb64cf77350f7427201babbec1f7e7f3b6a3e774",
       "src": "https://github.com/nickjvandyke/opencode.nvim"
     },
     "persistence.nvim": {
