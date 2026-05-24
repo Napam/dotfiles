@@ -1,7 +1,7 @@
 {
   "plugins": {
     "SchemaStore.nvim": {
-      "rev": "05383893462944f20bf2044b5a1216f894c9b7a0",
+      "rev": "68ba9015c0cc77a0fe954bd2578dfa7a5c24134f",
       "src": "https://github.com/b0o/SchemaStore.nvim"
     },
     "async.nvim": {
@@ -26,7 +26,7 @@
       "src": "https://github.com/nvim-zh/colorful-winsep.nvim"
     },
     "conform.nvim": {
-      "rev": "18aeab3d63d350dcf44d64c462cc489a3412af40",
+      "rev": "24c70347f6b2128679f47d2eb765156ef34bf9e0",
       "src": "https://github.com/stevearc/conform.nvim"
     },
     "debugmaster.nvim": {
@@ -34,7 +34,7 @@
       "src": "https://github.com/miroshQa/debugmaster.nvim"
     },
     "fidget.nvim": {
-      "rev": "889e2e96edef4e144965571d46f7a77bcc4d0ddf",
+      "rev": "82404b196e73a00b1727a91903beef5ddc319d22",
       "src": "https://github.com/j-hui/fidget.nvim"
     },
     "flash.nvim": {
@@ -98,7 +98,7 @@
       "src": "https://github.com/mason-org/mason-lspconfig.nvim"
     },
     "mason.nvim": {
-      "rev": "cbf8d285e1462dd24acf3507817be2bbcb035919",
+      "rev": "bb639d4bf385a4d89f478b83af4d770be05ab7eb",
       "src": "https://github.com/mason-org/mason.nvim"
     },
     "mini.icons": {
@@ -114,7 +114,7 @@
       "src": "https://github.com/jake-stewart/multicursor.nvim"
     },
     "neopyter": {
-      "rev": "4aef71fd82ee8d80ce8c99d2f7f5a62b3081df10",
+      "rev": "ede156ea0fbfc7ec0920302f624f7b6c27735cfc",
       "src": "https://github.com/SUSTech-data/neopyter"
     },
     "nui.nvim": {
@@ -122,7 +122,7 @@
       "src": "https://github.com/MunifTanjim/nui.nvim"
     },
     "nvim-dap": {
-      "rev": "45a69eba683a2c448dd9ecfc4de89511f0646b5f",
+      "rev": "531771530d4f82ad2d21e436e3cc052d68d7aebb",
       "src": "https://github.com/mfussenegger/nvim-dap"
     },
     "nvim-dbee": {
@@ -134,7 +134,7 @@
       "src": "https://github.com/mfussenegger/nvim-lint"
     },
     "nvim-lspconfig": {
-      "rev": "246572944c2a1e2a646c2e7609ff619b0fe74c18",
+      "rev": "a4ed4e761c400849e8c9f8bda33e5083f890268c",
       "src": "https://github.com/neovim/nvim-lspconfig"
     },
     "nvim-surround": {
@@ -160,7 +160,7 @@
       "src": "https://github.com/jbyuki/one-small-step-for-vimkind"
     },
     "opencode.nvim": {
-      "rev": "bb64cf77350f7427201babbec1f7e7f3b6a3e774",
+      "rev": "6a6979fcc8d4acd9361f5a506f76dc0679a1d400",
       "src": "https://github.com/nickjvandyke/opencode.nvim"
     },
     "persistence.nvim": {
@@ -172,7 +172,7 @@
       "src": "https://github.com/nvim-lua/plenary.nvim"
     },
     "refactoring.nvim": {
-      "rev": "f5b54f3605d9ed709521db1827b8686dea283622",
+      "rev": "8f2045241fb105ab092021e3e58b5b99f34f07d0",
       "src": "https://github.com/ThePrimeagen/refactoring.nvim"
     },
     "render-markdown.nvim": {
@@ -180,7 +180,7 @@
       "src": "https://github.com/MeanderingProgrammer/render-markdown.nvim"
     },
     "snacks.nvim": {
-      "rev": "ad9ede6a9cddf16cedbd31b8932d6dcdee9b716e",
+      "rev": "0770753c88228f7f15449c6a5b242e3f7cd0d71c",
       "src": "https://github.com/folke/snacks.nvim"
     },
     "sonokai": {

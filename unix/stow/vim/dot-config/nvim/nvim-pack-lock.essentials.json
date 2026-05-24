@@ -41,7 +41,7 @@
       "src": "https://github.com/mason-org/mason-lspconfig.nvim"
     },
     "mason.nvim": {
-      "rev": "cbf8d285e1462dd24acf3507817be2bbcb035919",
+      "rev": "bb639d4bf385a4d89f478b83af4d770be05ab7eb",
       "src": "https://github.com/mason-org/mason.nvim"
     },
     "mini.icons": {
@@ -75,7 +75,7 @@
       "version": "'main'"
     },
     "opencode.nvim": {
-      "rev": "bb64cf77350f7427201babbec1f7e7f3b6a3e774",
+      "rev": "6a6979fcc8d4acd9361f5a506f76dc0679a1d400",
       "src": "https://github.com/nickjvandyke/opencode.nvim"
     },
     "persistence.nvim": {
@@ -83,7 +83,7 @@
       "src": "https://github.com/folke/persistence.nvim"
     },
     "snacks.nvim": {
-      "rev": "ad9ede6a9cddf16cedbd31b8932d6dcdee9b716e",
+      "rev": "0770753c88228f7f15449c6a5b242e3f7cd0d71c",
       "src": "https://github.com/folke/snacks.nvim"
     },
     "sonokai": {
