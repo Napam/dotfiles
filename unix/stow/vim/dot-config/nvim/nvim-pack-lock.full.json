@@ -1,7 +1,7 @@
 {
   "plugins": {
     "SchemaStore.nvim": {
-      "rev": "68ba9015c0cc77a0fe954bd2578dfa7a5c24134f",
+      "rev": "e25e63f3b24fd6b8c2fc713107ad5d5594028eac",
       "src": "https://github.com/b0o/SchemaStore.nvim"
     },
     "async.nvim": {
@@ -26,7 +26,7 @@
       "src": "https://github.com/nvim-zh/colorful-winsep.nvim"
     },
     "conform.nvim": {
-      "rev": "24c70347f6b2128679f47d2eb765156ef34bf9e0",
+      "rev": "619363c30309d29ffa631e67c8183f2a72caa373",
       "src": "https://github.com/stevearc/conform.nvim"
     },
     "debugmaster.nvim": {
@@ -160,7 +160,7 @@
       "src": "https://github.com/jbyuki/one-small-step-for-vimkind"
     },
     "opencode.nvim": {
-      "rev": "6a6979fcc8d4acd9361f5a506f76dc0679a1d400",
+      "rev": "1f6442f4b0bb140ac3e87a37c53729a72605a1c3",
       "src": "https://github.com/nickjvandyke/opencode.nvim"
     },
     "persistence.nvim": {
@@ -176,11 +176,11 @@
       "src": "https://github.com/ThePrimeagen/refactoring.nvim"
     },
     "render-markdown.nvim": {
-      "rev": "629eb9533ec989d9d5c6cab8f3ad5372422c24e0",
+      "rev": "5adf0895310c1904e5abfaad40a2baad7fe44a07",
       "src": "https://github.com/MeanderingProgrammer/render-markdown.nvim"
     },
     "snacks.nvim": {
-      "rev": "0770753c88228f7f15449c6a5b242e3f7cd0d71c",
+      "rev": "882c996cf28183f4d63640de0b4c02ec886d01f2",
       "src": "https://github.com/folke/snacks.nvim"
     },
     "sonokai": {
