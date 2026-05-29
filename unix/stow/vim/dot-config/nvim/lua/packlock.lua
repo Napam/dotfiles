@@ -233,6 +233,10 @@ function M.setup()
     type(Config) == "table" and type(Config.profile) == "string",
     "packlock: Config.profile must be set before setup()"
   )
+  assert(
+    vim.tbl_contains(profiles, Config.profile),
+    "packlock: invalid profile '" .. Config.profile .. "' (expected one of: " .. table.concat(profiles, ", ") .. ")"
+  )
   -- WARN: always overwrite runtime from the committed profile lockfile at
   -- startup so a Config.profile switch between sessions picks up the new
   -- profile's revs. The previous session's VimLeavePre already flushed any
@@ -298,6 +302,14 @@ function M.setup()
       if sync_timer then
         vim.fn.timer_stop(sync_timer)
         sync_timer = nil
+      end
+      -- WARN: sync paused at exit => full_sync below bails silently; surface
+      -- the situation so the user knows committed lockfile may be stale.
+      if pause_count > 0 then
+        vim.notify(
+          "packlock: sync paused at exit (pause_count=" .. pause_count .. "); lockfile may be stale",
+          vim.log.levels.WARN
+        )
       end
       full_sync()
     end,

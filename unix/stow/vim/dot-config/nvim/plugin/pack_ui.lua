@@ -57,6 +57,7 @@ require("lazyload").on_vim_enter(function()
     state.unreleased = {}
     state.unreleased_breaking = {}
     state.latest_ref = {}
+    state.show_all_commits = {}
   end
 
   -- path => installed semver tag (false = none found). Session-cached.
@@ -228,11 +229,6 @@ require("lazyload").on_vim_enter(function()
 
     local remaining = #plugins
 
-    -- WARN: decrement happens before staleness check; on a stale callback
-    -- this decrements the (orphaned) counter from a prior run, harmless.
-    -- Avoids an extra branch for the common live-callback case.
-    -- Stale callbacks must NOT touch state.checking (belongs to successor
-    -- check or reset_state()).
     local function finish_one(result)
       vim.schedule(function()
         remaining = remaining - 1
@@ -265,6 +261,19 @@ require("lazyload").on_vim_enter(function()
           end
           render()
         end
+      end)
+    end
+
+    -- `git log <range>` + breaking detection. `latest_ref_from_commit`:
+    -- when true, derive latest_ref from the newest commit's short hash
+    -- (non-versioned plugins); when false, caller sets it from the tag.
+    local function log_against(path, range, latest_ref_from_commit, cb)
+      git_log(path, range, function(commits)
+        local out = { commits = commits, breaking = has_breaking_commit(commits) }
+        if latest_ref_from_commit and #commits > 0 then
+          out.latest_ref = commits[1]:match("^(%x+)")
+        end
+        cb(out)
       end)
     end
 
@@ -310,23 +319,25 @@ require("lazyload").on_vim_enter(function()
                 end
               end
 
-              -- Per-plugin results; written to state atomically in finish_one
               local result = { name = name }
 
               if cur_ver and latest_ver and latest_ver[1] > cur_ver[1] then
                 result.breaking = true
               end
 
-              -- Get released commits (HEAD..latest_tag) if tag changed,
-              -- then check main for unreleased commits.
+              -- After released commits: check main for unreleased commits past latest tag.
+              -- Skip when no tags exist (nothing is "released" yet, so unreleased-commits label would be misleading).
               local function after_released()
+                if not latest_tag then
+                  finish_one(result)
+                  return
+                end
                 resolve_remote_ref(path, function(ref)
                   if not ref then
                     finish_one(result)
                     return
                   end
-                  local compare_from = latest_tag or current_tag or "HEAD"
-                  git_log(path, compare_from .. ".." .. ref, function(unreleased)
+                  git_log(path, latest_tag .. ".." .. ref, function(unreleased)
                     if #unreleased > 0 then
                       result.unreleased = unreleased
                     end
@@ -342,12 +353,12 @@ require("lazyload").on_vim_enter(function()
               local is_newer = (cur_ver and latest_ver and semver_gt(latest_ver, cur_ver))
                 or (not cur_ver and latest_tag ~= nil)
               if is_newer and latest_tag then
-                git_log(path, "HEAD.." .. latest_tag, function(commits)
-                  result.updates = commits
-                  if #commits > 0 then
+                log_against(path, "HEAD.." .. latest_tag, false, function(r)
+                  result.updates = r.commits
+                  if #r.commits > 0 then
                     result.latest_ref = latest_tag
                   end
-                  if has_breaking_commit(commits) then
+                  if r.breaking then
                     result.breaking = true
                   end
                   after_released()
@@ -365,16 +376,10 @@ require("lazyload").on_vim_enter(function()
               finish_one(nil)
               return
             end
-            git_log(path, "HEAD.." .. ref, function(commits)
-              local result = { name = name, updates = commits }
-              if has_breaking_commit(commits) then
+            log_against(path, "HEAD.." .. ref, true, function(r)
+              local result = { name = name, updates = r.commits, latest_ref = r.latest_ref }
+              if r.breaking then
                 result.breaking = true
-              end
-              if #commits > 0 then
-                local latest_hash = commits[1]:match("^(%x+)")
-                if latest_hash then
-                  result.latest_ref = latest_hash
-                end
               end
               finish_one(result)
             end)
@@ -457,22 +462,26 @@ require("lazyload").on_vim_enter(function()
     end
 
     local function finish_all()
-      if state.check_id ~= my_check_id then
-        -- Restore was cancelled mid-flight (e.g. window closed). Disk state
-        -- may be partially mutated; surface a brief notice so the user knows.
-        -- WARN: must clear state.restoring or a follow-up :Pack R in the same
-        -- session is blocked by the busy guard. No render — window is closed.
-        state.restoring = false
-        -- WARN: HEAD may have moved on some plugins; drop stale tag cache.
-        tag_cache = {}
-        -- Sync runtime to reflect the lockfile we just restored to before
-        -- resuming sync, so the next sync_back doesn't clobber the committed
-        -- lockfile with pre-restore state.
-        sync_runtime_from_committed()
-        packlock.resume_sync()
-        -- Push committed lockfile to the other profile too. Raw git checkout
-        -- bypasses vim.pack, so no PackChanged fires to drive the usual sync.
-        packlock.sync_cross_profile()
+      local cancelled = state.check_id ~= my_check_id
+      state.restoring = false
+      -- HEAD changed; drop tag cache so re-renders re-resolve installed tags.
+      tag_cache = {}
+      -- WARN: resume_sync MUST run regardless of intermediate failures;
+      -- otherwise pause_count stays >0 for the rest of the session and all
+      -- sync_back/sync_to calls silently bail. sync_runtime_from_committed
+      -- must still run BEFORE resume_sync to avoid the next PackChanged
+      -- clobbering the committed lockfile with pre-restore runtime state.
+      local sync_ok, sync_err = pcall(sync_runtime_from_committed)
+      packlock.resume_sync()
+      local cross_ok, cross_err = pcall(packlock.sync_cross_profile)
+      if not sync_ok then
+        vim.notify("vim.pack: runtime sync failed: " .. tostring(sync_err), vim.log.levels.ERROR)
+      end
+      if not cross_ok then
+        vim.notify("vim.pack: cross-profile sync failed: " .. tostring(cross_err), vim.log.levels.ERROR)
+      end
+      if cancelled then
+        -- Window closed mid-restore; disk may be partially mutated.
         vim.notify(
           string.format(
             "vim.pack: restore cancelled (%d done, %d errors); lockfile is authoritative, re-run :Pack R to converge",
@@ -483,12 +492,6 @@ require("lazyload").on_vim_enter(function()
         )
         return
       end
-      state.restoring = false
-      -- HEAD changed; drop tag cache so re-renders re-resolve installed tags.
-      tag_cache = {}
-      sync_runtime_from_committed()
-      packlock.resume_sync()
-      packlock.sync_cross_profile()
       render()
       vim.notify(
         string.format("vim.pack: restored %d, skipped %d, errors %d", restored, skipped, errors),
@@ -679,7 +682,8 @@ require("lazyload").on_vim_enter(function()
       local tag = has_semver and get_installed_tag(p.path) or nil
       local rev_short = p.rev and p.rev:sub(1, 7) or ""
 
-      local ver_display = has_semver and (tag or version) or (rev_short ~= "" and rev_short or version)
+      local ver_display = has_semver and (tag or (rev_short ~= "" and rev_short or version))
+        or (rev_short ~= "" and rev_short or version)
       local latest = state.latest_ref[name]
       if latest then
         -- Normalize v-prefix before comparing to avoid spurious arrows when
@@ -1059,8 +1063,6 @@ require("lazyload").on_vim_enter(function()
       return
     end
 
-    setup_highlights()
-
     state.bufnr = api.nvim_create_buf(false, true)
     vim.bo[state.bufnr].buftype = "nofile"
     vim.bo[state.bufnr].bufhidden = "wipe"
@@ -1129,4 +1131,6 @@ require("lazyload").on_vim_enter(function()
     end,
     desc = "Open vim.pack plugin manager UI (use ! to update without confirm)",
   })
+
+  setup_highlights()
 end)

@@ -25,31 +25,33 @@ if Config.only_essential_plugins() then return end
 Per-profile. Both committed:
 
 ```
-nvim-pack-lock.full.json        51 plugins
-nvim-pack-lock.essentials.json  26 plugins
+nvim-pack-lock.full.json        52 plugins
+nvim-pack-lock.essentials.json  25 plugins
 nvim-pack-lock.json             runtime, gitignored
 ```
 
-Init.lua shim:
+Init.lua shim (see `lua/packlock.lua`):
 
-- **Startup**: if `nvim-pack-lock.json` missing, copy from `nvim-pack-lock.<profile>.json`. Hydrates fresh machine.
-- **`PackChanged`**: copy runtime back to profile lock. Fires per plugin update.
-- **`VimLeavePre`**: same. Catches anything missed.
+- **Startup**: copy `nvim-pack-lock.<profile>.json` → `nvim-pack-lock.json` unconditionally. Picks up profile switches; previous session's `VimLeavePre` already flushed runtime → committed, so no data lost.
+- **`PackChanged`** (debounced 200ms): copy runtime → current profile lock, then merge shared-plugin revs into the other profile's lock. Cross-sync keeps shared plugins on identical revs across profiles.
+- **`VimLeavePre`**: flush pending debounce + final sync. Catches anything missed.
 
-Result: `:Pack update-all` updates plugins → autocmd writes back → `git diff` shows lock change → commit.
+Result: `:Pack update` updates plugins → autocmd writes back → `git diff` shows lock change → commit.
 
-WARN: switching profile mid-machine leaves stale runtime lock. `rm ~/.config/nvim-012/nvim-pack-lock.json` then restart to re-hydrate.
+Profile switch: just relaunch with/without `LOCAL_NVIM_PLUGIN_MODE=ALL`. Startup re-hydrates from the new profile's committed lockfile.
 
 ## Commands
 
 ```vim
-:Pack            " open UI
-:Pack check      " fetch remotes, show pending updates
-:Pack update-all " update all (opens confirm tab; :w to apply)
-:Pack! update-all" update all, no confirm, write lock immediately
+:Pack             " open UI
+:Pack check       " fetch remotes, show pending updates
+:Pack update      " update all (opens confirm tab; :w to apply)
+:Pack update-all  " synonym for :Pack update
+:Pack! update     " update all, no confirm, write lock immediately
+:PackLockSyncTo <profile>  " manually sync overlapping plugins from other profile's lock
 ```
 
-UI keymaps: `U` update all, `u` update under cursor, `C` check, `X` clean, `D` delete, `L` log, `?` help.
+UI keymaps: `U` update all, `u` update under cursor, `C` check remote, `R` restore all to lockfile revs, `X` clean non-active, `D` delete under cursor, `L` log, `<CR>` toggle details, `]]`/`[[` jump plugins, `?` help, `q`/`<Esc>` close.
 
 WARN: `vim.pack.update()` opens confirm tab. Lock written on `:w`. Close without `:w` → no checkout, no lock update. Use `:Pack!` variant to skip.
 
