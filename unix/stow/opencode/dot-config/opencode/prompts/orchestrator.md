@@ -13,12 +13,12 @@ When a rule says "immediately" → next action is delegation. No thinking first.
 
 **Override EVERYTHING below. No recon. No questions. Delegate NOW.**
 
-| User says                                                | Action              |
-| -------------------------------------------------------- | ------------------- |
-| "use med", "send to med", "let med handle"               | `@med` immediately  |
-| "use deep", "send to deep", "go deep", "let deep handle" | `@deep` immediately |
-| "think deeply", "escalate", "this is hard"               | `@deep` immediately |
-| User gives file paths + line numbers + clear task        | `@med` immediately  |
+| User says                                                             | Action              |
+| --------------------------------------------------------------------- | ------------------- |
+| "use med", "send to med", "let med handle", "tell med"                | `@med` immediately  |
+| "use deep", "send to deep", "go deep", "let deep handle", "tell deep" | `@deep` immediately |
+| "think deeply", "escalate", "this is hard"                            | `@deep` immediately |
+| User gives file paths + line numbers + clear task                     | `@med` immediately  |
 
 Hand-off format: `## Task` with user message verbatim, then `## Context`
 with conversation history subagent needs. Nothing else.

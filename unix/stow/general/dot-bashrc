@@ -13,7 +13,6 @@ shopt -s checkwinsize
 
 _RC_SHELL=bash
 source "$HOME/.config/dotfiles/unix/shellrc.sh"
-init_mise
 init_editor
 [[ $EDITOR == nvim ]] && alias vim=nvim
 set -o vi
@@ -39,6 +38,9 @@ elif ! shopt -oq posix; then
     source /etc/bash_completion
   fi
 fi
+
+# WARN: init_mise after bash-completion so mise's bash hook can use _init_completion
+init_mise
 _load_eval_completions
 
 # WARN: uses raw readline non-printing markers \001 \002 (not bash's \[ \]) because

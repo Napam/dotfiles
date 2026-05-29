@@ -6,12 +6,12 @@
 
 alias ls='ls --color=auto'
 alias weeknr='date +%U'
-alias pwdc='pwd; pwd | clip.exe'
 alias hostpwd='python3 -m http.server 7100'
-alias updatehosts='updatewslhosts && updatewinhosts'
 alias edithosts='sudo vim /etc/hosts'
-alias editwinhosts='sudo vim /mnt/c/Windows/System32/drivers/etc/hosts'
-alias winpwd='wslpath -w $(pwd)'
+[[ ${IS_WSL-} ]] && alias pwdc='pwd; pwd | clip.exe'
+[[ ${IS_WSL-} ]] && alias updatehosts='updatewslhosts && updatewinhosts'
+[[ ${IS_WSL-} ]] && alias editwinhosts='sudo vim /mnt/c/Windows/System32/drivers/etc/hosts'
+[[ ${IS_WSL-} ]] && alias winpwd='wslpath -w $(pwd)'
 
 update() {
   local rc=0 ran=0
@@ -50,8 +50,8 @@ refresh() {
     bash) source "$HOME/.bashrc" ;;
     zsh)  source "$HOME/.zshrc" ;;
     *)
-      echo "refresh: unknown shell ($_RC_SHELL)"
-      return 1 >&2
+      echo "refresh: unknown shell ($_RC_SHELL)" >&2
+      return 1
       ;;
   esac
 }
@@ -68,9 +68,9 @@ readysubs() {
     | xargs -L 1 bash -c 'echo $0 $1'
 }
 
-alias fixwin='sudo update-binfmts --disable cli'
+[[ ${IS_WSL-} ]] && alias fixwin='sudo update-binfmts --disable cli'
 alias feh='feh --auto-reload'
-alias safeupgrade='sudo aptitude safe-upgrade'
+[[ ${IS_LINUX-} ]] && alias safeupgrade='sudo aptitude safe-upgrade'
 alias ansicolors='for i in {0..255}; do printf "\e[38;5;${i}mcolor%-5i\e[0m" $i ; if ! (( ($i + 1 ) % 8 )); then echo ; fi ; done'
 alias passc='pass -c'
 alias repos='cd $HOME/repos'
@@ -98,7 +98,7 @@ alias editvimrc='vim $HOME/.config/nvim/init.lua'
 alias editlocalrc='vim $HOME/.localrc && source $HOME/.localrc'
 # WARN: $_RC_SHELL expands at alias-use time (alias body is re-parsed), so
 # sourcing the right rc per current shell works in both bash and zsh.
-alias editrc='vim $(realpath $HOME/.${_RC_SHELL}rc); source $HOME/.${_RC_SHELL}rc'
+alias editrc='vim $(realpath $HOME/.${_RC_SHELL}rc) && source $HOME/.${_RC_SHELL}rc'
 alias editshellrc='vim $HOME/.config/dotfiles/unix/shellrc.sh && source $(realpath $HOME/.${_RC_SHELL}rc)'
 alias dots='cd $HOME/.config/dotfiles'
 alias conf='cd $HOME/.config'
@@ -116,7 +116,7 @@ azaccset() {
 }
 
 # Git
-alias pullrepos='for repo in `ls -1`; do printf "Pulling \e[33m$repo\e[0m\n"; git -C $repo pull; done'
+alias pullrepos='for repo in */; do printf "Pulling \e[33m${repo%/}\e[0m\n"; git -C "${repo%/}" pull; done'
 alias gd='git diff'
 alias gl='git log'
 alias gacm='git add . && git commit -m'
@@ -190,7 +190,7 @@ gitclean() {
 genpass() {
   local length=${1:-16}
   local pass
-  pass=$(openssl rand -base64 "$length" | tr -d '/=+\n' | cut -c1-"$length")
+  pass=$(openssl rand -base64 $((length * 2)) | tr -d '/=+\n' | cut -c1-"$length")
   echo "$pass"
 }
 

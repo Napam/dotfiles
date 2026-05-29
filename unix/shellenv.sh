@@ -56,10 +56,10 @@ export BUN_BIN="$HOME/.bun/bin"
 
 [[ -d "$HOME/.jbang/bin" ]] && path_prepend "$HOME/.jbang/bin"
 
-path_prepend "$HOME/.yarn/bin"
-path_prepend "$HOME/.config/yarn/global/node_modules/.bin"
+[[ -d "$HOME/.yarn/bin" ]] && path_prepend "$HOME/.yarn/bin"
+[[ -d "$HOME/.config/yarn/global/node_modules/.bin" ]] && path_prepend "$HOME/.config/yarn/global/node_modules/.bin"
 
-if [[ ${IS_MAC-} ]]; then
+if [[ ${IS_MAC-} ]] && [[ -d "$HOME/Library/pnpm" ]]; then
   export PNPM_HOME="$HOME/Library/pnpm"
   path_prepend "$PNPM_HOME"
 fi
