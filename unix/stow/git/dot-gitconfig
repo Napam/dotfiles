@@ -10,9 +10,9 @@
 [delta]
     navigate = true
 [merge]
-    conflictstylle = zdiff3
+    conflictstyle = zdiff3
 [push]
-  autoSetupRemote = true
+    autoSetupRemote = true
 [pull]
 	rebase = true
 [color "blame"]
@@ -33,3 +33,5 @@
 	process = git-lfs filter-process
 	required = true
 	clean = git-lfs clean -- %f
+[gpg "ssh"]
+	allowedSignersFile = ~/.ssh/allowed_signers
