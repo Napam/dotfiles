@@ -30,6 +30,7 @@ return {
       if result and result.diagnostics then
         result.diagnostics = vim.tbl_filter(function(d)
           return not d.message:match("Undefined variable")
+            and not d.message:match("Variable is defined in other file")
         end, result.diagnostics)
       end
       vim.lsp.handlers["textDocument/publishDiagnostics"](_, result, ctx)
