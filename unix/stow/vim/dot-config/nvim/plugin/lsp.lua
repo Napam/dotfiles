@@ -23,6 +23,7 @@ require("lazyload").on_vim_enter(function()
     "golangci_lint_ls",
     "gopls",
     "graphql",
+    "jinja_lsp",
     "jsonls",
     "kotlin_lsp",
     "lua_ls",
