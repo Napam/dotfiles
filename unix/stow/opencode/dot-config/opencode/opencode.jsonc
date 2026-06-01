@@ -1,9 +1,9 @@
 {
   "$schema": "https://opencode.ai/config.json",
   // Default model for primary agents that don't override (i.e. Build)
-  "model": "github-copilot/claude-sonnet-4.6",
+  "model": "opencode/deepseek-v4-flash-free",
   // Small model for lightweight background tasks (title generation, etc.)
-  "small_model": "github-copilot/gpt-5.4-mini",
+  "small_model": "opencode/deepseek-v4-flash-free",
   // The Orchestrator is the default landing agent
   "default_agent": "orchestrator",
   "agent": {
@@ -44,7 +44,7 @@
     // Sonnet-powered direct coding agent. Tab to this for hands-on work
     // without the Orchestrator delegation overhead.
     "build": {
-      "model": "github-copilot/claude-sonnet-4.6",
+      "model": "opencode/deepseek-v4-flash-free",
       "permission": {
         "edit": "allow",
         "bash": "allow",
@@ -69,18 +69,18 @@
     // Note: med and deep subagents are defined in agents/*.md
     // (auto-discovered by OpenCode from the agents/ directory).
     "general": {
-      "model": "github-copilot/gpt-5.4-mini"
+      "model": "opencode/deepseek-v4-flash-free"
     },
     // ─── Janitor tier ─────────────────────────────────────────────────────────
     // Small model handles all background housekeeping tasks.
     "compaction": {
-      "model": "github-copilot/gpt-5.4-mini"
+      "model": "opencode/deepseek-v4-flash-free"
     },
     "title": {
-      "model": "github-copilot/gpt-5.4-mini"
+      "model": "opencode/deepseek-v4-flash-free"
     },
     "summary": {
-      "model": "github-copilot/gpt-5.4-mini"
+      "model": "opencode/deepseek-v4-flash-free"
     }
   },
   // ─── Ollama (local models) ──────────────────────────────────────────────

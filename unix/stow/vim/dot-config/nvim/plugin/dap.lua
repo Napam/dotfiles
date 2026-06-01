@@ -38,12 +38,13 @@ local function get_pid_from_dap_pid_file()
   return pid
 end
 
--- Delve has no native envFile support (unlike debugpy/pwa-node);
--- VSCode's Go ext parses + merges before launch. Replicate here.
+-- Some DAPs (e.g. dlv) don't parse .env natively; do it ourselves.
+-- Returns nil when the file can't be opened so callers can distinguish
+-- "missing/unreadable" from "present but empty".
 local function parse_env_file(filepath)
-  local env = {}
   local f = io.open(filepath, "r")
-  if not f then return env end
+  if not f then return nil end
+  local env = {}
   for line in f:lines() do
     if not line:match("^%s*#") and not line:match("^%s*$") then
       local stripped = line:match("^%s*export%s+(.+)$") or line
@@ -62,6 +63,34 @@ local function parse_env_file(filepath)
   end
   f:close()
   return env
+end
+
+-- Resolve envFile + explicit env into a single table.
+-- Handles ${workspaceFolder}/${cwd} substitution and relative path normalisation.
+local function resolve_env(config, cwd)
+  local final_env = {}
+  if config.envFile then
+    -- Function-form replacement: avoids Lua treating `%` in `cwd` as a capture ref.
+    local sub = function() return cwd end
+    local path = config.envFile:gsub("${workspaceFolder}", sub):gsub("${cwd}", sub)
+    if not path:match("^/") then
+      path = cwd .. "/" .. path:gsub("^%./", "")
+    end
+    local parsed = parse_env_file(path)
+    if parsed then
+      for k, v in pairs(parsed) do
+        final_env[k] = tostring(v)
+      end
+    else
+      vim.notify("envFile not readable: " .. path, vim.log.levels.WARN)
+    end
+  end
+  if config.env then
+    for k, v in pairs(config.env) do
+      final_env[k] = tostring(v)
+    end
+  end
+  return final_env
 end
 
 local function get_venv_python(cwd)
@@ -98,6 +127,9 @@ local function setup_dap_python(dap)
     else
       cwd = opts.cwd or cwd
     end
+
+    opts.env = resolve_env(opts, cwd)
+
     callback({
       type = "executable",
       command = get_venv_python(cwd),
@@ -207,27 +239,8 @@ end
 
 local function setup_dap_go(dap)
   dap.adapters.go = function(callback, config)
-    local final_env = {}
-
-    if config.envFile then
-      local cwd = config.cwd or vim.fn.getcwd()
-      local path = config.envFile
-        :gsub("${workspaceFolder}", cwd)
-        :gsub("${cwd}", cwd)
-      if not path:match("^/") then
-        path = cwd .. "/" .. path:gsub("^%./", "")
-      end
-      for k, v in pairs(parse_env_file(path)) do
-        final_env[k] = tostring(v)
-      end
-    end
-
-    if config.env then
-      for k, v in pairs(config.env) do
-        final_env[k] = tostring(v)
-      end
-    end
-    config.env = final_env
+    local cwd = config.cwd or vim.fn.getcwd()
+    config.env = resolve_env(config, cwd)
 
     local command = "dlv"
     local args = { "dap", "-l", "127.0.0.1:${port}" }
