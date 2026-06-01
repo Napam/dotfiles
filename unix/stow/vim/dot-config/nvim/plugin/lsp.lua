@@ -1,4 +1,6 @@
-if Config.only_essential_plugins() then return end
+if Config.only_essential_plugins() then
+  return
+end
 
 require("lazyload").on_vim_enter(function()
   vim.pack.add({
@@ -42,6 +44,14 @@ require("lazyload").on_vim_enter(function()
     "zls",
   }
   vim.lsp.enable(servers)
+
+  vim.filetype.add({
+    extension = {
+      jinja = "htmldjango",
+      jinja2 = "htmldjango",
+      j2 = "htmldjango",
+    },
+  })
 
   -- Codelens opt-in per-buffer; enable globally so attached clients render it.
   vim.lsp.codelens.enable(true)
@@ -89,7 +99,9 @@ require("lazyload").on_vim_enter(function()
       end
 
       -- Keymaps once per buf (LspAttach fires per client). gd/gD/gr/gI/gy in whichkey.lua.
-      if vim.b[buf].lsp_keymaps_set then return end
+      if vim.b[buf].lsp_keymaps_set then
+        return
+      end
       vim.b[buf].lsp_keymaps_set = true
 
       vim.keymap.set("n", "K", vim.lsp.buf.hover, { buffer = buf, desc = "Hover" })
@@ -127,7 +139,9 @@ require("lazyload").on_vim_enter(function()
       ws_diag_done[args.data.client_id] = nil
 
       local client = vim.lsp.get_client_by_id(args.data.client_id)
-      if not client then return end
+      if not client then
+        return
+      end
 
       local prefix = ("nvim.lsp.%s.%d"):format(client.name, client.id)
       for namespace, metadata in pairs(vim.diagnostic.get_namespaces()) do

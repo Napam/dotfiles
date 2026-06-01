@@ -43,6 +43,8 @@ require("lazyload").on_vim_enter(function()
       typescript = { "prettierd" },
       typescriptreact = { "prettierd" },
       yaml = { "prettierd" },
+      htmldjango = { "djlint", "rustywind" },
+      jinja = { "djlint", "rustywind" },
     },
 
     formatters = {
@@ -55,11 +57,19 @@ require("lazyload").on_vim_enter(function()
       biome = {
         args = { "format", "--indent-style", "space", "--stdin-file-path", "$FILENAME" },
       },
-      {
+      sql_formatter = {
         command = "sql-formatter",
         cwd = require("conform.util").root_file({
           ".sql-formatter.json",
         }),
+      },
+      djlint = {
+        args = { "--reformat", "--profile=jinja", "-" },
+      },
+      rustywind = {
+        command = "rustywind",
+        args = { "--stdin" },
+        stdin = true,
       },
     },
   })

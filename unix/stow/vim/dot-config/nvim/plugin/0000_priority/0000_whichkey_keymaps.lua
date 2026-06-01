@@ -34,7 +34,7 @@ map("n", "<leader>C", "<cmd>edit ~/.config/nvim/init.lua<cr>", { desc = "Open co
 map("n", "<leader>c", function()
   Snacks.bufdelete()
 end, { desc = "Close buffer" })
-map("n", "<leader>e", "<cmd>Fyler<cr>", { desc = "File explorer" })
+map("n", "<leader>e", "<cmd>Oil<cr>", { desc = "File explorer" })
 map("n", "<leader>q", "<cmd>q!<cr>", { desc = "Quit buffer" })
 
 -- WARN: <leader>a collides with mc.alignCursors in multicursor.lua. Two-key
