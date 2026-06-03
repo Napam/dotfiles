@@ -156,7 +156,6 @@ end
 if Config.use_nvim_treesitter then
   vim.pack.add({
     { src = "https://github.com/nvim-treesitter/nvim-treesitter", version = "main" },
-    { src = "https://github.com/nvim-treesitter/nvim-treesitter-context" },
     { src = "https://github.com/nvim-treesitter/nvim-treesitter-textobjects", version = "main" },
   })
 
@@ -269,10 +268,6 @@ if Config.use_nvim_treesitter then
   })
 
   require("lazyload").on_vim_enter(function()
-    require("treesitter-context").setup({
-      multiwindow = true,
-    })
-
     -- Deferred so cold compile doesn't block first-buffer paint. See INJECTION_PARSERS above.
     for _, lang in ipairs(INJECTION_PARSERS) do
       Config.ts.ensure_parser(lang)
