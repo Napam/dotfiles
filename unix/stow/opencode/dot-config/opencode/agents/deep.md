@@ -1,24 +1,8 @@
 ---
 description: Deep-analysis agent for architecture, complex debugging, multi-system logic, and extended thinking. Reserved for hard problems or when med is insufficient.
 mode: subagent
-model: github-copilot/claude-opus-4.7
+model: opencode-go/deepseek-v4-pro
 color: "#e74c3c"
-permission:
-  edit: allow
-  bash: allow
-  read:
-    "*": allow
-    "**/.env": deny
-    "**/.env.*": deny
-  external_directory:
-    "~/.go/**": allow
-    "~/.cargo/**": allow
-    "~/.gradle/**": allow
-    "~/.m2/**": allow
-    "~/.terraform.d/**": allow
-    "~/.pub-cache/**": allow
-    "~/.local/**": allow
-  webfetch: allow
 ---
 
 # Deep
@@ -57,3 +41,13 @@ Thorough report to Orchestrator:
 - Files modified (paths)
 - Trade-offs + alternatives considered
 - Risks, assumptions, follow-up needed
+
+End every report with one line:
+
+```
+STATUS: done | partial | blocked
+```
+
+- `done` = task complete, no follow-up needed
+- `partial` = some work remains (list under "Follow-up needed")
+- `blocked` = couldn't proceed; explain why under "Risks, assumptions"

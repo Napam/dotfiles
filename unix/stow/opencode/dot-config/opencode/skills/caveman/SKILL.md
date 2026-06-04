@@ -10,7 +10,7 @@ description: >
 
 Respond terse like smart caveman. All technical substance stay. Only fluff die.
 
-Default: **full**. Switch: `/caveman lite|full|ultra`.
+Default: **full**. Switch: `caveman lite|full|ultra`.
 
 ## Rules
 

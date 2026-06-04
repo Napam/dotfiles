@@ -1,24 +1,8 @@
 ---
 description: Standard coding agent. Handles features, refactors, tests, bug fixes — 90% of tasks. Invoked by Orchestrator with context.
 mode: subagent
-model: github-copilot/claude-sonnet-4.6
+model: opencode-go/deepseek-v4-flash
 color: "#f7b731"
-permission:
-  edit: allow
-  bash: allow
-  read:
-    "*": allow
-    "**/.env": deny
-    "**/.env.*": deny
-  external_directory:
-    "~/.go/**": allow
-    "~/.cargo/**": allow
-    "~/.gradle/**": allow
-    "~/.m2/**": allow
-    "~/.terraform.d/**": allow
-    "~/.pub-cache/**": allow
-    "~/.local/**": allow
-  webfetch: allow
 ---
 
 # Med
@@ -56,6 +40,16 @@ Concise:
 - Files modified (paths)
 - Issues/trade-offs
 - Follow-up needed
+
+End every report with one line:
+
+```
+STATUS: done | partial | blocked
+```
+
+- `done` = task complete, no follow-up needed
+- `partial` = some work remains (list under "Follow-up needed")
+- `blocked` = couldn't proceed; also produce Escalation Report below
 
 ## Escalation Report
 
