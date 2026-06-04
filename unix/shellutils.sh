@@ -250,3 +250,12 @@ color16() {
       "$code" "$pad" "$code" "$pad" "$code" "$pad" "$code"
   done
 }
+
+function installubuntuessentials() {
+  sudo apt install \
+    mise \
+    unzip \
+    stow \
+    gcc \
+    git-delta
+}
