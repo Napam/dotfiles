@@ -86,6 +86,7 @@ function Config.ts.ensure_parser(lang)
     return false
   end
 
+  vim.notify(("treesitter: installing %s parser…"):format(lang), vim.log.levels.INFO)
   local ok_install, install_err = pcall(function()
     require("nvim-treesitter").install({ lang }):wait(30000)
   end)

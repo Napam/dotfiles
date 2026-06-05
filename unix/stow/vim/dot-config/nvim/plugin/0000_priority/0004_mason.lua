@@ -106,45 +106,96 @@ local ensure_installed = {
 }
 
 if not Config.only_essential_plugins() then
-  vim.list_extend(ensure_installed, {
-    "api-linter",
-    "basedpyright",
-    "bash-language-server",
-    "biome",
-    "buf",
-    "codebook",
-    "codelldb",
-    "debugpy",
-    "delve",
-    "dockerfile-language-server",
-    "eslint-lsp",
-    "golangci-lint-langserver",
-    "golangci-lint",
-    "gopls",
-    "gotestsum",
-    "graphql-language-service-cli",
-    "impl",
-    "json-lsp",
-    "kotlin-lsp",
-    "markdownlint",
-    "prettierd",
-    "protolint",
-    "ruff",
-    "rust-analyzer",
-    "sql-formatter",
-    "stylua",
-    "superhtml",
-    "tailwindcss-language-server",
-    "templ",
-    "terraform-ls",
-    "tflint",
-    "tinymist",
-    "ts_query_ls",
-    "vtsls",
-    "yaml-language-server",
-    "yamlfmt",
-    "yamllint",
-    "zls",
+  -- Install tools lazily on first encounter of a filetype rather than all at
+  -- once on startup. install_pkg is idempotent; already-installed packages are
+  -- skipped immediately.
+  local lazy_by_ft = {
+    python          = { "basedpyright", "ruff", "debugpy" },
+    go              = { "gopls", "golangci-lint", "golangci-lint-langserver", "delve", "gotestsum", "impl" },
+    javascript      = { "vtsls", "eslint-lsp", "prettierd", "biome" },
+    typescript      = { "vtsls", "eslint-lsp", "prettierd", "biome" },
+    javascriptreact = { "vtsls", "eslint-lsp", "prettierd", "biome" },
+    typescriptreact = { "vtsls", "eslint-lsp", "prettierd", "biome" },
+    rust            = { "rust-analyzer", "codelldb" },
+    cs              = { "csharpier", "netcoredbg" },
+    lua             = { "stylua" },
+    markdown        = { "prettierd", "markdownlint", "codebook" },
+    json            = { "json-lsp", "biome" },
+    jsonc           = { "json-lsp", "biome" },
+    yaml            = { "yaml-language-server", "prettierd", "yamlfmt", "yamllint" },
+    terraform       = { "terraform-ls", "tflint" },
+    ["terraform-vars"] = { "terraform-ls", "tflint" },
+    dockerfile      = { "dockerfile-language-server" },
+    proto           = { "buf", "api-linter", "protolint" },
+    graphql         = { "graphql-language-service-cli" },
+    html            = { "superhtml", "prettierd", "tailwindcss-language-server" },
+    css             = { "tailwindcss-language-server", "prettierd" },
+    svelte          = { "prettierd", "tailwindcss-language-server" },
+    typst           = { "tinymist" },
+    kotlin          = { "kotlin-lsp" },
+    sql             = { "sql-formatter" },
+    zig             = { "zls" },
+    sh              = { "bash-language-server" },
+    bash            = { "bash-language-server" },
+    templ           = { "templ" },
+    query           = { "ts_query_ls" },
+  }
+
+  -- triggered[ft]: true = install in progress or done; nil = not yet started.
+  -- installing[pkg]: true = install in flight (may be shared across filetypes).
+  local triggered = {}
+  local installing = {}
+
+  vim.api.nvim_create_autocmd("FileType", {
+    group = vim.api.nvim_create_augroup("mason-lazy-install", { clear = true }),
+    callback = function(event)
+      local ft = event.match
+      if triggered[ft] then return end
+      local pkgs = lazy_by_ft[ft]
+      if not pkgs then return end
+      triggered[ft] = true
+
+      mason_registry.refresh(function()
+        local to_install = {}
+        for _, pkg_name in ipairs(pkgs) do
+          local ok, pkg = pcall(mason_registry.get_package, pkg_name)
+          if ok and not pkg:is_installed() and not installing[pkg_name] then
+            table.insert(to_install, { name = pkg_name, pkg = pkg })
+          end
+        end
+        if #to_install == 0 then return end
+
+        local pending = #to_install
+        local had_failure = false
+        for _, item in ipairs(to_install) do
+          installing[item.name] = true
+          vim.notify(("mason: installing %q"):format(item.name), vim.log.levels.INFO)
+          item.pkg:install({}, function(success, err)
+            vim.schedule(function()
+              installing[item.name] = nil
+              if success then
+                vim.notify(("mason: installed %q"):format(item.name))
+              else
+                had_failure = true
+                vim.notify(
+                  ("mason: failed to install %q: %s"):format(item.name, err or "unknown"),
+                  vim.log.levels.WARN
+                )
+              end
+              pending = pending - 1
+              if pending == 0 then
+                if had_failure then
+                  triggered[ft] = nil
+                  vim.notify(("mason: some %s tools failed — reopen file to retry"):format(ft), vim.log.levels.WARN)
+                else
+                  vim.notify(("mason: %s tooling ready — reopen file to activate LSP"):format(ft))
+                end
+              end
+            end)
+          end)
+        end
+      end)
+    end,
   })
 end
 
