@@ -356,6 +356,47 @@ local function setup_dap_go(dap)
   }
 end
 
+local function setup_dap_cs(dap)
+  dap.adapters.coreclr = {
+    type = "executable",
+    command = vim.fs.joinpath(vim.fn.stdpath("data"), "mason", "bin", "netcoredbg"),
+    args = { "--interpreter=vscode" },
+  }
+
+  dap.configurations.cs = {
+    {
+      type = "coreclr",
+      name = "Launch",
+      request = "launch",
+      program = function()
+        local co = coroutine.running()
+        return coroutine.create(function()
+          vim.ui.input({
+            prompt = "Path to dll: ",
+            default = vim.fn.getcwd() .. "/bin/Debug/",
+          }, function(input)
+            if input and input ~= "" then coroutine.resume(co, input) end
+          end)
+        end)
+      end,
+      cwd = vim.fn.getcwd,
+      console = "integratedTerminal",
+    },
+    {
+      type = "coreclr",
+      name = "Attach to process",
+      request = "attach",
+      processId = require("dap.utils").pick_process,
+    },
+    {
+      type = "coreclr",
+      name = "Attach to PID using dap.pid",
+      request = "attach",
+      processId = get_pid_from_dap_pid_file,
+    },
+  }
+end
+
 local function setup_dap_flutter(dap)
   dap.adapters.dart = { type = "executable", command = "flutter", args = { "debug_adapter" } }
   dap.adapters.flutter = { type = "executable", command = "flutter", args = { "debug_adapter" } }
@@ -401,6 +442,7 @@ require("lazyload").on_vim_enter(function()
   setup_dap_js(dap)
   setup_dap_go(dap)
   setup_dap_flutter(dap)
+  setup_dap_cs(dap)
 
   local dm = require("debugmaster")
   vim.keymap.set({ "n", "v" }, "<leader>d", dm.mode.toggle, { nowait = true })

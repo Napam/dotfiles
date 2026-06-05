@@ -21,6 +21,7 @@ require("lazyload").on_vim_enter(function()
     end,
 
     formatters_by_ft = {
+      cs = { "csharpier" },
       dependabot = { "prettierd" },
       gha = { "prettierd" },
       go = { "golangci-lint" },

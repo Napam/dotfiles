@@ -7,7 +7,13 @@ vim.pack.add({
 })
 
 -- WARN: prepend so mason bins shadow stale system bins (e.g. system tree-sitter).
-require("mason").setup({ PATH = "prepend" })
+require("mason").setup({
+  PATH = "prepend",
+  registries = {
+    "github:Crashdummyy/mason-registry",
+    "github:mason-org/mason-registry",
+  },
+})
 require("mason-lock").setup({})
 
 -- HACK: mason-lock notifies "Wrote Mason lockfile" on every package install
@@ -117,7 +123,7 @@ if not Config.only_essential_plugins() then
     javascriptreact = { "vtsls", "eslint-lsp", "prettierd", "biome" },
     typescriptreact = { "vtsls", "eslint-lsp", "prettierd", "biome" },
     rust            = { "rust-analyzer", "codelldb" },
-    cs              = { "csharpier", "netcoredbg" },
+    cs              = { "roslyn", "csharpier", "netcoredbg" },
     lua             = { "stylua" },
     markdown        = { "prettierd", "markdownlint", "codebook" },
     json            = { "json-lsp", "biome" },
