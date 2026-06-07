@@ -21,7 +21,7 @@
       "src": "https://github.com/lewis6991/gitsigns.nvim"
     },
     "grug-far.nvim": {
-      "rev": "5506c2f59dc9ab2ed6c233585412b24d31d51521",
+      "rev": "c995bbacf8229dc096ec1c3d60f8531059c86c1b",
       "src": "https://github.com/MagicDuck/grug-far.nvim"
     },
     "kanagawa.nvim": {
@@ -71,7 +71,7 @@
       "version": "'main'"
     },
     "opencode.nvim": {
-      "rev": "86d41a9ca4f4e36101d5380bdc80e3d04ba13f7f",
+      "rev": "e4e5894f0d115365c977fddb3081e1d26912aed8",
       "src": "https://github.com/nickjvandyke/opencode.nvim"
     },
     "persistence.nvim": {
