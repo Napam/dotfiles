@@ -1,2 +1,6 @@
 nvim-pack-lock.json
+
+# Generally don't care that much about
+# mason versions, but have it locally in case
+# something goes really wrong or something
 mason-lock.json

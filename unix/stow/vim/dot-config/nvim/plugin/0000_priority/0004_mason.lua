@@ -115,8 +115,8 @@ if not Config.only_essential_plugins() then
   -- Install tools lazily on first encounter of a filetype rather than all at
   -- once on startup. install_pkg is idempotent; already-installed packages are
   -- skipped immediately.
-  local js_pkgs = { "vtsls", "eslint-lsp", "prettierd", "biome" }
-  local json_pkgs = { "json-lsp", "biome" }
+  local js_pkgs = { "vtsls", "eslint-lsp", "prettierd" }
+  local json_pkgs = { "json-lsp" }
   local terraform_pkgs = { "terraform-ls", "tflint" }
   local bash_pkgs = { "bash-language-server" }
 
