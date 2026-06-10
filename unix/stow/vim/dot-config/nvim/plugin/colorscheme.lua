@@ -20,3 +20,8 @@ vim.cmd([[
   ]])
 
 vim.cmd.colorscheme("kanagawa-wave")
+
+-- Not colorscheme specific, but it kinda fits in this file because
+-- it is cosmetic
+vim.api.nvim_set_hl(0, '@markup.link.url', { underline = false })
+vim.api.nvim_set_hl(0, '@markup.link', { underline = false })
