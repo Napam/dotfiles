@@ -8,7 +8,7 @@
     (attribute_value) @injection.content))
   ; WARN: tree-sitter #match? wraps patterns in \v (very magic). Bare @ is the
   ; \@ operator prefix in very-magic mode → E866. Use [@] for a literal.
-  (#match? @_name "^(on[a-z]+|hx-[a-z:-]+|x-[a-z:.-]+|[@][a-z:.-]+|:[a-z:.-]+|data-[a-z-]+)$")
+  (#match? @_name "^(on[a-z]+|hx-[a-z:-]+|x-[a-z:.-]+|[@][a-z:.-]+|:[a-z:.-]+|data-[a-z0-9-_:.]+)$")
   (#set! injection.language "javascript"))
 
 ; <script>...</script> → JavaScript.
