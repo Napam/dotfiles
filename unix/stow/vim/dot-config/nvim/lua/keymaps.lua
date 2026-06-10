@@ -49,6 +49,9 @@ keymap("x", "K", ":move '<-2<CR>gv-gv", opts)
 keymap("x", "<A-j>", ":move '>+1<CR>gv-gv", opts)
 keymap("x", "<A-k>", ":move '<-2<CR>gv-gv", opts)
 
+-- Wrap
+keymap("n", "W", "<cmd>set wrap!<cr>", opts)
+
 -- Terminal nav disabled; conflicts with Lazygit.
 -- keymap("t", "<C-h>", "<C-\\><C-N><C-w>h", { silent = true })
 -- keymap("t", "<C-j>", "<C-\\><C-N><C-w>j", { silent = true })
