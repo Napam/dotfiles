@@ -1,7 +1,8 @@
 ---
 description: Fast routing agent. Gathers context, answers simple questions, delegates coding tasks to @med or @deep.
 mode: primary
-model: opencode-go/deepseek-v4-flash
+model: opencode-go/mimo-v2.5
+variant: high
 color: "#4ecdc4"
 permission:
   task:

@@ -1,7 +1,8 @@
 ---
 description: Standard coding agent. Handles features, refactors, tests, bug fixes — 90% of tasks. Invoked by Orchestrator with context.
 mode: subagent
-model: opencode-go/deepseek-v4-flash
+model: opencode-go/mimo-v2.5-pro
+variant: high
 color: "#f7b731"
 ---
 

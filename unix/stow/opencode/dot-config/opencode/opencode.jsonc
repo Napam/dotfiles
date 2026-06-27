@@ -1,6 +1,6 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "model": "opencode-go/deepseek-v4-flash",
+  "model": "opencode-go/mimo-v2.5",
   "default_agent": "orchestrator",
 
   // Inherited by all agents unless overridden. Agent permission blocks merge additively
@@ -11,7 +11,7 @@
     "read": {
       "*": "allow",
       "**/.env": "deny",
-      "**/.env.*": "deny"
+      "**/.env.*": "deny",
     },
     "external_directory": {
       "~/.go/**": "allow",
@@ -20,21 +20,23 @@
       "~/.m2/**": "allow",
       "~/.terraform.d/**": "allow",
       "~/.pub-cache/**": "allow",
-      "~/.local/**": "allow"
+      "~/.local/**": "allow",
+      "~/.config/**": "allow",
+      "/tmp": "allow",
     },
-    "webfetch": "allow"
+    "webfetch": "allow",
   },
 
   "agent": {
     // orchestrator, med, deep defined in agents/*.md (auto-discovered)
     // Pro model for hands-on coding without Orchestrator delegation overhead
     "build": {
-      "model": "opencode-go/deepseek-v4-pro"
+      "model": "opencode-go/mimo-v2.5-pro",
     },
 
     "general": {
-      "model": "opencode-go/deepseek-v4-pro"
-    }
+      "model": "opencode-go/mimo-v2.5-pro",
+    },
   },
 
   "provider": {
@@ -42,12 +44,12 @@
       "npm": "@ai-sdk/openai-compatible",
       "name": "Ollama",
       "options": {
-        "baseURL": "http://localhost:11434/v1"
+        "baseURL": "http://localhost:11434/v1",
       },
       "models": {
         "gemma4:26b": { "name": "Gemma 4 26B" },
-        "qwen3.6:latest": { "name": "Qwen 3.6" }
-      }
-    }
-  }
+        "qwen3.6:latest": { "name": "Qwen 3.6" },
+      },
+    },
+  },
 }

@@ -1,8 +1,8 @@
 ---
 description: Deep-analysis agent for architecture, complex debugging, multi-system logic, and extended thinking. Reserved for hard problems or when med is insufficient.
 mode: subagent
-model: opencode-go/deepseek-v4-pro
-variant: medium
+model: opencode-go/glm-5.2
+variant: high
 color: "#e74c3c"
 ---
 
