@@ -21,7 +21,7 @@
       "src": "https://github.com/lewis6991/gitsigns.nvim"
     },
     "grug-far.nvim": {
-      "rev": "c995bbacf8229dc096ec1c3d60f8531059c86c1b",
+      "rev": "c69859c1d5427ab5fc7ed12380ab521b4e336691",
       "src": "https://github.com/MagicDuck/grug-far.nvim"
     },
     "kanagawa.nvim": {
@@ -37,7 +37,7 @@
       "src": "https://github.com/zapling/mason-lock.nvim"
     },
     "mason-lspconfig.nvim": {
-      "rev": "21c5b3ebeaa0412e28096bb0701434c51c1fbf76",
+      "rev": "47059d71b42d74b0a1e9f61c1d99d301039c3b5b",
       "src": "https://github.com/mason-org/mason-lspconfig.nvim"
     },
     "mason.nvim": {
@@ -49,7 +49,7 @@
       "src": "https://github.com/nvim-mini/mini.icons"
     },
     "mini.pairs": {
-      "rev": "4a014143fcb4e9df26198ccb3ecff3b9e77a048c",
+      "rev": "db0fac0a25884183650352ccf92b362a41ed2e9c",
       "src": "https://github.com/nvim-mini/mini.pairs"
     },
     "multicursor.nvim": {
@@ -71,7 +71,7 @@
       "version": "'main'"
     },
     "opencode.nvim": {
-      "rev": "a940486a2ceb39db546f233c58112d0471fe3e73",
+      "rev": "43adb10f21403adeec5980e73305fff29195e36b",
       "src": "https://github.com/nickjvandyke/opencode.nvim"
     },
     "persistence.nvim": {
