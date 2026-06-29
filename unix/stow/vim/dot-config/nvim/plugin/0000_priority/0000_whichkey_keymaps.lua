@@ -51,9 +51,9 @@ end, { desc = "Opencode select" })
 map("n", "<leader>al", function()
   require("opencode").list()
 end, { desc = "Opencode list" })
-map("n", "<leader>acc", "<cmd>ClaudeCode<cr>")
-map("n", "<leader>acm", "<cmd>ClaudeCodeSelectModel<cr>")
-map("n", "<leader>acs", "<cmd>ClaudeCodeSend<cr>")
+map("n", "<leader>acc", "<cmd>ClaudeCode<cr>", { desc = "Toggle ClaudeCode" })
+map("n", "<leader>acm", "<cmd>ClaudeCodeSelectModel<cr>", { desc = "Select model" })
+map("n", "<leader>acs", "<cmd>ClaudeCodeSend<cr>", { desc = "Send to ClaudeCode" })
 
 map("n", "<leader>fb", function()
   Snacks.picker.buffers()
@@ -144,9 +144,22 @@ map("n", "<leader>jA", "<cmd>Neopyter execute runmenu:run-all<cr>", { desc = "Ru
 map("n", "<leader>jr", "<cmd>Neopyter execute kernelmenu:restart<cr>", { desc = "Restart" })
 map("n", "<leader>jR", "<cmd>Neopyter execute notebook:restart-run-all<cr>", { desc = "Restart and run all" })
 
+map("n", "<leader>ia", function()
+  local path = vim.fn.expand("%:p")
+  vim.fn.setreg("+", path)
+  vim.notify("Copied: " .. path, vim.log.levels.INFO)
+end, { desc = "Copy absolute path" })
+map("n", "<leader>ip", function()
+  local root = vim.fn.getcwd()
+  local abs = vim.fn.expand("%:p")
+  local rel = abs:sub(#root + 2)
+  vim.fn.setreg("+", rel)
+  vim.notify("Copied: " .. rel, vim.log.levels.INFO)
+end, { desc = "Copy project-relative path" })
+
 require("which-key").add({
   { "<leader>a", group = "AI" },
-  { "<leader>c", group = "LSP code" },
+  { "<leader>ac", group = "ClaudeCode" },
   { "<leader>f", group = "Find" },
   { "<leader>g", group = "Git" },
   { "<leader>l", group = "LSP" },
@@ -154,5 +167,6 @@ require("which-key").add({
   { "<leader>u", group = "LSP utils" },
   { "<leader>x", group = "Extra diagnostics" },
   { "<leader>S", group = "Snacks" },
+  { "<leader>i", group = "Info / paths" },
   { "<leader>j", group = "Jupyter" },
 })
