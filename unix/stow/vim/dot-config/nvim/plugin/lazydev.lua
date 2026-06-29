@@ -21,6 +21,9 @@ require("lazyload").on_vim_enter(function()
   require("lazydev").setup({
     library = {
       { path = "${3rd}/luv/library", words = { "vim%.uv" } },
+      -- Load snacks.nvim's type defs when `Snacks` is seen (it sets the global
+      -- at runtime, so lua_ls can't infer it statically otherwise).
+      { path = "snacks.nvim", words = { "Snacks" } },
     },
   })
 end)
