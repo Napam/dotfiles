@@ -2,6 +2,17 @@ vim.pack.add({
   { src = "https://github.com/folke/snacks.nvim" },
 })
 
+-- Open a file from lazygit ("e") as a buffer in the underlying editor window
+-- instead of a new tab (default nvim-remote preset) or inside the lazygit float
+-- (what `--remote-silent` does, since the float is the server's current window).
+function _G.snacks_lazygit_edit(file, line)
+  pcall(vim.cmd.close) -- close the focused lazygit float (keeps the job alive)
+  vim.cmd.edit(vim.fn.fnameescape(file))
+  if line and tonumber(line) then
+    vim.api.nvim_win_set_cursor(0, { tonumber(line), 0 })
+  end
+end
+
 Snacks.setup({
   animate = { enabled = false },
   bigfile = { enabled = true },
@@ -129,6 +140,18 @@ Snacks.setup({
 
   lazygit = {
     configure = true,
+    -- Override nvim-remote preset (uses --remote-tab) to open in a buffer in the
+    -- underlying editor window instead. Use --remote-expr so the edit is handled
+    -- by a Lua function regardless of mode, rather than --remote-silent which
+    -- :edits in the server's current window (the lazygit float itself).
+    config = {
+      os = {
+        editPreset = "",
+        edit = [[nvim --server "$NVIM" --remote-expr "v:lua.snacks_lazygit_edit('{{filename}}')"]],
+        editAtLine = [[nvim --server "$NVIM" --remote-expr "v:lua.snacks_lazygit_edit('{{filename}}', {{line}})"]],
+        suspendOnEdit = false,
+      },
+    },
     theme = {
       [241]                      = { fg = "Special" },
       activeBorderColor          = { fg = "MatchParen", bold = true },

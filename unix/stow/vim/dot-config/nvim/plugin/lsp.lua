@@ -76,7 +76,10 @@ require("lazyload").on_vim_enter(function()
 
         -- Workspace diagnostics: pull (LSP 3.17) if supported, else simulate
         -- via workspace-diagnostics.nvim (sends didOpen for every file — slow).
-        if not ws_diag_done[client.id] then
+        -- WARN: basedpyright/pyright scan the project natively; workspace-diagnostics
+        -- would send redundant didOpen for already-open buffers and they complain.
+        local ws_diag_native = { basedpyright = true, pyright = true }
+        if not ws_diag_done[client.id] and not ws_diag_native[client.name] then
           ws_diag_done[client.id] = true
           if client:supports_method("workspace/diagnostic", buf) then
             vim.lsp.buf.workspace_diagnostics({ client_id = client.id })
