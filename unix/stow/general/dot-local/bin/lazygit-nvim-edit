@@ -1,0 +1,25 @@
+#!/usr/bin/env sh
+# Open a file (optionally at a line) from standalone lazygit in a running nvim.
+# Falls back to launching nvim in the current terminal if none is reachable.
+# Usage: lazygit-nvim-edit <file> [line]
+
+file=$1
+line=$2
+
+# lazygit runs the editor with cwd at the repo root and hands us a relative
+# path. The target nvim may have a different cwd, so absolutize it here.
+case "$file" in
+  /*) ;;
+  *)  file="$PWD/$file" ;;
+esac
+
+sock=$(cat "${XDG_CACHE_HOME:-$HOME/.cache}/nvim/server" 2>/dev/null)
+expr="v:lua.snacks_lazygit_edit('$file'${line:+, $line})"
+
+# Send to the running nvim; on any failure (no socket, stale socket, error)
+# fall through to opening a fresh nvim right here.
+if [ -n "$sock" ] && nvim --server "$sock" --remote-expr "$expr" >/dev/null 2>&1; then
+  exit 0
+fi
+
+exec nvim ${line:+"+$line"} -- "$file"

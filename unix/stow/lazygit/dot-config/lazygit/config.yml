@@ -2,6 +2,17 @@ git:
   pagers:
     - colorArg: always
       pager: delta --dark --paging=never
+os:
+  # Send "edit" (e) to a running nvim via lazygit-nvim-edit; it falls back to
+  # opening a fresh nvim in this pane if none is reachable. suspendOnEdit must
+  # be true so that fallback can take over the terminal.
+  editPreset: ""
+  edit: 'lazygit-nvim-edit "{{filename}}"'
+  editAtLine: 'lazygit-nvim-edit "{{filename}}" {{line}}'
+  # Blocking edits (commit messages, rebase todos) must stay a local nvim that
+  # lazygit waits on — never route these to a remote instance.
+  editAtLineAndWait: 'nvim +{{line}} -- "{{filename}}"'
+  suspendOnEdit: true
 keybinding:
   universal:
     prevItem: k

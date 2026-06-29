@@ -6,10 +6,16 @@ vim.pack.add({
 -- instead of a new tab (default nvim-remote preset) or inside the lazygit float
 -- (what `--remote-silent` does, since the float is the server's current window).
 function _G.snacks_lazygit_edit(file, line)
-  pcall(vim.cmd.close) -- close the focused lazygit float (keeps the job alive)
+  -- Only dismiss the window when called from the embedded lazygit float (a
+  -- floating terminal). Standalone lazygit edits into this nvim from another
+  -- pane, where the current window is a real buffer that must not be closed.
+  if vim.bo.buftype == "terminal" and vim.api.nvim_win_get_config(0).relative ~= "" then
+    pcall(vim.cmd.close) -- keeps the lazygit job alive
+  end
   vim.cmd.edit(vim.fn.fnameescape(file))
   if line and tonumber(line) then
-    vim.api.nvim_win_set_cursor(0, { tonumber(line), 0 })
+    -- pcall: the line may be past EOF if the file changed since lazygit saw it
+    pcall(vim.api.nvim_win_set_cursor, 0, { tonumber(line), 0 })
   end
 end
 
@@ -28,19 +34,19 @@ Snacks.setup({
       max_width = 80,
       max_height = 40,
       inline = false,
-      float = false
-    }
+      float = false,
+    },
   },
 
   dashboard = {
     enabled = true,
     preset = {
       keys = {
-        { icon = " ", key = "n", desc = "New File",          action = ":ene | startinsert" },
-        { icon = " ", key = "r", desc = "Recent Files",      action = ":lua Snacks.dashboard.pick('oldfiles')" },
-        { icon = " ", key = "s", desc = "Restore Session",   action = ":lua require('persistence').load()" },
+        { icon = " ", key = "n", desc = "New File", action = ":ene | startinsert" },
+        { icon = " ", key = "r", desc = "Recent Files", action = ":lua Snacks.dashboard.pick('oldfiles')" },
+        { icon = " ", key = "s", desc = "Restore Session", action = ":lua require('persistence').load()" },
         { icon = " ", key = "u", desc = "Check for Updates", action = ":Pack check" },
-        { icon = " ", key = "q", desc = "Quit",              action = ":qa" },
+        { icon = " ", key = "q", desc = "Quit", action = ":qa" },
       },
       header = [[
  .          .
@@ -59,7 +65,7 @@ Snacks.setup({
     },
     sections = {
       { section = "header" },
-      { section = "keys",  gap = 1, padding = 1 },
+      { section = "keys", gap = 1, padding = 1 },
       function()
         local entries = require("exrc").list()
         if #entries == 0 then
@@ -86,7 +92,7 @@ Snacks.setup({
         if not _G._nvim_startup_ms then
           _G._nvim_startup_ms = Config.nvim_start_time
               and string.format("%.2f", (vim.uv.hrtime() - Config.nvim_start_time) / 1e6)
-              or "?"
+            or "?"
         end
         local ms = _G._nvim_startup_ms
         local plugin_count = #vim.fn.glob(vim.fn.stdpath("data") .. "/site/pack/*/*/*", false, true)
@@ -114,7 +120,7 @@ Snacks.setup({
           "node_modules",
           ".DS_Store",
           ".venv",
-          "__pycache__"
+          "__pycache__",
         },
       },
       grep = {
@@ -125,17 +131,17 @@ Snacks.setup({
           "node_modules",
           ".DS_Store",
           ".venv",
-          "__pycache__"
+          "__pycache__",
         },
       },
     },
     win = {
       input = {
         keys = {
-          ["<C-y>"] = { "confirm", mode = { "n", "i" } }
-        }
-      }
-    }
+          ["<C-y>"] = { "confirm", mode = { "n", "i" } },
+        },
+      },
+    },
   },
 
   lazygit = {
@@ -153,16 +159,16 @@ Snacks.setup({
       },
     },
     theme = {
-      [241]                      = { fg = "Special" },
-      activeBorderColor          = { fg = "MatchParen", bold = true },
-      cherryPickedCommitBgColor  = { fg = "Identifier" },
-      cherryPickedCommitFgColor  = { fg = "Function" },
-      defaultFgColor             = { fg = "Normal" },
-      inactiveBorderColor        = { fg = "FloatBorder" },
-      optionsTextColor           = { fg = "Function" },
+      [241] = { fg = "Special" },
+      activeBorderColor = { fg = "MatchParen", bold = true },
+      cherryPickedCommitBgColor = { fg = "Identifier" },
+      cherryPickedCommitFgColor = { fg = "Function" },
+      defaultFgColor = { fg = "Normal" },
+      inactiveBorderColor = { fg = "FloatBorder" },
+      optionsTextColor = { fg = "Function" },
       searchingActiveBorderColor = { fg = "MatchParen", bold = true },
-      selectedLineBgColor        = { bg = "Visual" }, -- set to `default` to have no background colour
-      unstagedChangesColor       = { fg = "DiagnosticError" },
+      selectedLineBgColor = { bg = "Visual" }, -- set to `default` to have no background colour
+      unstagedChangesColor = { fg = "DiagnosticError" },
     },
     win = {
       style = "lazygit",
@@ -177,5 +183,4 @@ Snacks.setup({
       width = 160,
     },
   },
-
 })
