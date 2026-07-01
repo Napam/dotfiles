@@ -35,6 +35,7 @@ require("lazyload").on_vim_enter(function()
     "superhtml",
     "svelte",
     "tailwindcss",
+    "taplo",
     "templ",
     "terraformls",
     "tinymist",

@@ -39,6 +39,7 @@ require("lazyload").on_vim_enter(function()
       terraform = { "terraform_fmt" },
       ["terraform-vars"] = { "terraform_fmt" },
       tf = { "terraform_fmt" },
+      toml = { "taplo" },
       typescript = { "prettierd" },
       typescriptreact = { "prettierd" },
       yaml = { "prettierd" },
