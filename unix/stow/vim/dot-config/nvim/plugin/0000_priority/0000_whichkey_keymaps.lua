@@ -101,6 +101,7 @@ end, { desc = "Previous problem" })
 map("n", "<leader>ll", vim.diagnostic.open_float, { desc = "Show problem" })
 map("n", "<leader>lr", vim.lsp.buf.rename, { desc = "Rename" })
 map("n", "<leader>ls", vim.lsp.buf.signature_help, { desc = "Signature help" })
+map("n", "<leader>lc", vim.lsp.codelens.run, { desc = "Run codelens" })
 
 map("n", "<leader>ps", function()
   require("persistence").load()
