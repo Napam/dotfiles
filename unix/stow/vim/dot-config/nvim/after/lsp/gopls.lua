@@ -7,7 +7,7 @@ return {
     gopls = {
       analyses = {
         unusedparams = true,
-        shadow = true,
+        shadow = false,
         ST1000 = false, -- Incorrect or missing package comment
         ST1001 = false, -- Should not use dot imports
         ST1003 = false, -- Naming conventions stuff, e.g. should not use underscores in go names
