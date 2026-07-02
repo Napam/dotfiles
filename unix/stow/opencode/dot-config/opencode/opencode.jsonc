@@ -28,7 +28,7 @@
   },
 
   "agent": {
-    // orchestrator, med, deep defined in agents/*.md (auto-discovered)
+    // orchestrator, low, med, deep defined in agents/*.md (auto-discovered)
     // Pro model for hands-on coding without Orchestrator delegation overhead
     "build": {
       "model": "opencode-go/mimo-v2.5-pro",
@@ -39,7 +39,16 @@
     },
   },
 
+  "plugin": ["opencode-with-claude"],
+
   "provider": {
+    "anthropic": {
+      "options": {
+        "baseURL": "http://127.0.0.1:3456",
+        "apiKey": "dummy",
+      },
+    },
+
     "ollama": {
       "npm": "@ai-sdk/openai-compatible",
       "name": "Ollama",
