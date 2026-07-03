@@ -36,6 +36,7 @@ require("lazyload").on_vim_enter(function()
       proto = { "buf" },
       sh = { "shfmt" },
       sql = { "sql_formatter" },
+      templ = { "rustywind", lsp_format = "last" },
       terraform = { "terraform_fmt" },
       ["terraform-vars"] = { "terraform_fmt" },
       tf = { "terraform_fmt" },

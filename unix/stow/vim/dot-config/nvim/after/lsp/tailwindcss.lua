@@ -6,7 +6,7 @@ return {
       experimental = {
         classRegex = {
           "\\w+Class=\\{?['\"]([^'\"]*)\\}?",
-          "(?:\\b(?:const|let|var)\\s+)?[\\w$_]*(?:[Ss]tyles|[Cc]lasses|[Cc]lassnames|[Cc]lass)[\\w\\d]*\\s*(?:=|\\+=)\\s*['\"`]([^'\"`]*)['\"`]",
+          "(?:\\b(?:const|let|var)\\s+)?[\\w$_]*(?:[Ss]tyles|[Cc]lasses|[Cc]lass[Nn]ames|[Cc]lass)[\\w\\d]*\\s*(?:=|\\+=|\\:=)\\s*['\"`]([^'\"`]*)['\"`]",
           { "(?:twMerge|twJoin|Merge|[Aa]dd)\\(([^;]*)[\\);]", "[`'\"`]([^'\"`;]*)[`'\"`]" },
           {
             "(tw`(?:(?:(?:[^`]*\\$\\{[^]*?\\})[^`]*)+|[^`]*`))",
