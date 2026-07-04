@@ -69,7 +69,11 @@ require("lazyload").on_vim_enter(function()
       },
       rustywind = {
         command = "rustywind",
-        args = { "--stdin" },
+        args = {
+          "--stdin",
+          "--custom-regex",
+          [[(?:\bclass\s*=\s*\{?\s*|\b\w*(?:[Cc]lass(?:es|[Nn]ames?)?|[Ss]tyles?)\w*\s*(?::=|\+=|=)\s*\{?\s*|(?:twMerge|twJoin|Merge|templ\.KV)\s*\(\s*)"([^"]*)"]],
+        },
         stdin = true,
       },
     },
