@@ -19,7 +19,7 @@ update() {
   if command -v brew &> /dev/null; then
     ran=1
     echo "==> brew"
-    brew update && brew bundle -g && brew upgrade && brew cleanup && brew autoremove || rc=1
+    brew update && brew bundle -g && brew upgrade -y && brew cleanup && brew autoremove || rc=1
   fi
 
   if command -v apt-get &> /dev/null; then
