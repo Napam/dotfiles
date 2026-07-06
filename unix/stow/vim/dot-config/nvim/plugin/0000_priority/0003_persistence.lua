@@ -4,7 +4,11 @@ vim.pack.add({
 
 vim.opt.sessionoptions = { "buffers", "curdir", "folds", "help", "localoptions", "winpos", "winsize" }
 
-require("persistence").setup({})
+-- branch = false: key sessions by directory only. With branch keying (the
+-- default) a project's session fragments across git branches, and the branch is
+-- only detected when cwd is exactly the git root. One session per dir matches
+-- the reliable behavior on main-branch projects.
+require("persistence").setup({ branch = false })
 
 -- Clean up hidden buffers before saving a session
 local function delete_hidden_buffers()

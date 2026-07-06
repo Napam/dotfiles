@@ -71,39 +71,100 @@ vim.api.nvim_create_autocmd("FileType", {
 
 local root_cache = {}
 
+local default_names = {
+  ".git",
+  ".hg",
+  ".svn",
+  -- VCS: checked first, so repo root always wins in monorepos
+  ".root", -- manual escape hatch
+  -- Fallbacks below apply only to files with no VCS root above them:
+  "go.mod",
+  "pyproject.toml",
+  "package.json",
+  "Cargo.toml",
+  "typst.toml",
+  "Makefile",
+  ".editorconfig",
+}
+
+-- Directories at or above $HOME are never valid project roots. Stow symlinks
+-- like ~/.editorconfig and ~/.gitconfig match the marker list, so a buffer with
+-- no closer marker would otherwise resolve its root to $HOME and every picker
+-- (file search, grep) would scan all of home.
+local home = vim.fs.normalize(vim.uv.os_homedir() or vim.fn.expand("~"))
+local is_home_or_above = function(dir)
+  dir = vim.fs.normalize(dir)
+  if dir == home then
+    return true
+  end
+  local prefix = dir == "/" and "/" or dir .. "/"
+  return vim.startswith(home, prefix)
+end
+
 local find_root = function(buf_id, names)
   buf_id = buf_id or 0
-  names = names or { ".git", "Makefile" }
 
-  local source_path = vim.api.nvim_buf_get_name(buf_id)
+  -- Invalid buffer → bail rather than let nvim_buf_get_name error.
+  if not vim.api.nvim_buf_is_valid(buf_id) then
+    return
+  end
+
+  names = names or default_names
+  if type(names) == "string" then
+    names = { names }
+  end
+
   local cwd = vim.uv.cwd()
 
-  -- Unnamed buffer → cwd; named → buffer's path.
-  if #source_path == 0 then
-    if cwd == nil then
-      return
+  -- Special/URI buffers (oil://, fugitive://, term://, help, etc.) have no
+  -- real filesystem path. Don't walk garbage — use cwd as the search origin.
+  local source_path = ""
+  if vim.bo[buf_id].buftype == "" then
+    source_path = vim.api.nvim_buf_get_name(buf_id)
+  end
+
+  local origin = #source_path > 0 and source_path or cwd
+  if origin == nil then
+    return
+  end
+
+  -- Resolve symlinks so a symlinked worktree keys/roots to its real location.
+  -- realpath only succeeds for existing paths; fall back to the raw origin.
+  origin = vim.uv.fs_realpath(origin) or origin
+
+  -- names is a flat list (order = priority), so concat is a safe cache key.
+  -- If you ever switch to nested priority groups, use vim.inspect(names) here.
+  local key = origin .. "\0" .. table.concat(names, "\0")
+  local cached = root_cache[key]
+  if cached ~= nil then
+    return cached
+  end
+
+  -- Marker-based root. Reject anything that escaped up to $HOME or above, then
+  -- fall back to the origin's own dir: the dir itself for directory buffers
+  -- (e.g. a file explorer or container dir), the parent dir for file buffers.
+  local root = vim.fs.root(origin, names)
+  if type(root) == "string" and is_home_or_above(root) then
+    root = nil
+  end
+  if type(root) ~= "string" then
+    if #source_path > 0 then
+      root = vim.fn.isdirectory(origin) == 1 and origin or vim.fs.dirname(origin)
+    else
+      root = cwd
     end
-    source_path = cwd
   end
-
-  local result = root_cache[source_path]
-  if result ~= nil then
-    return result
-  end
-
-  result = vim.fs.root(source_path, names)
-
-  if type(result) ~= "string" then
-    return
-  end
-  result = vim.fs.normalize(vim.fn.fnamemodify(result, ":p"))
-  if vim.fn.isdirectory(result) == 0 then
+  if type(root) ~= "string" then
     return
   end
 
-  root_cache[source_path] = result
+  root = vim.fs.normalize(vim.fn.fnamemodify(root, ":p"))
+  if vim.fn.isdirectory(root) == 0 then
+    return
+  end
 
-  return result
+  root_cache[key] = root
+  return root
 end
 
 vim.o.autochdir = false

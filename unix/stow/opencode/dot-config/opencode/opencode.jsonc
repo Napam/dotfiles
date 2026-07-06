@@ -22,6 +22,7 @@
       "~/.pub-cache/**": "allow",
       "~/.local/**": "allow",
       "~/.config/**": "allow",
+      "~/.claude/**": "allow",
       "/tmp": "allow",
     },
     "webfetch": "allow",
@@ -39,7 +40,7 @@
     },
   },
 
-  "plugin": ["opencode-with-claude"],
+  "plugin": ["opencode-with-claude@latest", "openslimedit@latest"],
 
   "provider": {
     "anthropic": {
