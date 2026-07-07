@@ -52,13 +52,25 @@
 
     "ollama": {
       "npm": "@ai-sdk/openai-compatible",
-      "name": "Ollama",
+      "name": "local-ollama",
       "options": {
         "baseURL": "http://localhost:11434/v1",
       },
       "models": {
-        "gemma4:26b": { "name": "Gemma 4 26B" },
-        "qwen3.6:latest": { "name": "Qwen 3.6" },
+        "primary": { "name": "Local Ollama" },
+      },
+    },
+
+    "llama-cpp-local": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "local-llama",
+      "options": {
+        "baseURL": "http://127.0.0.1:6700",
+      },
+      "models": {
+        "primary": {
+          "name": "Local LLama",
+        },
       },
     },
   },
