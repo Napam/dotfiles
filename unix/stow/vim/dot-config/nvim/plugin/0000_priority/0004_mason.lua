@@ -148,8 +148,10 @@ if not Config.only_essential_plugins() then
     zig = { "zls" },
     sh = bash_pkgs,
     bash = bash_pkgs,
-    templ = { "templ" },
+    templ = { "templ", "rustywind" },
     query = { "ts_query_ls" },
+    htmldjango = { "djlint", "rustywind" },
+    jinja = { "djlint", "rustywind" },
   }
 
   -- triggered[ft]: true = install in progress or done; nil = not yet started.
