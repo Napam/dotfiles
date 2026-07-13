@@ -1,8 +1,6 @@
 ---
 description: Mechanical execution agent. Lowest tier. Applies fully-specified, exact instructions — given diffs, renames, boilerplate, stated commands. Invoked by Orchestrator with exact paths.
 mode: subagent
-model: opencode-go/mimo-v2.5
-variant: low
 color: "#95a5a6"
 ---
 

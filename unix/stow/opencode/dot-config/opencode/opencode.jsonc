@@ -29,15 +29,13 @@
   },
 
   "agent": {
-    // orchestrator, low, med, deep defined in agents/*.md (auto-discovered)
-    // Pro model for hands-on coding without Orchestrator delegation overhead
-    "build": {
-      "model": "opencode-go/mimo-v2.5-pro",
-    },
-
-    "general": {
-      "model": "opencode-go/mimo-v2.5-pro",
-    },
+    // Prompts/descriptions in agents/*.md; models defined here (avoids precedence bug with OPENCODE_CONFIG)
+    "orchestrator": { "model": "opencode-go/mimo-v2.5", "variant": "high" },
+    "low": { "model": "opencode-go/mimo-v2.5", "variant": "low" },
+    "med": { "model": "opencode-go/mimo-v2.5-pro", "variant": "high" },
+    "deep": { "model": "opencode-go/glm-5.2", "variant": "high" },
+    "build": { "model": "opencode-go/mimo-v2.5-pro" },
+    "general": { "model": "opencode-go/mimo-v2.5-pro" },
   },
 
   "plugin": ["opencode-with-claude@latest", "openslimedit@latest"],
