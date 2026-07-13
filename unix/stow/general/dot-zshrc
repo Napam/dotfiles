@@ -21,6 +21,9 @@ zstyle ':completion:*' matcher-list 'm:{[:lower:][:upper:]-_}={[:upper:][:lower:
 # fix mac
 bindkey "ç" fzf-cd-widget
 
+# shift-tab for reverse selection
+bindkey '^[[Z' reverse-menu-complete
+
 _load_eval_completions
 
 # zsh-only completions (compdef syntax)
