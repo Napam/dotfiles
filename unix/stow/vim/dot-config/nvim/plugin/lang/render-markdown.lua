@@ -5,8 +5,8 @@ require("lazyload").on_vim_enter(function()
     group = vim.api.nvim_create_augroup("markdown-opts", { clear = true }),
     pattern = "markdown",
     callback = function()
-      vim.opt_local.wrap = true
-      vim.opt_local.conceallevel = 2
+      -- wrap/linebreak are owned by after/ftplugin/markdown.lua
+      vim.wo[0][0].conceallevel = 2
     end,
   })
 

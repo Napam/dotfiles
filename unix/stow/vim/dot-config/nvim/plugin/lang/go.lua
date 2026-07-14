@@ -3,22 +3,10 @@ if Config.only_essential_plugins() then
 end
 
 require("lazyload").on_vim_enter(function()
-  vim.filetype.add({
-    extension = {
-      gotmpl = "gotmpl",
-      gohtml = "gotmpl",
-    },
-    pattern = {
-      [".*%.go%.tmpl"] = "gotmpl",
-    },
-  })
-
-  vim.api.nvim_create_autocmd("FileType", {
-    pattern = { "go", "gomod", "gowork", "gohtml", "gotmpl" },
-    callback = function()
-      vim.opt_local.expandtab = false
-    end,
-  })
+  -- gotmpl/gohtml detection lives in plugin/filetype.lua (must run at startup);
+  -- hard-tab opts live in after/ftplugin/{go,gomod,gowork,gotmpl}.lua, which
+  -- fire for startup buffers too -- a FileType autocmd registered here at
+  -- VimEnter misses the argv buffer, whose FileType fired before VimEnter.
 
   -- Tree-sitter dependent plugins (safe at setup; no parser query until use).
   if Config.use_treesitter_parser then
