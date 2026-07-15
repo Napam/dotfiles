@@ -23,7 +23,7 @@
       "~/.local/**": "allow",
       "~/.config/**": "allow",
       "~/.claude/**": "allow",
-      "/tmp": "allow",
+      "/tmp/**": "allow",
     },
     "webfetch": "allow",
   },
