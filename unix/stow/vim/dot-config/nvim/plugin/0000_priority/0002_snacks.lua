@@ -133,6 +133,19 @@ Snacks.setup({
           ".venv",
           "__pycache__",
         },
+        args = {
+          -- Required by Snacks to parse results
+          "--color=never",
+          "--no-heading",
+          "--with-filename",
+          "--line-number",
+          "--column",
+          -- Smart case: case-insensitive unless you type a capital letter
+          "--smart-case",
+          -- Prevent Neovim from freezing on minified files (stops at 8196 chars)
+          "--max-columns=8196",
+          "--max-columns-preview",
+        },
       },
     },
     win = {
