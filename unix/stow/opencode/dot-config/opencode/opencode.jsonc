@@ -36,6 +36,17 @@
     "deep": { "model": "opencode-go/glm-5.2", "variant": "high" },
     "build": { "model": "opencode-go/mimo-v2.5-pro" },
     "general": { "model": "opencode-go/mimo-v2.5-pro" },
+    "min": {
+      "model": "llama-cpp-local/primary",
+      "steps": 8,
+      "permission": {
+        "task": { "*": "deny" },
+        "skill": { "*": "deny" },
+        "webfetch": "deny",
+        "todowrite": "deny",
+        "question": "deny",
+      },
+    },
   },
 
   "plugin": ["opencode-with-claude@latest", "openslimedit@latest"],
