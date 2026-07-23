@@ -1,8 +1,21 @@
-if Config.only_essential_plugins() then return end
+if Config.only_essential_plugins() then
+  return
+end
 
 local function get_pid_from_dap_pid_file()
   local search_base_dir = vim.fn.getcwd()
-  local found = vim.fs.find({ "dap.pid", "app.pid", "main.pid", "pid" }, {
+  local found = vim.fs.find({
+    "dap.pid",
+    "app.pid",
+    "main.pid",
+    "dev-app.pid",
+    "pid",
+    "tmp/dap.pid",
+    "tmp/app.pid",
+    "tmp/main.pid",
+    "tmp/dev-app.pid",
+    "tmp/pid",
+  }, {
     path = search_base_dir,
     type = "file",
     limit = 1,
@@ -43,7 +56,9 @@ end
 -- "missing/unreadable" from "present but empty".
 local function parse_env_file(filepath)
   local f = io.open(filepath, "r")
-  if not f then return nil end
+  if not f then
+    return nil
+  end
   local env = {}
   for line in f:lines() do
     if not line:match("^%s*#") and not line:match("^%s*$") then
@@ -71,7 +86,9 @@ local function resolve_env(config, cwd)
   local final_env = {}
   if config.envFile then
     -- Function-form replacement: avoids Lua treating `%` in `cwd` as a capture ref.
-    local sub = function() return cwd end
+    local sub = function()
+      return cwd
+    end
     local path = config.envFile:gsub("${workspaceFolder}", sub):gsub("${cwd}", sub)
     if not path:match("^/") then
       path = cwd .. "/" .. path:gsub("^%./", "")
@@ -108,14 +125,18 @@ end
 
 local function find_go_mod_dir()
   local file_path = vim.api.nvim_buf_get_name(0)
-  if file_path == "" then return vim.fn.getcwd() end
+  if file_path == "" then
+    return vim.fn.getcwd()
+  end
   local go_mod = vim.fs.find("go.mod", {
     path = vim.fs.dirname(file_path),
     upward = true,
     type = "file",
     limit = 1,
   })[1]
-  if go_mod then return vim.fs.dirname(go_mod) end
+  if go_mod then
+    return vim.fs.dirname(go_mod)
+  end
   return vim.fn.getcwd()
 end
 
@@ -150,14 +171,18 @@ local function setup_dap_python(dap)
       console = "integratedTerminal",
       cwd = function()
         local file_path = vim.api.nvim_buf_get_name(0)
-        if file_path == "" then return vim.fn.getcwd() end
+        if file_path == "" then
+          return vim.fn.getcwd()
+        end
         local pyproject = vim.fs.find("pyproject.toml", {
           path = vim.fs.dirname(file_path),
           upward = true,
           type = "file",
           limit = 1,
         })[1]
-        if pyproject then return vim.fs.dirname(pyproject) end
+        if pyproject then
+          return vim.fs.dirname(pyproject)
+        end
         return vim.fn.getcwd()
       end,
       env = { PYTHONPATH = "." },
@@ -216,7 +241,9 @@ local function setup_dap_js(dap)
           local co = coroutine.running()
           return coroutine.create(function()
             vim.ui.input({ prompt = "Enter URL: ", default = "http://localhost:3000" }, function(url)
-              if url and url ~= "" then coroutine.resume(co, url) end
+              if url and url ~= "" then
+                coroutine.resume(co, url)
+              end
             end)
           end)
         end,
@@ -227,7 +254,9 @@ local function setup_dap_js(dap)
           local co = coroutine.running()
           return coroutine.create(function()
             vim.ui.input({ prompt = "Enter remote root: ", default = "/" }, function(rr)
-              if rr and rr ~= "" then coroutine.resume(co, rr) end
+              if rr and rr ~= "" then
+                coroutine.resume(co, rr)
+              end
             end)
           end)
         end,
@@ -304,7 +333,9 @@ local function setup_dap_go(dap)
           end)
         end)
       end,
-      cwd = function() return find_go_mod_dir() end,
+      cwd = function()
+        return find_go_mod_dir()
+      end,
     },
     {
       type = "go",
@@ -349,7 +380,9 @@ local function setup_dap_go(dap)
       program = "${fileDirname}",
       args = function()
         local name = vim.fn.input("Test name: ")
-        if name ~= "" then return { "-test.run", "^" .. name .. "$", "-test.v" } end
+        if name ~= "" then
+          return { "-test.run", "^" .. name .. "$", "-test.v" }
+        end
         return {}
       end,
     },
@@ -375,7 +408,9 @@ local function setup_dap_cs(dap)
             prompt = "Path to dll: ",
             default = vim.fn.getcwd() .. "/bin/Debug/",
           }, function(input)
-            if input and input ~= "" then coroutine.resume(co, input) end
+            if input and input ~= "" then
+              coroutine.resume(co, input)
+            end
           end)
         end)
       end,
