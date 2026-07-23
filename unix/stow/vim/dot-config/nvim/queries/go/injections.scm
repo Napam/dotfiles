@@ -17,7 +17,7 @@
     ]))
   (#any-of? @_method
     "Exec" "ExecContext" "Query" "QueryContext" "QueryRow" "QueryRowContext" "Prepare"
-    "PrepareContext" "Get" "Select" "NamedExec" "NamedQuery" "MustExec" "Raw" "QueryRowx" "Queryx"
+    "PrepareContext" "Select" "NamedExec" "NamedQuery" "MustExec" "Raw" "QueryRowx" "Queryx"
     "GetContext" "SelectContext")
   (#set! injection.language "sql"))
 
