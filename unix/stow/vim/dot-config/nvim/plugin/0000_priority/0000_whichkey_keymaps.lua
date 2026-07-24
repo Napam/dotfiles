@@ -98,7 +98,7 @@ map("n", "<leader>gd", function()
   Snacks.picker.git_diff()
 end, { desc = "Git diffs" })
 map("n", "<leader>gs", function()
-  Snacks.picker.git_diff()
+  Snacks.picker.git_status()
 end, { desc = "Files in git status" })
 
 -- WARN: <leader>lf (Format) lives in plugin/conform.lua.
