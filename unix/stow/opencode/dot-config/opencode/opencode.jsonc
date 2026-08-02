@@ -30,12 +30,16 @@
 
   "agent": {
     // Prompts/descriptions in agents/*.md; models defined here (avoids precedence bug with OPENCODE_CONFIG)
-    "orchestrator": { "model": "opencode-go/mimo-v2.5", "variant": "high" },
-    "low": { "model": "opencode-go/mimo-v2.5", "variant": "low" },
-    "med": { "model": "opencode-go/mimo-v2.5-pro", "variant": "high" },
-    "deep": { "model": "opencode-go/glm-5.2", "variant": "high" },
-    "build": { "model": "opencode-go/mimo-v2.5-pro" },
-    "general": { "model": "opencode-go/mimo-v2.5-pro" },
+    "orchestrator": {
+      "model": "opencode-go/deepseek-v4-flash",
+      "variant": "high",
+    },
+    // Kinda weird now with low and med, since deepseek v4 is both really cheap and really good
+    "low": { "model": "opencode-go/deepseek-v4-flash", "variant": "high" },
+    "med": { "model": "opencode-go/deepseek-v4-flash", "variant": "max" },
+    "deep": { "model": "opencode-go/kimi-k3", "variant": "default" },
+    "build": { "model": "opencode-go/deepseek-v4-flash" },
+    "general": { "model": "opencode-go/deepseek-v4-flash" },
     "min": {
       "model": "llama-cpp-local/primary",
       "steps": 8,
