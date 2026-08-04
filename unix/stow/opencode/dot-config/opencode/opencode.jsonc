@@ -45,7 +45,6 @@
       "steps": 8,
       "permission": {
         "task": { "*": "deny" },
-        "skill": { "*": "deny" },
         "webfetch": "deny",
         "todowrite": "deny",
         "question": "deny",
