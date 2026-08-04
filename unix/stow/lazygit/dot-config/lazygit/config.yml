@@ -1,7 +1,7 @@
 git:
-  pagers:
+  diffRenderers:
     - colorArg: always
-      pager: delta --dark --paging=never
+      command: delta --dark --paging=never
 os:
   # Send "edit" (e) to a running nvim via lazygit-nvim-edit; it falls back to
   # opening a fresh nvim in this pane if none is reachable. suspendOnEdit must
