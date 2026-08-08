@@ -22,6 +22,7 @@ return {
     "rust",
     "swift",
     "toml",
+    "templ",
     "text",
     "typescript",
     "typescriptreact",
