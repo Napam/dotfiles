@@ -48,6 +48,9 @@ path_append()  { case ":$PATH:" in *":$1:"*) ;; *) PATH="$PATH:$1" ;; esac  }
 [[ -d /snap/bin ]] && path_prepend /snap/bin
 path_append "$HOME/.local/bin"
 
+# Expose mason binaries as globally runnable programs.
+path_append "$HOME/.local/share/nvim/mason/bin"
+
 export GOPATH="$HOME/.go"
 [[ -d $GOPATH/bin ]] && path_append "$GOPATH/bin"
 
