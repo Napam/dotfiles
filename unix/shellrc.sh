@@ -134,5 +134,11 @@ maybe_exec_tmux() {
   case ${TERM-} in screen* | tmux*) return ;; esac
   [[ -z ${TMUX-} ]] || return
   [[ ${LOCAL_TMUX-} == true ]] || return
-  exec tmux
+  # WARN: don't run as `exec tmux` an exec'd client that fails would kill
+  # the login shell. run tmux as child, fall back to plain shell on failure.
+  tmux new-session -A -s main || {
+    echo "WARN: tmux failed to start; continuing without tmux" >&2
+    return
+  }
+  exit
 }
