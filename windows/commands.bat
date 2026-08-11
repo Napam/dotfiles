@@ -1,1 +1,0 @@
-meny C:/Users/naphata/.usersetup/windows/commands.json
