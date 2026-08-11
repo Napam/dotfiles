@@ -13,7 +13,7 @@ fi
 source "$HOME/.config/dotfiles/unix/shellenv.sh"
 source "$HOME/.config/dotfiles/unix/shellutils.sh"
 
-# WARN: don't rely on PATH alone — Mac bash non-login skips brew's .zprofile injection.
+# WARN: don't rely on PATH alone: Mac bash non-login skips brew's .zprofile injection.
 # Probe known install locations as fallback.
 init_mise() {
   [[ -n ${_mise_activated-} ]] && return 0
@@ -89,7 +89,7 @@ _load_eval_completions() {
   command -v fzf     &> /dev/null && eval "$(fzf --"$_RC_SHELL")"
   command -v zoxide  &> /dev/null && eval "$(zoxide init "$_RC_SHELL")"
   [[ -n ${VENVY_SRC_DIR-} && -d $VENVY_SRC_DIR ]] && source "$VENVY_SRC_DIR/completions/init.sh"
-  # NVM completion is bash-syntax — only safe in bash (zsh would need bashcompinit first).
+  # NVM completion is bash-syntax: only safe in bash (zsh would need bashcompinit first).
   [[ $_RC_SHELL == bash && -s "$NVM_DIR/bash_completion" ]] && source "$NVM_DIR/bash_completion"
 }
 
@@ -102,7 +102,7 @@ init_epilogue() {
 
 # Sources kube-ps1 and sets shared config. Returns 0 if loaded (caller should
 # update PROMPT to include $(kube_ps1)). PREFIX/SUFFIX/DIVIDER use shell-specific
-# escape syntax — bash needs raw \001\002 readline markers, zsh uses %F{}.
+# escape syntax: bash needs raw \001\002 readline markers, zsh uses %F{}.
 init_kube_ps1() {
   local src="$HOME/.local/src/kube-ps1/kube-ps1.sh"
   [[ -f $src ]] || return 1
@@ -126,19 +126,21 @@ init_kube_ps1() {
   KUBE_PS1_NS_ENABLE='true'
 }
 
-# WARN: must run AFTER init_epilogue. Previously lived in shellenv.sh where
-# `exec tmux` pre-empted direnv/kube-ps1/private-init/_localrc_after.
+# WARN: must run AFTER init_epilogue. `exec tmux` would pre-empt
+# direnv/kube-ps1/private-init/_localrc_after.
 maybe_exec_tmux() {
   command -v tmux > /dev/null 2>&1 || return
   case $- in *i*) ;; *) return ;; esac
   case ${TERM-} in screen* | tmux*) return ;; esac
   [[ -z ${TMUX-} ]] || return
   [[ ${LOCAL_TMUX-} == true ]] || return
-  # WARN: don't run as `exec tmux` an exec'd client that fails would kill
-  # the login shell. run tmux as child, fall back to plain shell on failure.
-  tmux new-session -A -s main || {
-    echo "WARN: tmux failed to start; continuing without tmux" >&2
+  # WARN: exec'd attach: any client exit (tks, detach, crash) closes the window;
+  # pre-create "main" detached so a start failure is detected before exec instead
+  # of killing the shell. No -A -d: -d detaches other clients of an existing session.
+  tmux has-session -t "=main" 2>/dev/null || tmux new-session -d -s main 2>/dev/null
+  tmux has-session -t "=main" 2>/dev/null || {
+    echo "WARN: tmux failed to start; continuing without tmux (Ctrl-D to close)" >&2
     return
   }
-  exit
+  exec tmux attach -t "=main"
 }
