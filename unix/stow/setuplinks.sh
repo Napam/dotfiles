@@ -10,6 +10,7 @@ mkdir -p "$HOME/.local/state"
 mkdir -p "$HOME/.local/src"
 mkdir -p "$HOME/.local/bin"
 mkdir -p "$HOME/.config"
+mkdir -p "$HOME/.config/herdr"
 mkdir -p "$HOME/.claude"
 
 if [[ ! -f "$HOME/.claude/settings.local.json" ]]; then

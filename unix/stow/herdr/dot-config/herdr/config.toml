@@ -1,0 +1,14 @@
+onboarding = false
+
+[ui]
+agent_panel_sort = "spaces"
+
+[keys]
+prefix = "ctrl+ø"
+split_vertical = "prefix+|"
+previous_tab = "prefix+p"
+next_tab = "prefix+n"
+previous_workspace = "prefix+("
+next_workspace = "prefix+)"
+zoom = "prefix+z"
+edit_scrollback = "prefix+/"

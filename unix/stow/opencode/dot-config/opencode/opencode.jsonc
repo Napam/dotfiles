@@ -42,6 +42,11 @@
     "low": { "model": "opencode-go/deepseek-v4-flash", "variant": "high" },
     "med": { "model": "opencode-go/deepseek-v4-flash", "variant": "max" },
     "deep": { "model": "opencode-go/kimi-k3", "variant": "default" },
+    "herdr": {
+      "model": "opencode-go/deepseek-v4-flash",
+      "variant": "high",
+      "permission": { "task": { "*": "deny" } },
+    },
     "build": { "model": "opencode-go/deepseek-v4-flash" },
     "general": { "model": "opencode-go/deepseek-v4-flash" },
     "min": {
