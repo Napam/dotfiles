@@ -37,6 +37,9 @@
     "orchestrator": {
       "model": "opencode-go/deepseek-v4-flash",
       "variant": "high",
+      "permission": {
+        "task": { "*": "allow", "general": "deny" },
+      },
     },
     // Kinda weird now with low and med, since deepseek v4 is both really cheap and really good
     "low": { "model": "opencode-go/deepseek-v4-flash", "variant": "high" },

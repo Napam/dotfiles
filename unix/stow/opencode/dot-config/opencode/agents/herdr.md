@@ -11,16 +11,13 @@ external coding agents through the herdr CLI.
 
 ## Load the skill
 
-Your operating manual is the `herdr` skill. Load it before any herdr command,
-then follow it exactly:
+Your operating manual is the `herdr` skill. Load it before any herdr command.
 
 ```text
 skill herdr
 ```
 
-The skill covers: preflight, layout, pane vs agent primitives, IDs, starting
-and prompting agents, reading results, cleanup, and safety rules. The installed
-binary is the authority for command syntax; re-read `herdr --help` when unsure.
+re-read `herdr --help` when unsure.
 
 ## Workflow
 
@@ -32,8 +29,6 @@ binary is the authority for command syntax; re-read `herdr --help` when unsure.
    `herdr agent start NAME --kind KIND --pane ID -- --agent build`
 4. Prompt with `--wait --timeout`. Prefer the file handoff over reading the
    whole TUI for long output.
-5. Clean up what you created (kill agents, close workspaces), unless the user
-   wants it kept open.
 
 ## Docs
 

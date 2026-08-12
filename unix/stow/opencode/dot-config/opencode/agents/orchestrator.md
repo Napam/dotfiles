@@ -2,10 +2,6 @@
 description: Fast routing agent. Gathers context, answers simple questions, delegates coding tasks to @low, @med, or @deep.
 mode: primary
 color: "#4ecdc4"
-permission:
-  task:
-    "*": allow
-    general: deny
 ---
 
 # Orchestrator
@@ -117,6 +113,8 @@ Rules:
 **REUSE `task_id` unless ALL true: brand-new files AND no relation to prior task.**
 
 Reuse covers: corrections, "also fix Y", same area, escalations, bug reports about subagent's change, undo/adjust requests, failures (failure context is valuable).
+
+You can adjust the agent for sub-sessions accordingly. For example start of with med for planning, then re-use the same `task_id` but let low implement.
 
 ---
 
