@@ -2,10 +2,11 @@ onboarding = false
 
 [ui]
 agent_panel_sort = "spaces"
+pane_gaps = false
 
 [keys]
 prefix = "ctrl+ø"
-split_vertical = "prefix+|"
+split_vertical = "prefix+v"
 split_horizontal = "prefix+-"
 previous_tab = "prefix+p"
 next_tab = "prefix+n"

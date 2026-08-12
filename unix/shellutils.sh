@@ -129,6 +129,10 @@ alias ldots='lazygit -p $HOME/.config/dotfiles'
 # Tmux
 alias tks='tmux kill-server'
 
+# Herdr
+alias hss='herdr server stop'
+alias hsr='herdr server reload-config'
+
 readwhich() {
   readlink -f "$(which "$1")"
 }
