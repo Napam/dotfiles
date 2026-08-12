@@ -1,6 +1,6 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "model": "opencode-go/mimo-v2.5",
+  "model": "opencode-go/deepseek-v4-flash",
   "default_agent": "orchestrator",
 
   // Inherited by all agents unless overridden. Agent permission blocks merge additively
@@ -44,7 +44,7 @@
     // Kinda weird now with low and med, since deepseek v4 is both really cheap and really good
     "low": { "model": "opencode-go/deepseek-v4-flash", "variant": "high" },
     "med": { "model": "opencode-go/deepseek-v4-flash", "variant": "max" },
-    "deep": { "model": "opencode-go/kimi-k3", "variant": "default" },
+    "deep": { "model": "opencode-go/deepseek-v4-pro", "variant": "high" },
     "herdr": {
       "model": "opencode-go/deepseek-v4-flash",
       "variant": "high",
