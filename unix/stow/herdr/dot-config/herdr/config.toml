@@ -6,6 +6,7 @@ agent_panel_sort = "spaces"
 [keys]
 prefix = "ctrl+ø"
 split_vertical = "prefix+|"
+split_horizontal = "prefix+-"
 previous_tab = "prefix+p"
 next_tab = "prefix+n"
 previous_workspace = "prefix+("
