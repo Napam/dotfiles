@@ -1,4 +1,5 @@
-ctrl + cmd - t : /Applications/kitty.app/Contents/MacOS/kitty --single-instance -d ~
+ctrl + cmd - k : /Applications/kitty.app/Contents/MacOS/kitty --single-instance -d ~
+ctrl + cmd - t : /Applications/Ghostty.app/Contents/MacOS/ghostty --working-directory=~
 # alt + cmd - c : open -n -a "Vivaldi"
 
 # This script opens a new window in the default web browser
