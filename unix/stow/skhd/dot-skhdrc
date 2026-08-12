@@ -1,5 +1,11 @@
 ctrl + cmd - k : /Applications/kitty.app/Contents/MacOS/kitty --single-instance -d ~
-ctrl + cmd - t : /Applications/Ghostty.app/Contents/MacOS/ghostty --working-directory=~
+ctrl + cmd - t : \
+    if pgrep -x "ghostty" > /dev/null; then \
+        osascript -e 'tell application "Ghostty" to activate' -e 'delay 0.15' -e 'tell application "System Events" to keystroke "n" using command down'; \
+    else \
+        open -a Ghostty; \
+    fi
+
 # alt + cmd - c : open -n -a "Vivaldi"
 
 # This script opens a new window in the default web browser
