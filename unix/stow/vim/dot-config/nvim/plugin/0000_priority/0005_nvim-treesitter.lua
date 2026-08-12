@@ -29,6 +29,19 @@ local function parser_so_path(lang)
   return vim.fs.joinpath(vim.fn.stdpath("data"), "site", "parser", lang .. ".so")
 end
 
+---@param msg string
+---@param level? integer
+---@param opts? table
+local function notify(msg, level, opts)
+  -- fidget may not be loadable yet: this file sources before plugin/fidget.lua
+  -- and fidget is skipped entirely in essential mode.
+  local ok, fidget = pcall(require, "fidget.notification")
+  if ok then
+    return fidget.notify(msg, level, opts)
+  end
+  return vim.notify(msg, level, opts)
+end
+
 --- Sign parser .so on macOS to prevent code-signature crashes.
 ---@param parser_name string
 local function sign_parser_macos(parser_name)
@@ -41,67 +54,41 @@ local function sign_parser_macos(parser_name)
   end
   local out = vim.fn.system({ "codesign", "--force", "--sign", "-", parser_path })
   if vim.v.shell_error ~= 0 then
-    vim.notify(
+    notify(
       ("sign_parser_macos(%s): codesign failed (exit %d): %s"):format(parser_name, vim.v.shell_error, out),
       vim.log.levels.WARN
     )
   end
 end
 
---- Idempotent parser install. Returns true if already loadable; otherwise
---- installs synchronously (≤30s, blocks UI), codesigns on macOS.
+-- lang => install task while an install runs. Dedup: FileType can fire for
+-- several buffers before the parser lands, and the injection prewarm runs at
+-- VimEnter. Cleared by completion or the 60s stall guard.
+local pending_install = {}
+-- lang => { bufs = {number,...}, cbs = {fun(ok),...} } waiting on that install.
+local waiting_install = {}
+
+--- WARN + cb(false) for the sync error paths of ensure_parser. msg nil keeps
+--- the failure silent (disabled-config path).
+---@param cb? fun(ok: boolean)
+---@param msg? string
+local function fail_cb(cb, msg)
+  if msg then
+    notify(msg, vim.log.levels.WARN)
+  end
+  if cb then
+    cb(false)
+  end
+end
+
+--- Strict post-install verification. The install Task "succeeds" even on
+--- compile error (logged, not propagated): .so on disk, dlopens, queries parse.
 ---@param lang string
----@return boolean success
-function Config.ts.ensure_parser(lang)
-  if not Config.use_nvim_treesitter then
-    return false
-  end
-
-  -- WARN: do NOT pcall this. `language.add` returns `nil, errmsg` on missing
-  -- parser (no throw), so `if pcall(...)` is always true and bypasses install.
-  if vim.treesitter.language.add(lang) then
-    return true
-  end
-
-  local ok_req, parsers = pcall(require, "nvim-treesitter.parsers")
-  if not ok_req then
-    vim.notify(
-      ("ensure_parser(%s): nvim-treesitter.parsers not loadable: %s"):format(lang, parsers),
-      vim.log.levels.WARN
-    )
-    return false
-  end
-  if not parsers[lang] then
-    vim.notify(("ensure_parser(%s): no parser config registered for language"):format(lang), vim.log.levels.WARN)
-    return false
-  end
-
-  -- WARN: without tree-sitter CLI, install Task completes "successfully" and
-  -- :wait returns normally, masking the compile failure. Pre-flight check.
-  if vim.fn.executable("tree-sitter") ~= 1 then
-    vim.notify(
-      ("ensure_parser(%s): `tree-sitter` CLI not on PATH; check mason installed `tree-sitter-cli`."):format(lang),
-      vim.log.levels.WARN
-    )
-    return false
-  end
-
-  vim.notify(("treesitter: installing %s parser…"):format(lang), vim.log.levels.INFO)
-  local ok_install, install_err = pcall(function()
-    require("nvim-treesitter").install({ lang }):wait(30000)
-  end)
-  if not ok_install then
-    vim.notify(("ensure_parser(%s): install failed: %s"):format(lang, install_err), vim.log.levels.WARN)
-    return false
-  end
-
-  sign_parser_macos(lang)
-
-  -- WARN: nvim-treesitter Task "succeeds" even on compile error (logged, not
-  -- propagated). Strict verify: .so on disk, dlopens, queries parse.
+---@return boolean
+local function verify_parser_ready(lang)
   local parser_path = parser_so_path(lang)
   if vim.fn.filereadable(parser_path) ~= 1 then
-    vim.notify(
+    notify(
       ("ensure_parser(%s): .so missing at %s after install (compile likely failed; :messages)"):format(
         lang,
         parser_path
@@ -112,7 +99,7 @@ function Config.ts.ensure_parser(lang)
   end
 
   if not pcall(vim.treesitter.language.add, lang) then
-    vim.notify(("ensure_parser(%s): .so exists but failed to load (codesign/ABI?)"):format(lang), vim.log.levels.WARN)
+    notify(("ensure_parser(%s): .so exists but failed to load (codesign/ABI?)"):format(lang), vim.log.levels.WARN)
     return false
   end
 
@@ -132,26 +119,155 @@ function Config.ts.ensure_parser(lang)
       return #query_files > 0
     end, 50)
   end
-  if #query_files == 0 then
+  local ready = #query_files > 0
+  if not ready then
     -- Fallback: probe disk directly. If the .scm exists but rtp scan won't
     -- find it, the file is still usable — vim.treesitter.start handles it.
     local scm = vim.fs.joinpath(vim.fn.stdpath("data"), "site", "queries", lang, "highlights.scm")
     if vim.uv.fs_stat(scm) then
       -- Verify the query actually parses; fs_stat alone proves nothing.
-      if pcall(vim.treesitter.query.get, lang, "highlights") then
-        return true
-      end
+      ready = pcall(vim.treesitter.query.get, lang, "highlights")
     end
-    local query_dir = vim.fs.joinpath(vim.fn.stdpath("data"), "site", "queries", lang)
-    local on_disk = vim.uv.fs_stat(query_dir) ~= nil
-    vim.notify(
-      ("ensure_parser(%s): no highlights.scm (queries dir on disk: %s)"):format(lang, tostring(on_disk)),
-      vim.log.levels.WARN
+    if not ready then
+      local query_dir = vim.fs.joinpath(vim.fn.stdpath("data"), "site", "queries", lang)
+      local on_disk = vim.uv.fs_stat(query_dir) ~= nil
+      notify(
+        ("ensure_parser(%s): no highlights.scm (queries dir on disk: %s)"):format(lang, tostring(on_disk)),
+        vim.log.levels.WARN
+      )
+    end
+  end
+  return ready
+end
+
+--- Idempotent, non-blocking parser install. Returns immediately; when the
+--- parser becomes loadable (or install fails) it codesigns on macOS, verifies,
+--- then starts treesitter on `bufnr` and calls `cb(ok)`.
+---@param lang string
+---@param bufnr? number buffer to start treesitter on once ready
+---@param cb? fun(ok: boolean)
+---@return boolean true if already loadable (install may still be pending)
+function Config.ts.ensure_parser(lang, bufnr, cb)
+  if not Config.use_nvim_treesitter then
+    fail_cb(cb)
+    return false
+  end
+
+  -- WARN: `language.add` returns `nil, errmsg` on a missing parser (no throw),
+  -- but THROWS when the .so exists and dlopen fails. pcall alone can't tell
+  -- the cases apart, so discriminate on both pcall status and the return.
+  local ok_add, loaded = pcall(vim.treesitter.language.add, lang)
+  if ok_add and loaded then
+    if bufnr and vim.api.nvim_buf_is_valid(bufnr) then
+      pcall(vim.treesitter.start, bufnr, lang)
+    end
+    if cb then
+      cb(true)
+    end
+    return true
+  elseif not ok_add then
+    fail_cb(cb, ("ensure_parser(%s): .so present but failed to load (codesign/ABI?)"):format(lang))
+    return false
+  end
+  -- Missing parser (add returned nil, errmsg): fall through to install.
+
+  if pending_install[lang] then
+    local w = waiting_install[lang]
+    if bufnr then
+      w.bufs[#w.bufs + 1] = bufnr
+    end
+    if cb then
+      w.cbs[#w.cbs + 1] = cb
+    end
+    return false
+  end
+
+  local ok_req, parsers = pcall(require, "nvim-treesitter.parsers")
+  if not ok_req then
+    fail_cb(cb, ("ensure_parser(%s): nvim-treesitter.parsers not loadable: %s"):format(lang, parsers))
+    return false
+  end
+  if not parsers[lang] then
+    fail_cb(cb, ("ensure_parser(%s): no parser config registered for language"):format(lang))
+    return false
+  end
+
+  -- WARN: without tree-sitter CLI, install Task completes "successfully" and
+  -- :wait returns normally, masking the compile failure. Pre-flight check.
+  if vim.fn.executable("tree-sitter") ~= 1 then
+    fail_cb(
+      cb,
+      ("ensure_parser(%s): `tree-sitter` CLI not on PATH; check mason installed `tree-sitter-cli`."):format(lang)
     )
     return false
   end
 
-  return true
+  local wait = { bufs = bufnr and { bufnr } or {}, cbs = cb and { cb } or {} }
+  waiting_install[lang] = wait
+  notify(("treesitter: installing %s parser…"):format(lang), vim.log.levels.INFO)
+  local ok_task, task = pcall(require("nvim-treesitter").install, { lang })
+  if not ok_task then
+    if waiting_install[lang] == wait then
+      waiting_install[lang] = nil
+    end
+    fail_cb(cb, ("ensure_parser(%s): install failed: %s"):format(lang, tostring(task)))
+    return false
+  end
+  pending_install[lang] = task
+  -- WARN: no :wait cap anymore (that was the UI-blocking part); guard against
+  -- a hung compile leaving pending_install set forever, which would make
+  -- future FileType events queue silently. Stall clears dedup only; a late
+  -- completion still processes waiters.
+  vim.defer_fn(function()
+    if pending_install[lang] == task then
+      pending_install[lang] = nil
+      notify(
+        ("ensure_parser(%s): install exceeded 60s; will retry on next FileType"):format(lang),
+        vim.log.levels.WARN
+      )
+    end
+  end, 60000)
+  task:await(function(err, ok)
+    vim.schedule(function()
+      -- WARN: identity-guard both clears: the 60s stall guard may have
+      -- cleared pending_install and a newer install may have taken over
+      -- waiting_install while this task was hung. Never clobber its state.
+      if pending_install[lang] == task then
+        pending_install[lang] = nil
+      end
+      if waiting_install[lang] == wait then
+        waiting_install[lang] = nil
+      end
+      if err or not ok then
+        notify(
+          ("ensure_parser(%s): install failed: %s"):format(lang, tostring(err or "install returned failure")),
+          vim.log.levels.WARN
+        )
+        for _, c in ipairs(wait.cbs) do
+          pcall(c, false)
+        end
+        return
+      end
+      sign_parser_macos(lang)
+      if not verify_parser_ready(lang) then
+        for _, c in ipairs(wait.cbs) do
+          pcall(c, false)
+        end
+        return
+      end
+      -- Replace the "installing" INFO; must stay the last notify on success.
+      notify(("treesitter: %s parser ready"):format(lang), vim.log.levels.INFO)
+      for _, b in ipairs(wait.bufs) do
+        if vim.api.nvim_buf_is_valid(b) then
+          pcall(vim.treesitter.start, b, lang)
+        end
+      end
+      for _, c in ipairs(wait.cbs) do
+        pcall(c, true)
+      end
+    end)
+  end)
+  return false
 end
 
 if Config.use_nvim_treesitter then
@@ -167,7 +283,7 @@ if Config.use_nvim_treesitter then
   -- Force source now so ensure_parser sees a fully-initialized plugin.
   local ok_pa, pa_err = pcall(vim.cmd.packadd, "nvim-treesitter")
   if not ok_pa then
-    vim.notify(("packadd nvim-treesitter failed: %s"):format(pa_err), vim.log.levels.ERROR)
+    notify(("packadd nvim-treesitter failed: %s"):format(pa_err), vim.log.levels.ERROR)
   end
 
   -- HACK: silence nvim-treesitter's per-parser install chatter ("Installing
@@ -269,7 +385,8 @@ if Config.use_nvim_treesitter then
   })
 
   require("lazyload").on_vim_enter(function()
-    -- Deferred so cold compile doesn't block first-buffer paint. See INJECTION_PARSERS above.
+    -- Async installs; cold bootstrap compiles run in the background, UI never
+    -- blocks. See INJECTION_PARSERS above for why these exist.
     for _, lang in ipairs(INJECTION_PARSERS) do
       Config.ts.ensure_parser(lang)
     end
@@ -277,7 +394,8 @@ if Config.use_nvim_treesitter then
 
   -- WARN: registered at sourcing (not VimEnter) so it runs before LSP's FileType
   -- handlers — avoids races with plugins using treesitter on LspAttach.
-  -- ensure_parser blocks UI ≤30s on first encounter (typical 1-3s).
+  -- ensure_parser is async; a missing parser installs in the background and
+  -- this buffer gets treesitter started when it lands.
   vim.api.nvim_create_autocmd("FileType", {
     group = vim.api.nvim_create_augroup("treesitter-start", { clear = true }),
     callback = function(event)
@@ -304,9 +422,7 @@ if Config.use_nvim_treesitter then
         return
       end
 
-      if Config.ts.ensure_parser(lang) then
-        pcall(vim.treesitter.start, bufnr, lang)
-      end
+      Config.ts.ensure_parser(lang, bufnr)
     end,
   })
 end
