@@ -14,7 +14,6 @@ require("lazyload").on_vim_enter(function()
       PackUiButton = "Function",
       PackUiPluginLoaded = "String",
       PackUiPluginNotLoaded = "Comment",
-      PackUiPluginMissing = "ErrorMsg",
       PackUiUpdateAvailable = "DiagnosticInfo",
       PackUiBreaking = "DiagnosticWarn",
       PackUiVersion = "Number",
@@ -191,22 +190,23 @@ require("lazyload").on_vim_enter(function()
         callback(ref)
         return
       end
-      vim.system({ "git", "-C", path, "rev-parse", "--verify", "origin/main" }, { text = true }, function(r)
-        if r.code == 0 then
-          ref_cache[path] = "origin/main"
-          callback("origin/main")
-        else
-          vim.system({ "git", "-C", path, "rev-parse", "--verify", "origin/master" }, { text = true }, function(r2)
-            if r2.code == 0 then
-              ref_cache[path] = "origin/master"
-              callback("origin/master")
-            else
-              ref_cache[path] = false
-              callback(nil)
-            end
-          end)
+      local refs = { "origin/main", "origin/master" }
+      local function try_ref(i)
+        if i > #refs then
+          ref_cache[path] = false
+          callback(nil)
+          return
         end
-      end)
+        vim.system({ "git", "-C", path, "rev-parse", "--verify", refs[i] }, { text = true }, function(r)
+          if r.code == 0 then
+            ref_cache[path] = refs[i]
+            callback(refs[i])
+          else
+            try_ref(i + 1)
+          end
+        end)
+      end
+      try_ref(1)
     end)
   end
 
@@ -228,6 +228,7 @@ require("lazyload").on_vim_enter(function()
     render()
 
     local remaining = #plugins
+    local failed = 0
 
     local function finish_one(result)
       vim.schedule(function()
@@ -251,9 +252,17 @@ require("lazyload").on_vim_enter(function()
           if result.latest_ref then
             state.latest_ref[result.name] = result.latest_ref
           end
+        else
+          failed = failed + 1
         end
         if remaining == 0 then
           state.checking = false
+          if failed > 0 then
+            vim.notify(
+              string.format("vim.pack: %d plugin(s) failed to check", failed),
+              vim.log.levels.WARN
+            )
+          end
           for name, commits in pairs(state.updates) do
             if #commits > 0 then
               state.expanded[name] = true
@@ -569,9 +578,13 @@ require("lazyload").on_vim_enter(function()
         end
         local add_ok, add_err = pcall(vim.pack.add, { spec }, { load = false })
         if add_ok then
-          local plugins = vim.pack.get({ entry.name }, { info = false })
-          if plugins and plugins[1] and plugins[1].path and vim.uv.fs_stat(plugins[1].path) then
-            with_dirty_check(entry, plugins[1].path)
+          -- WARN: get can throw after a successful add (same class of failure
+          -- as add itself); uncaught it would abort mid-loop, leaving
+          -- pause_count > 0 for the session.
+          local get_ok, get_res = pcall(vim.pack.get, { entry.name }, { info = false })
+          local p = get_ok and get_res[1]
+          if p and p.path and vim.uv.fs_stat(p.path) then
+            with_dirty_check(entry, p.path)
           else
             errors = errors + 1
             vim.notify(string.format("vim.pack: %s installed but path missing", entry.name), vim.log.levels.ERROR)
@@ -682,8 +695,7 @@ require("lazyload").on_vim_enter(function()
       local tag = has_semver and get_installed_tag(p.path) or nil
       local rev_short = p.rev and p.rev:sub(1, 7) or ""
 
-      local ver_display = has_semver and (tag or (rev_short ~= "" and rev_short or version))
-        or (rev_short ~= "" and rev_short or version)
+      local ver_display = tag or (rev_short ~= "" and rev_short) or version
       local latest = state.latest_ref[name]
       if latest then
         -- Normalize v-prefix before comparing to avoid spurious arrows when
@@ -858,7 +870,6 @@ require("lazyload").on_vim_enter(function()
     state.expanded = {}
     state.show_help = false
     clear_check_state()
-    state.show_all_commits = {}
     state.checking = false
     state.restoring = false
     -- Invalidate any in-flight check_updates callbacks
