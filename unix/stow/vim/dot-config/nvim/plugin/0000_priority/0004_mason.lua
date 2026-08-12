@@ -138,6 +138,7 @@ if not Config.only_essential_plugins() then
     ["terraform-vars"] = terraform_pkgs,
     dockerfile = { "dockerfile-language-server" },
     proto = { "buf", "api-linter", "protolint" },
+    glsl = { "glsl_analyzer" },
     graphql = { "graphql-language-service-cli" },
     html = { "superhtml", "prettierd", "tailwindcss-language-server" },
     css = { "tailwindcss-language-server", "prettierd" },

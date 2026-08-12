@@ -22,6 +22,7 @@ require("lazyload").on_vim_enter(function()
     "denols",
     "dockerls",
     "eslint",
+    "glsl_analyzer",
     "golangci_lint_ls",
     "gopls",
     "graphql",
