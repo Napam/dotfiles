@@ -71,4 +71,7 @@ if init_kube_ps1; then
 fi
 
 init_epilogue
+# WARN: order matters: tmux execs first, so if both LOCAL_TMUX and LOCAL_HERDR
+# are true, tmux wins and herdr never runs.
 maybe_exec_tmux
+maybe_exec_herdr

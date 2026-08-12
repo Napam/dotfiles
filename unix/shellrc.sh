@@ -137,10 +137,29 @@ maybe_exec_tmux() {
   # WARN: exec'd attach: any client exit (tks, detach, crash) closes the window;
   # pre-create "main" detached so a start failure is detected before exec instead
   # of killing the shell. No -A -d: -d detaches other clients of an existing session.
-  tmux has-session -t "=main" 2>/dev/null || tmux new-session -d -s main 2>/dev/null
-  tmux has-session -t "=main" 2>/dev/null || {
+  tmux has-session -t "=main" 2> /dev/null || tmux new-session -d -s main 2> /dev/null
+  tmux has-session -t "=main" 2> /dev/null || {
     echo "WARN: tmux failed to start; continuing without tmux (Ctrl-D to close)" >&2
     return
   }
+  if [[ ${LOCAL_HERDR-} == true ]]; then
+    echo "WARN: LOCAL_TMUX and LOCAL_HERDR both set; tmux wins, herdr skipped" >&2
+    # Pause so the warning stays readable before tmux repaints the terminal.
+    sleep 2
+  fi
   exec tmux attach -t "=main"
+}
+
+# WARN: must run AFTER init_epilogue and maybe_exec_tmux (tmux wins if both flags
+# set). `exec herdr` would pre-empt direnv/kube-ps1/private-init/_localrc_after.
+maybe_exec_herdr() {
+  command -v herdr > /dev/null 2>&1 || return
+  case $- in *i*) ;; *) return ;; esac
+  case ${TERM-} in screen* | tmux*) return ;; esac
+  [[ -z ${HERDR_ENV-} ]] || return
+  [[ ${LOCAL_HERDR-} == true ]] || return
+  # WARN: exec'd attach: any client exit (detach, crash) closes the window.
+  # `herdr` (bare) starts or attaches to the local session, so no pre-create
+  # step: unlike tmux attach, it creates the session if none exists.
+  exec herdr
 }
