@@ -12,6 +12,11 @@ background-blur = 0
 font-family = "JetBrainsNerdFont Mono"
 font-size = 11
 
+# Ideally don't want any thickening, but they way MacOS renders
+# works very bad on bad monitors. Thus have to thicken.
+font-thicken = true
+font-thicken-strength = 200
+
 macos-option-as-alt = left
 
 # Map Cmd+A to send Meta-A (Alt-A) to match the tmux prefix
