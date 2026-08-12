@@ -14,3 +14,5 @@ font-size = 11
 
 macos-option-as-alt = left
 
+# Map Cmd+A to send Meta-A (Alt-A) to match the tmux prefix
+keybind = cmd+a=text:\x1ba
