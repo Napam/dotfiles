@@ -14,3 +14,7 @@ previous_workspace = "prefix+("
 next_workspace = "prefix+)"
 zoom = "prefix+z"
 edit_scrollback = "prefix+/"
+switch_workspace = "prefix+shift+1..9"
+
+[ui.sound]
+enabled = false
