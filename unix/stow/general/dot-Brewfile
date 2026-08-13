@@ -1,6 +1,7 @@
 brew 'age'
 brew 'bash'
 brew 'btop'
+brew 'coreutils'
 brew 'fzf'
 brew 'gawk'
 brew 'git-delta'

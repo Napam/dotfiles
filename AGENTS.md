@@ -35,3 +35,8 @@ Be brief. Comments cost reading time. Default to none.
 
 If the comment restates what the next 3 lines obviously do — delete it.
 If removing it would let someone introduce a bug — keep it, mark `WARN:`.
+
+## Control flow
+
+- Prefer regular `if` statements over `cmd || { ... }` / `cmd && { ... }` short-circuiting. Short-circuit forms with braces get mangled by formatters and are harder to read.
+- One-line `|| return 1` is fine when the action is a single command with no error branch to write.

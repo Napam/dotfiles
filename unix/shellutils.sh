@@ -192,6 +192,108 @@ gitclean() {
   fi
 }
 
+# 690794496 -> "658M"
+humanbytes() {
+  local n=$1 u=B i=0
+  while ((n >= 1024 && i < 3)); do
+    n=$((n / 1024))
+    ((i++))
+  done
+  case $i in 1) u=K ;; 2) u=M ;; 3) u=G ;; esac
+  printf '%s%s' "$n" "$u"
+}
+
+# WARN: deletes opencode sessions older than DURATION (e.g. 1w, 2 weeks, 30d). Irreversible.
+ocsessprune() {
+  local duration=${1:-} cutoff
+
+  if [[ -z $duration ]]; then
+    echo "ocsessprune: no timeframe given. Usage: ocsessprune <duration>, e.g. 1w, 2 weeks, 30d, 3h" >&2
+    return 1
+  fi
+
+  # GNU date parses "1 week"; BSD date (macOS) can't, so gnuify gives us gdate (or GNU date on Linux).
+  local datecmd
+  datecmd=$(gnuify date)
+  if ! cutoff=$("$datecmd" -d "-$duration" +%s 2> /dev/null); then
+    echo "ocsessprune: bad duration '$duration' (use e.g. 1w, 2 weeks, 30d)" >&2
+    return 1
+  fi
+
+  if ! command -v opencode > /dev/null; then
+    echo "ocsessprune: opencode not found" >&2
+    return 1
+  fi
+  if ! command -v jq > /dev/null; then
+    echo "ocsessprune: jq not found" >&2
+    return 1
+  fi
+
+  local cutoff_ms json ids
+  cutoff_ms=$((cutoff * 1000))
+  if ! json=$(opencode session list --format json); then
+    echo "ocsessprune: opencode session list failed" >&2
+    return 1
+  fi
+  ids=$(jq -r --argjson cutoff "$cutoff_ms" '.[] | select(.created < $cutoff) | .id' <<< "$json") || return 1
+
+  if [[ -z $ids ]]; then
+    echo "ocsessprune: no sessions older than $duration"
+    return 0
+  fi
+
+  local count
+  count=$(wc -l <<< "$ids" | tr -d ' ')
+  echo "Deleting $count opencode session(s) older than $duration:"
+  jq -r --argjson cutoff "$cutoff_ms" '.[] | select(.created < $cutoff) | "  - \(.title) [\(.id)]"' <<< "$json"
+
+  local confirm
+  printf "Proceed? (y/n): "
+  read -r confirm
+  if [[ $confirm != [yY] && $confirm != [yY][eE][sS] ]]; then
+    echo "ocsessprune: cancelled"
+    return 0
+  fi
+
+  local rc=0 id db db_before db_after
+  db=$HOME/.local/share/opencode/opencode.db
+  db_before=$(stat -f%z "$db" 2> /dev/null || stat -c%s "$db" 2> /dev/null)
+
+  while IFS= read -r id; do
+    opencode session delete "$id" > /dev/null || rc=1
+  done <<< "$ids"
+
+  # CLI can't list subagent sessions, so clean orphaned ones (parent already gone) via sqlite.
+  # WARN: if opencode changes the schema, the count query fails -> treated as 0, nothing wiped.
+  local orphans
+  orphans=0
+  if [[ -f $db ]] && command -v sqlite3 > /dev/null; then
+    orphans=$(sqlite3 "$db" "SELECT COUNT(*) FROM session WHERE parent_id IS NOT NULL AND parent_id NOT IN (SELECT id FROM session);" 2> /dev/null)
+    if (( orphans > 0 )); then
+      if sqlite3 "$db" "
+        PRAGMA foreign_keys=ON;
+        DELETE FROM event_sequence WHERE aggregate_id IN (SELECT id FROM session WHERE parent_id IS NOT NULL AND parent_id NOT IN (SELECT id FROM session));
+        DELETE FROM session WHERE parent_id IS NOT NULL AND parent_id NOT IN (SELECT id FROM session);"; then
+        echo "Removed $orphans orphaned subagent session(s)."
+      else
+        echo "ocsessprune: orphan subagent cleanup failed (schema changed?). Skipping." >&2
+      fi
+    fi
+  fi
+
+  if [[ -f $db ]] && command -v sqlite3 > /dev/null && sqlite3 "$db" VACUUM; then
+    db_after=$(stat -f%z "$db" 2> /dev/null || stat -c%s "$db" 2> /dev/null)
+    if [[ -n $db_before && -n $db_after ]]; then
+      echo "Done ($rc failures). DB size: $(humanbytes "$db_before") -> $(humanbytes "$db_after")"
+    else
+      echo "Done ($rc failures). VACUUM ran, size unknown (stat failed)."
+    fi
+  else
+    echo "Done ($rc failures). VACUUM skipped (sqlite3 missing, db not found, or vacuum failed). Run 'sqlite3 ~/.local/share/opencode/opencode.db VACUUM;' manually."
+  fi
+  return $rc
+}
+
 genpass() {
   local length=${1:-16}
   local pass
