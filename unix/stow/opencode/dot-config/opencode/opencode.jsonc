@@ -15,6 +15,7 @@
     },
     "external_directory": {
       "/tmp/**": "allow",
+      "~/.agents/**": "allow",
       "~/.cache/huggingface/**": "allow",
       "~/.cache/nvim/**": "allow",
       "~/.cache/opencode/**": "allow",
@@ -45,7 +46,12 @@
     "low": { "model": "opencode-go/deepseek-v4-flash", "variant": "high" },
     "med": { "model": "opencode-go/deepseek-v4-flash", "variant": "max" },
     "deep": { "model": "opencode-go/deepseek-v4-pro", "variant": "high" },
-    "herdr": {
+    "herdr-controller": {
+      "model": "opencode-go/deepseek-v4-flash",
+      "variant": "high",
+      "permission": { "task": { "*": "deny" } },
+    },
+    "herdr-worker": {
       "model": "opencode-go/deepseek-v4-flash",
       "variant": "high",
       "permission": { "task": { "*": "deny" } },
@@ -64,7 +70,11 @@
     },
   },
 
-  "plugin": ["opencode-with-claude@latest", "openslimedit@latest"],
+  "plugin": [
+    "opencode-with-claude@latest",
+    "openslimedit@latest",
+    "opencode-sentinel",
+  ],
 
   "provider": {
     "anthropic": {
