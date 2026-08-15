@@ -13,8 +13,6 @@ shopt -s checkwinsize
 
 _RC_SHELL=bash
 source "$HOME/.config/dotfiles/unix/shellrc.sh"
-init_editor
-[[ $EDITOR == nvim ]] && alias vim=nvim
 set -o vi
 
 # Readline equivalents to zsh zstyle completion behavior
@@ -41,6 +39,8 @@ fi
 
 # WARN: init_mise after bash-completion so mise's bash hook can use _init_completion
 init_mise
+init_editor
+[[ $EDITOR == nvim ]] && alias vim=nvim
 _load_eval_completions
 
 # WARN: uses raw readline non-printing markers \001 \002 (not bash's \[ \]) because

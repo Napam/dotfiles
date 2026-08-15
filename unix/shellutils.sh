@@ -4,7 +4,7 @@
 # SC2154: alias-internal loop vars (i, repo, branch) are assigned at runtime, not statically.
 #
 
-alias ls='ls --color=auto'
+if ls --color=auto / >/dev/null 2>&1; then alias ls='ls --color=auto'; fi
 alias weeknr='date +%U'
 alias hostpwd='python3 -m http.server 7100'
 alias edithosts='sudo vim /etc/hosts'
@@ -71,8 +71,10 @@ xbountyplus()       { xbounty | awk -F': ' '{print "xbountyplus: " $2 + 7.5}'; }
 
 readysubs() {
   find Subs -maxdepth 2 | sort -r \
-    | awk -F/ 'tolower($NF)~/english/{a[$2]=$0} END{for(key in a){print a[key], key".srt"}}' \
-    | xargs -L 1 bash -c 'echo $0 $1'
+    | awk -F/ 'tolower($NF)~/english/{a[$2]=$0} END{for(key in a){print a[key]; print key".srt"}}' \
+    | while IFS= read -r eng && IFS= read -r srt; do
+        printf '%s %s\n' "$eng" "$srt"
+      done
 }
 
 [[ ${IS_WSL-} ]] && alias fixwin='sudo update-binfmts --disable cli'
@@ -91,14 +93,13 @@ alias udpports='sudo lsof -iUDP -P -n | grep -Ev "(127|::1)"'
 prettyfire() {
   while read -r line; do
     if [[ $line =~ ^(\>\ *)?\{\" ]]; then
-      echo -E "${line#">  "}" | jq -C
+      echo -E "$line" | sed -E 's/^>[ ]*//' | jq -C
     else
       echo "$line"
     fi
   done
 }
 
-# dotfile shortcuts
 alias editutils='vim $HOME/.config/dotfiles/unix/shellutils.sh && source $HOME/.config/dotfiles/unix/shellutils.sh'
 alias editenv='vim $HOME/.config/dotfiles/unix/shellenv.sh && source $HOME/.config/dotfiles/unix/shellenv.sh'
 alias editvimrc='vim $HOME/.config/nvim/init.lua'
@@ -111,18 +112,15 @@ alias dots='cd $HOME/.config/dotfiles'
 alias conf='cd $HOME/.config'
 alias nvimconf='cd $HOME/.config/dotfiles/unix/stow/vim/dot-config/nvim'
 
-# Kubernetes
 alias k='kubectl'
 alias k3='k3s kubectl'
 
-# Azure
 azaccset() {
   local sub
   sub=$(az account list -o table | fzf --header-lines 2 | awk -F'[[:space:]][[:space:]]+' '{print $3}')
   [[ -n $sub ]] && az account set -s "$sub"
 }
 
-# Git
 alias pullrepos='for repo in */; do printf "Pulling \e[33m${repo%/}\e[0m\n"; git -C "${repo%/}" pull; done'
 alias gd='git diff'
 alias gl='git log'
@@ -133,10 +131,8 @@ alias cdgr='cd $(git rev-parse --show-toplevel)'
 alias lgit='lazygit'
 alias ldots='lazygit -p $HOME/.config/dotfiles'
 
-# Tmux
 alias tks='tmux kill-server'
 
-# Herdr
 alias hss='herdr server stop'
 alias hsr='herdr server reload-config'
 
@@ -154,10 +150,15 @@ gnuify() {
 }
 
 daystony() {
-  local datecmd nydate ndays
+  local datecmd nydate nysec now ndays
   datecmd=$(gnuify date)
   nydate=$(($( "$datecmd" +%Y) + 1))/01/01
-  ndays=$((($( "$datecmd" -d "$nydate" +%s) - $("$datecmd" +%s) + 86399) / 86400))
+  if ! nysec=$("$datecmd" -d "$nydate" +%s 2> /dev/null); then
+    echo "daystony: date -d not supported (install coreutils)" >&2
+    return 1
+  fi
+  now=$("$datecmd" +%s)
+  ndays=$(((nysec - now + 86399) / 86400))
   echo "Days to new year: $ndays"
 }
 

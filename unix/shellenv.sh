@@ -24,14 +24,14 @@ if [[ ${IS_MAC-} ]]; then
   export XDG_CONFIG_HOME="$HOME/.config"
 fi
 
+export CLICOLOR=1
+export LSCOLORS=gxFxCxDxBxegedabagaced
+export LS_COLORS='di=1;36:ln=35:so=32:pi=33:ex=31:bd=34;46:cd=34;43:su=30;41:sg=30;46:tw=30;42:ow=30;43'
+
 if [[ $ZSH_VERSION ]]; then
   export HISTFILE="$HOME/.zsh_history"
   export HISTSIZE=240000
   export SAVEHIST=$HISTSIZE
-
-  export CLICOLOR=1
-  export LSCOLORS=gxFxCxDxBxegedabagaced
-  export LS_COLORS='di=1;36:ln=35:so=32:pi=33:ex=31:bd=34;46:cd=34;43:su=30;41:sg=30;46:tw=30;42:ow=30;43'
 elif [[ $BASH_VERSION ]]; then
   HISTSIZE=240000
   HISTFILESIZE=240000
@@ -43,9 +43,9 @@ path_prepend() { case ":$PATH:" in *":$1:"*) ;; *) PATH="$1:$PATH" ;; esac  }
 path_append()  { case ":$PATH:" in *":$1:"*) ;; *) PATH="$PATH:$1" ;; esac  }
 
 [[ -d /opt/homebrew/bin ]] && path_prepend /opt/homebrew/bin
+[[ -d /snap/bin ]] && path_prepend /snap/bin
 # bob-managed nvim — must precede brew/usr nvim
 [[ -d "$HOME/.local/share/bob/nvim-bin" ]] && path_prepend "$HOME/.local/share/bob/nvim-bin"
-[[ -d /snap/bin ]] && path_prepend /snap/bin
 path_append "$HOME/.local/bin"
 
 # Expose mason binaries as globally runnable programs.
