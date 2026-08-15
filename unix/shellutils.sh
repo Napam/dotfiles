@@ -37,8 +37,15 @@ update() {
     sudo dnf upgrade --refresh -y && sudo dnf autoremove -y || rc=1
   fi
 
+  if command -v mise &> /dev/null; then
+    ran=1
+    echo "==> mise"
+    # -C $HOME: scope to global config; plain run in a repo dir would bump that repo's tools
+    mise upgrade -C "$HOME" || rc=1
+  fi
+
   if ((!ran)); then
-    echo "update: no supported package manager found (brew, apt-get, or dnf)" >&2
+    echo "update: no supported package manager found (brew, apt-get, dnf, or mise)" >&2
     return 1
   fi
   return $rc
