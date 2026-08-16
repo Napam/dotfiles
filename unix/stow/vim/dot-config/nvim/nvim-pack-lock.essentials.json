@@ -21,7 +21,7 @@
       "src": "https://github.com/lewis6991/gitsigns.nvim"
     },
     "grug-far.nvim": {
-      "rev": "6e05398cf6cad05b3fb46569db96b1ccfcbbd402",
+      "rev": "11595bf747edc270bce2069d1020502ad4ae56cf",
       "src": "https://github.com/MagicDuck/grug-far.nvim"
     },
     "kanagawa.nvim": {
@@ -37,7 +37,7 @@
       "src": "https://github.com/zapling/mason-lock.nvim"
     },
     "mason-lspconfig.nvim": {
-      "rev": "67029ccdac1ef8941e13b826417bc0ffac24cc86",
+      "rev": "9d28935aa95fa6c1dc7c4d6747f101a72a8a4bec",
       "src": "https://github.com/mason-org/mason-lspconfig.nvim"
     },
     "mason.nvim": {
@@ -61,7 +61,7 @@
       "src": "https://github.com/kylechui/nvim-surround"
     },
     "nvim-treesitter": {
-      "rev": "c9f9ed6c1892f629ea399f4ee7905f2686fa13f2",
+      "rev": "074aa4422bf029908338e855d0c0f71470a971bb",
       "src": "https://github.com/nvim-treesitter/nvim-treesitter",
       "version": "'main'"
     },
