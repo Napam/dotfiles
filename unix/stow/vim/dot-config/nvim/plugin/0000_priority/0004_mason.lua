@@ -149,6 +149,8 @@ if not Config.only_essential_plugins() then
     zig = { "zls" },
     sh = bash_pkgs,
     bash = bash_pkgs,
+    bicep = { "bicep-lsp" },
+    bicepparam = { "bicep-lsp" },
     templ = { "templ", "rustywind" },
     query = { "ts_query_ls" },
     htmldjango = { "djlint", "rustywind" },

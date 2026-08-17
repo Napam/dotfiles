@@ -17,6 +17,7 @@ require("lazyload").on_vim_enter(function()
   local servers = {
     "basedpyright",
     "bashls",
+    "bicep",
     "buf_ls",
     "codebook",
     "denols",
