@@ -24,7 +24,9 @@ do the work instead.
 ## agmsg
 
 Load the `agmsg` skill when the task involves team messaging. The controller
-names the team and your identity in the prompt. Join, launch your inbox
-watcher, and confirm. Then answer inbound messages and relay chains as
+names the team and your identity in the prompt; there is no user in the pane
+to ask, so skip the skill's interactive name and delivery-mode prompts and
+run `delivery.sh set monitor opencode "$(pwd)"` directly. Join, launch your
+inbox watcher, and confirm. Then answer inbound messages and relay chains as
 instructed. Keep replies plain text: backticks and `$` get eaten by zsh.
-This flow assumes monitor-mode delivery (a watcher exists and streams).
+Assumes monitor-mode delivery (a watcher streams into the session).

@@ -17,18 +17,21 @@ Verify you are inside herdr:
 test "${HERDR_ENV:-}" = 1
 ```
 
-If the check fails, say you are not inside herdr and stop. Otherwise confirm
-`herdr agent list` works before doing anything else.
+If the check fails, say you are not inside herdr and stop.
 
 ## 2. Reconnect yourself
 
-This session is itself a herdr pane agent. If no `agmsg inbox stream` watcher
-is streaming here, launch one now with `sentinel_monitor` per the agmsg skill
-("Ensure monitor is running first"). Then confirm it is actually streaming:
-run `sentinel_list` and check the watcher appears before proceeding. A failed
-launch leaves your own inbox dark while you claim everyone else is back up.
-Note your own herdr agent name from `herdr agent list` (match the pane with
-`$HERDR_PANE_ID`) so you skip yourself in the broadcast below.
+This session is itself a herdr pane agent. Confirm delivery mode is `monitor`
+(`delivery.sh status opencode "$(pwd)"`; `both` is unsupported for opencode).
+If the mode is `turn` or `off`, there are no watchers to reconnect: say so,
+tell the user to check inbox manually, and stop. If no `agmsg inbox stream`
+watcher is streaming here, launch one now with `sentinel_monitor` per the
+agmsg skill ("Ensure monitor is running first"). Then confirm it is actually
+streaming: run `sentinel_list` and check the watcher appears before
+proceeding. A failed launch leaves your own inbox dark while you claim
+everyone else is back up. Note your own herdr agent name from
+`herdr agent list` (match the pane with `$HERDR_PANE_ID`) so you skip yourself
+in the broadcast below.
 
 ## 3. Enumerate live agents
 

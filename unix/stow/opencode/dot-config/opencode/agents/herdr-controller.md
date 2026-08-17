@@ -17,14 +17,12 @@ Your operating manual is the `herdr` skill. Load it before any herdr command.
 skill herdr
 ```
 
-re-read `herdr --help` when unsure.
-
 ## Workflow
 
 1. Preflight: verify `HERDR_ENV=1`, confirm `herdr status`.
-2. Layout: default to a sibling pane, current cwd. Workspace only if the user
-   asked for isolation. One agent per pane: for N agents, split N panes first.
-   Keep the caller's focus with `--no-focus` and preserve its cwd.
+2. Layout: split one pane per agent. Use the skill's split defaults (sibling
+   pane, caller's cwd, `--no-focus`); workspace only if the user asked for
+   isolation.
 3. Start the agent in the pane. Native agent args go after `--`. Inside herdr,
    default panes to the herdr-worker agent so workers do work, not control:
    `herdr agent start NAME --kind opencode --pane ID -- --agent herdr-worker`
@@ -32,6 +30,8 @@ re-read `herdr --help` when unsure.
    form: `herdr agent start NAME --kind KIND --pane ID -- <args>`.
 4. Prompt with `--wait --timeout`. Prefer the file handoff over reading the
    whole TUI for long output.
+5. Cleanup: close panes you created once their agents are done, unless the
+   user wants them kept. Never close panes you did not create.
 
 ## Docs
 
@@ -54,8 +54,8 @@ re-running with `--agent NAME`, not by pressing Tab inside the TUI.
 
 ## Multi-agent conversations via agmsg
 
-When the user wants several panes to talk to each other, use agmsg so panes
-message each other. Load the `agmsg` skill before messaging commands.
+When several panes must talk to each other, use agmsg. Load the `agmsg`
+skill before messaging commands.
 
 Setup order matters:
 
@@ -63,8 +63,11 @@ Setup order matters:
    <name> opencode "$(pwd)"` for every agent, including yourself. Extend the
    roster's naming convention. Agents may live in other tabs or workspaces;
    agmsg does not care about layout.
-2. Launch your own watcher first, before sending anything. Without it you
-   poll `history.sh` and read stale message history.
+2. Confirm delivery mode is `monitor` (`delivery.sh status opencode "$(pwd)"`;
+   `both` is unsupported for opencode). Then launch your own watcher first,
+   before sending anything. Without it you poll `history.sh` and read stale
+   message history. If `sentinel_monitor` is unavailable, fall back to
+   `check-inbox.sh` after each tool call instead.
 3. Prompt each other agent once: name the team and its identity. The agent
    loads the `agmsg` skill itself, joins, launches its watcher, and confirms.
    Keep the prompt lean; the skill carries the setup steps:

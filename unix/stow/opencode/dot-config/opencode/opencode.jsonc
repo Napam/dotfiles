@@ -56,6 +56,16 @@
       "variant": "high",
       "permission": { "task": { "*": "deny" } },
     },
+    "agmsg-controller": {
+      "model": "opencode-go/deepseek-v4-flash",
+      "variant": "high",
+      "permission": { "task": { "*": "deny" } },
+    },
+    "agmsg-worker": {
+      "model": "opencode-go/deepseek-v4-flash",
+      "variant": "high",
+      "permission": { "task": { "*": "deny" } },
+    },
     "build": { "model": "opencode-go/deepseek-v4-flash" },
     "general": { "model": "opencode-go/deepseek-v4-flash" },
     "min": {
