@@ -13,7 +13,7 @@ mkdir -p "$HOME/.config"
 mkdir -p "$HOME/.config/herdr"
 mkdir -p "$HOME/.claude"
 
-if [[ ! -f "$HOME/.claude/settings.local.json" ]]; then
+if [ ! -f "$HOME/.claude/settings.local.json" ]; then
   echo '{"model": "sonnet"}' > "$HOME/.claude/settings.local.json"
 fi
 
