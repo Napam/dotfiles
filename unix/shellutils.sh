@@ -1,10 +1,9 @@
-# shellcheck shell=bash disable=SC1090,SC1091,SC2016,SC2154
+# shellcheck shell=bash disable=SC1090,SC1091,SC2154
 # Aliases + interactive utility functions. Sourced from shellrc.sh.
-# SC2016: $0/$1 inside single quotes are *intentional* — consumed by xargs/sh -c/bash -c.
-# SC2154: alias-internal loop vars (i, repo, branch) are assigned at runtime, not statically.
+# SC2154: alias-internal loop var (repo) is assigned at alias-use time, not statically.
 #
 
-if ls --color=auto / >/dev/null 2>&1; then alias ls='ls --color=auto'; fi
+if ls --color=auto / > /dev/null 2>&1; then alias ls='ls --color=auto'; fi
 alias weeknr='date +%U'
 alias hostpwd='python3 -m http.server 7100'
 alias edithosts='sudo vim /etc/hosts'
@@ -74,7 +73,7 @@ readysubs() {
     | awk -F/ 'tolower($NF)~/english/{a[$2]=$0} END{for(key in a){print a[key]; print key".srt"}}' \
     | while IFS= read -r eng && IFS= read -r srt; do
         printf '%s %s\n' "$eng" "$srt"
-      done
+    done
 }
 
 [[ ${IS_WSL-} ]] && alias fixwin='sudo update-binfmts --disable cli'
@@ -277,7 +276,7 @@ ocsessprune() {
   orphans=0
   if [[ -f $db ]] && command -v sqlite3 > /dev/null; then
     orphans=$(sqlite3 "$db" "SELECT COUNT(*) FROM session WHERE parent_id IS NOT NULL AND parent_id NOT IN (SELECT id FROM session);" 2> /dev/null)
-    if (( orphans > 0 )); then
+    if ((orphans > 0)); then
       if sqlite3 "$db" "
         PRAGMA foreign_keys=ON;
         DELETE FROM event_sequence WHERE aggregate_id IN (SELECT id FROM session WHERE parent_id IS NOT NULL AND parent_id NOT IN (SELECT id FROM session));
@@ -326,7 +325,7 @@ EOF
 color256() {
   local target_shell=${1:-$(basename "$SHELL")}
   case $target_shell in
-    bash) bash <<< 'for code in {0..255}; do echo -n "[38;05;${code}m $(printf %03d $code)"; [ $((${code} % 16)) -eq 15 ] && echo; done' ;;
+    bash) bash <<< 'for code in {0..255}; do printf "\e[38;05;%sm %03d" "$code" "$code"; [ $((code % 16)) -eq 15 ] && echo; done' ;;
     zsh)  zsh  <<< 'for code in {000..255}; do print -nP -- "%F{$code}$code %f"; [ $((${code} % 16)) -eq 15 ] && echo; done' ;;
     *)
       echo "error: Invalid argument ($target_shell)" >&2
