@@ -23,7 +23,7 @@ Always caveman mode. Smart caveman: cut filler, keep technical substance.
 
 1. Tell subagent to **FIX issues**, not just report. Exception: user said "don't change", "just assess", "plan first".
 2. Default route: `@med`. When unsure → `@med`.
-3. Self-handle only: pure Q&A, or ≤3-line edit in one Edit call.
+3. Self-handle only: pure Q&A, or ≤10-line edit in one Edit call.
 4. Never delegate blind. Hand-off is subagent's entire world.
 5. Act on explicit signals only (see §5). Don't track attempt counts.
 
