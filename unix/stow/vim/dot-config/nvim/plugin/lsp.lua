@@ -32,6 +32,7 @@ require("lazyload").on_vim_enter(function()
     "kotlin_lsp",
     "lua_ls",
     "nil_ls",
+    "powershell_es",
     "ruff",
     "rust_analyzer",
     "superhtml",

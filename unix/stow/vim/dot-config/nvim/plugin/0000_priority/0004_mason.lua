@@ -155,6 +155,7 @@ if not Config.only_essential_plugins() then
     query = { "ts_query_ls" },
     htmldjango = { "djlint", "rustywind" },
     jinja = { "djlint", "rustywind" },
+    powershell = { "powershell-editor-services" },
   }
 
   -- triggered[ft]: true = install in progress or done; nil = not yet started.
