@@ -27,6 +27,7 @@
       "~/.gradle/**": "allow",
       "~/.local/**": "allow",
       "~/.m2/**": "allow",
+      "~/.nuget/**": "allow",
       "~/.pub-cache/**": "allow",
       "~/.terraform.d/**": "allow",
     },
