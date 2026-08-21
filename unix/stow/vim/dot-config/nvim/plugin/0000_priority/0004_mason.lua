@@ -141,7 +141,7 @@ if not Config.only_essential_plugins() then
     glsl = { "glsl_analyzer" },
     graphql = { "graphql-language-service-cli" },
     html = { "superhtml", "prettierd", "tailwindcss-language-server" },
-    css = { "tailwindcss-language-server", "prettierd" },
+    css = { "css-lsp", "tailwindcss-language-server", "prettierd" },
     svelte = { "prettierd", "tailwindcss-language-server" },
     typst = { "tinymist" },
     kotlin = { "kotlin-lsp" },

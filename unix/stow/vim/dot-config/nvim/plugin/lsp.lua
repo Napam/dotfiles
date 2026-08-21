@@ -20,6 +20,7 @@ require("lazyload").on_vim_enter(function()
     "bicep",
     "buf_ls",
     "codebook",
+    "cssls",
     "denols",
     "dockerls",
     "eslint",
