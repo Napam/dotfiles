@@ -70,7 +70,14 @@ fi
 export PATH
 
 export NVM_DIR="$HOME/.nvm"
-[[ -s "$NVM_DIR/nvm.sh" ]] && source "$NVM_DIR/nvm.sh"
+# PERF: lazy-load nvm to avoid ~200ms startup hit; sourcing is deferred to first use
+if [[ -s "$NVM_DIR/nvm.sh" ]] && ! command -v nvm >/dev/null 2>&1; then
+  _load_nvm() { unfunction nvm node npm npx 2>/dev/null; unset -f nvm node npm npx 2>/dev/null; . "$NVM_DIR/nvm.sh"; }
+  nvm() { _load_nvm; nvm "$@"; }
+  node() { _load_nvm; node "$@"; }
+  npm() { _load_nvm; npm "$@"; }
+  npx() { _load_nvm; npx "$@"; }
+fi
 
 [[ -s $HOME/.cargo/env ]] && source "$HOME/.cargo/env"
 

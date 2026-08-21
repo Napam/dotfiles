@@ -1,2 +1,5 @@
 *luarc.json
 *.swp
+__pycache__/
+*.pyc
+*.pyo

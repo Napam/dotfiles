@@ -41,7 +41,7 @@ CATASTROPHIC = [
     (r":\s*\(\s*\)\s*\{\s*:\s*\|\s*:\s*&\s*\}\s*;\s*:", "fork bomb"),
 ]
 
-RAW_DISK = re.compile(r"^/dev/(?:disk|rdisk|sd|nvme|hd|mmcblk|vd)\w*$")
+RAW_DISK = re.compile(r"^/dev/(?:disk|rdisk|sd|nvme|hd|mmcblk|vd)\w*$")  # \w* covers partition suffixes like sda1, nvme0n1p2
 
 
 def deny(reason):
@@ -69,7 +69,8 @@ def normalize_target(tok):
 
 def is_dangerous_target(tok):
     t = normalize_target(tok)
-    if t in ("/", "/*") or t.startswith("/*"):
+    # only exact "/" and "/*"; "/*.ext" etc are not catastrophic and caused false positives
+    if t in ("/", "/*"):
         return True
     if HOME and (t.rstrip("/") == HOME or t == HOME + "/*"):
         return True
@@ -119,11 +120,12 @@ def check_segment(tokens):
             if a.startswith("of=") and RAW_DISK.match(a[3:]):
                 return "dd writing to a raw disk device"
         return None
-    # Redirect onto a raw disk device: shlex yields ">" "/dev/sd..." or ">/dev/sd..."
+    # Redirect onto a raw disk device: handles >, >>, \d>, \d>>, &>, &>> (split or concatenated)
     for j, a in enumerate(argv):
-        if a == ">" and j + 1 < len(argv) and RAW_DISK.match(argv[j + 1]):
+        if re.fullmatch(r"&?\d*>{1,2}", a) and j + 1 < len(argv) and RAW_DISK.match(argv[j + 1]):
             return "redirecting output onto a raw disk device"
-        if a.startswith(">") and RAW_DISK.match(a[1:]):
+        m = re.match(r"^(&?\d*>{1,2})(.+)", a)
+        if m and RAW_DISK.match(m.group(2)):
             return "redirecting output onto a raw disk device"
 
     if cmd != "rm":

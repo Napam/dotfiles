@@ -1,5 +1,5 @@
 #!/usr/bin/env sh
-#shellcheck shell=bash disable=SC2035
+#shellcheck shell=sh disable=SC2035
 
 # Important to premake these dirs such that
 # stow doesn't link things such as .local,
