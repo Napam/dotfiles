@@ -96,9 +96,14 @@ if vim.uv.fs_stat(ts_bin) == nil then
   end
 end
 
+-- lspconfig server names kept out of derived LSP enablement (plugin/lsp.lua):
+-- roslyn is owned by roslyn.nvim (plugin/lang/csharp.lua); stylua/tflint are
+-- non-LSPs that still have registry→lspconfig mappings.
+Config.mason_lsp_exclude = { "roslyn", "stylua", "tflint" }
+
 -- essentials = pre-built binaries only, so bare machines boot.
 -- WARN: stylua needs `unzip` on PATH; kept in extras to avoid breaking essentials.
-local ensure_installed = {
+Config.mason_essential_pkgs = {
   "actionlint",
   "hadolint",
   "lua-language-server",
@@ -106,6 +111,7 @@ local ensure_installed = {
   "shfmt",
   "taplo",
 }
+local ensure_installed = Config.mason_essential_pkgs
 
 if not Config.only_essential_plugins() then
   -- Per-ft lazy install; install_pkg skips already-installed pkgs.
@@ -114,7 +120,7 @@ if not Config.only_essential_plugins() then
   local terraform_pkgs = { "terraform-ls", "tflint" }
   local bash_pkgs = { "bash-language-server" }
 
-  local lazy_by_ft = {
+  Config.mason_lazy_by_ft = {
     python = { "basedpyright", "ruff", "debugpy" },
     go = { "gopls", "golangci-lint", "golangci-lint-langserver", "delve", "gotestsum", "impl" },
     javascript = js_pkgs,
@@ -151,6 +157,7 @@ if not Config.only_essential_plugins() then
     jinja = { "djlint", "jinja-lsp", "rustywind" },
     powershell = { "powershell-editor-services" },
   }
+  local lazy_by_ft = Config.mason_lazy_by_ft
 
   -- triggered[ft]: install started/done; installing[pkg]: in flight (shared across fts).
   -- KNOWN EDGE: ft B skips a pkg A is mid-installing, so B's ready notify can fire early;

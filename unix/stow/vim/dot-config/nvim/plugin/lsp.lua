@@ -14,44 +14,40 @@ require("lazyload").on_vim_enter(function()
     capabilities = require("blink.cmp").get_lsp_capabilities(),
   })
 
-  local servers = {
-    "basedpyright",
-    "bashls",
-    "bicep",
-    "buf_ls",
-    "codebook",
-    "cssls",
-    "dockerls",
-    "eslint",
-    "glsl_analyzer",
-    "golangci_lint_ls",
-    "gopls",
-    "graphql",
-    "jinja_lsp",
-    "jsonls",
-    "kotlin_lsp",
-    "lua_ls",
-    "powershell_es",
-    "ruff",
-    "rust_analyzer",
-    "superhtml",
-    "svelte",
-    "tailwindcss",
-    "taplo",
-    "templ",
-    "terraformls",
-    "tinymist",
-    "ts_query_ls",
-    "vtsls",
-    "yamlls",
-    "zls",
-  }
-
-  -- Allowlist form: bare `true` also enables installed-but-unlisted pkgs
-  -- (observed: roslyn, stylua, tflint); a table WITH an `exclude` key flips to
-  -- exclude-list semantics.
+  -- LSP allowlist derived from 0004_mason.lua's install lists — single source of truth.
+  -- Exclusions live in Config.mason_lsp_exclude (server names, next to the data they guard).
+  -- Allowlist form: bare `true` enables every installed pkg with a registry mapping,
+  -- listed or not; a table WITH an `exclude` key flips to exclude-list semantics.
   -- WARN: must stay after the pack.add above — init() resolves lsp/<name>.lua
   -- immediately, and after/lsp/yamlls.lua requires schemastore from SchemaStore.nvim.
+  local excluded_servers = {}
+  for _, name in ipairs(Config.mason_lsp_exclude) do
+    excluded_servers[name] = true
+  end
+  local lsp_name_of = require("mason-lspconfig").get_mappings().package_to_lspconfig
+  local seen, servers = {}, {}
+  local function add_pkg(pkg)
+    local name = lsp_name_of[pkg]
+    if name and not excluded_servers[name] and not seen[name] then
+      seen[name] = true
+      servers[#servers + 1] = name
+    end
+  end
+  for _, pkg in ipairs(Config.mason_essential_pkgs) do
+    add_pkg(pkg)
+  end
+  for _, pkgs in pairs(Config.mason_lazy_by_ft) do
+    for _, pkg in ipairs(pkgs) do
+      add_pkg(pkg)
+    end
+  end
+  table.sort(servers)
+  if #servers == 0 then
+    vim.notify(
+      "lsp.lua: derived empty server list (mason registry cache missing?) — no LSPs enabled",
+      vim.log.levels.WARN
+    )
+  end
   require("mason-lspconfig").setup({ automatic_enable = servers })
 
   vim.filetype.add({
