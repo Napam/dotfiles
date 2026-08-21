@@ -1,5 +1,4 @@
--- WARN: source-time load — mason bin must be on PATH before sibling
--- 0000_priority/ files spawn binaries.
+-- WARN: source-time load — sibling 0000_priority/ files spawn mason bins.
 vim.pack.add({
   { src = "https://github.com/mason-org/mason.nvim" },
   { src = "https://github.com/mason-org/mason-lspconfig.nvim" },
@@ -16,8 +15,7 @@ require("mason").setup({
 })
 require("mason-lock").setup({})
 
--- HACK: mason-lock notifies "Wrote Mason lockfile" on every package install
--- success (~40x on cold install). Silence the success notify; keep errors.
+-- HACK: mason-lock notifies "Wrote Mason lockfile" per install (~40x cold). Silence success only.
 do
   local ml = require("mason-lock")
   local orig = ml.write_lockfile
@@ -39,9 +37,8 @@ do
   end
 end
 
--- automatic_enable=false: vim.lsp.enable() handled in plugin/lsp.lua. Kept for
--- mason<->lspconfig name aliases (e.g. lua_ls -> lua-language-server).
-require("mason-lspconfig").setup({ automatic_enable = false })
+-- setup lives in plugin/lsp.lua: its init() resolves lsp/<name>.lua eagerly, and
+-- after/lsp/yamlls.lua needs schemastore — on rtp only after lsp.lua's pack.add.
 
 local mason_registry = require("mason-registry")
 
@@ -66,9 +63,8 @@ local function install_pkg(name, on_done)
   end)
 end
 
--- WARN: tree-sitter-cli must exist before Config.ts.ensure_parser
--- (0001_nvim-treesitter.lua); first parser compile silently fails otherwise.
--- Cost: ~15s refresh + ~5-15s install on FIRST launch only.
+-- WARN: tree-sitter-cli must exist before Config.ts.ensure_parser (0001_nvim-treesitter.lua);
+-- first parser compile silently fails otherwise. Cost on first launch only.
 local critical_sync = { "tree-sitter-cli" }
 
 -- PERF: file-on-disk sentinel skips the sync block (~13ms) on warm cache.
@@ -112,9 +108,7 @@ local ensure_installed = {
 }
 
 if not Config.only_essential_plugins() then
-  -- Install tools lazily on first encounter of a filetype rather than all at
-  -- once on startup. install_pkg is idempotent; already-installed packages are
-  -- skipped immediately.
+  -- Per-ft lazy install; install_pkg skips already-installed pkgs.
   local js_pkgs = { "vtsls", "eslint-lsp", "prettierd" }
   local json_pkgs = { "json-lsp" }
   local terraform_pkgs = { "terraform-ls", "tflint" }
@@ -142,7 +136,7 @@ if not Config.only_essential_plugins() then
     graphql = { "graphql-language-service-cli" },
     html = { "superhtml", "prettierd", "tailwindcss-language-server" },
     css = { "css-lsp", "tailwindcss-language-server", "prettierd" },
-    svelte = { "prettierd", "tailwindcss-language-server" },
+    svelte = { "svelte-language-server", "prettierd", "tailwindcss-language-server" },
     typst = { "tinymist" },
     kotlin = { "kotlin-lsp" },
     sql = { "sql-formatter" },
@@ -153,16 +147,14 @@ if not Config.only_essential_plugins() then
     bicepparam = { "bicep-lsp" },
     templ = { "templ", "rustywind" },
     query = { "ts_query_ls" },
-    htmldjango = { "djlint", "rustywind" },
-    jinja = { "djlint", "rustywind" },
+    htmldjango = { "djlint", "jinja-lsp", "rustywind" },
+    jinja = { "djlint", "jinja-lsp", "rustywind" },
     powershell = { "powershell-editor-services" },
   }
 
-  -- triggered[ft]: true = install in progress or done; nil = not yet started.
-  -- installing[pkg]: true = install in flight (may be shared across filetypes).
-  -- KNOWN EDGE: if ft A starts installing pkg P, and ft B then triggers with P
-  -- in its list, B skips P from its pending counter. B's "ready" notify may fire
-  -- before P actually finishes. Reopening B's file after P lands picks it up.
+  -- triggered[ft]: install started/done; installing[pkg]: in flight (shared across fts).
+  -- KNOWN EDGE: ft B skips a pkg A is mid-installing, so B's ready notify can fire early;
+  -- reopening B's file after P lands picks it up.
   local triggered = {}
   local installing = {}
 
@@ -244,7 +236,8 @@ if not Config.only_essential_plugins() then
                   triggered[ft] = nil
                   vim.notify(("mason: some %s tools failed — reopen file to retry"):format(ft), vim.log.levels.WARN)
                 else
-                  vim.notify(("mason: %s tooling ready — reopen file to activate LSP"):format(ft))
+                  -- automatic_enable activates LSP on install success; no reopen.
+                  vim.notify(("mason: %s tooling ready"):format(ft))
                 end
               end
             end)

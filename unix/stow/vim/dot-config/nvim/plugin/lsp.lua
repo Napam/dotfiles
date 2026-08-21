@@ -21,7 +21,6 @@ require("lazyload").on_vim_enter(function()
     "buf_ls",
     "codebook",
     "cssls",
-    "denols",
     "dockerls",
     "eslint",
     "glsl_analyzer",
@@ -32,7 +31,6 @@ require("lazyload").on_vim_enter(function()
     "jsonls",
     "kotlin_lsp",
     "lua_ls",
-    "nil_ls",
     "powershell_es",
     "ruff",
     "rust_analyzer",
@@ -48,7 +46,13 @@ require("lazyload").on_vim_enter(function()
     "yamlls",
     "zls",
   }
-  vim.lsp.enable(servers)
+
+  -- Allowlist form: bare `true` also enables installed-but-unlisted pkgs
+  -- (observed: roslyn, stylua, tflint); a table WITH an `exclude` key flips to
+  -- exclude-list semantics.
+  -- WARN: must stay after the pack.add above — init() resolves lsp/<name>.lua
+  -- immediately, and after/lsp/yamlls.lua requires schemastore from SchemaStore.nvim.
+  require("mason-lspconfig").setup({ automatic_enable = servers })
 
   vim.filetype.add({
     extension = {
@@ -61,8 +65,7 @@ require("lazyload").on_vim_enter(function()
   -- Codelens opt-in per-buffer; enable globally so attached clients render it.
   vim.lsp.codelens.enable(true)
 
-  -- WARN: per-client guard. workspace_diagnostics is workspace-scoped; LspAttach
-  -- fires per (client, buf), so without this every buffer re-scans.
+  -- WARN: per-client guard — LspAttach fires per (client, buf); without this every buffer re-scans.
   local ws_diag_done = {} ---@type table<integer, boolean>
 
   vim.api.nvim_create_autocmd("LspAttach", {
@@ -79,10 +82,8 @@ require("lazyload").on_vim_enter(function()
           end
         end
 
-        -- Workspace diagnostics: pull (LSP 3.17) if supported, else simulate
-        -- via workspace-diagnostics.nvim (sends didOpen for every file — slow).
-        -- WARN: basedpyright/pyright scan the project natively; workspace-diagnostics
-        -- would send redundant didOpen for already-open buffers and they complain.
+        -- Native pull (LSP 3.17) if supported, else simulate via didOpen-per-file (slow).
+        -- WARN: basedpyright scans natively; simulated didOpen for open bufs makes it complain.
         local ws_diag_native = { basedpyright = true, pyright = true }
         if not ws_diag_done[client.id] and not ws_diag_native[client.name] then
           ws_diag_done[client.id] = true
@@ -142,8 +143,7 @@ require("lazyload").on_vim_enter(function()
   vim.api.nvim_create_autocmd("LspDetach", {
     group = vim.api.nvim_create_augroup("lsp-detach-cleanup", { clear = true }),
     callback = function(args)
-      -- WARN: clear ws_diag_done BEFORE the get_client_by_id guard, else
-      -- early-return on a gone client leaks the entry.
+      -- WARN: clear before the client guard — early-return on a gone client would leak the entry.
       ws_diag_done[args.data.client_id] = nil
 
       local client = vim.lsp.get_client_by_id(args.data.client_id)
