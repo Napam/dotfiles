@@ -43,6 +43,7 @@ path_prepend() { case ":$PATH:" in *":$1:"*) ;; *) PATH="$1:$PATH" ;; esac  }
 path_append()  { case ":$PATH:" in *":$1:"*) ;; *) PATH="$PATH:$1" ;; esac  }
 
 [[ -d /opt/homebrew/bin ]] && path_prepend /opt/homebrew/bin
+[[ -d /opt/homebrew/opt/libpq/bin ]] && path_prepend /opt/homebrew/opt/libpq/bin
 [[ -d /snap/bin ]] && path_prepend /snap/bin
 # bob-managed nvim — must precede brew/usr nvim
 [[ -d "$HOME/.local/share/bob/nvim-bin" ]] && path_prepend "$HOME/.local/share/bob/nvim-bin"
