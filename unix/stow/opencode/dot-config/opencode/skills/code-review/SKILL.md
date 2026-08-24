@@ -2,7 +2,7 @@
 name: code-review
 description: >
   Review code against a prioritized lens — simplicity (KISS/YAGNI), semantics (naming, patterns,
-  magic constants), robustness, correctness. Use when the user asks to "review" code, a diff, or a
+  magic constants), robustness, correctness. Use when the user asks to review code, a diff, or a
   PR; "what could be improved"; "does this look good"; "critique"; or "audit" an implementation.
 ---
 
@@ -58,6 +58,7 @@ does this whole function/module need to exist, or does it solve a problem nobody
 - Side effects hiding inside functions that present as pure.
 - New behavior covered by a test if the project has tests — especially the edge cases this review
   surfaced.
+- When it comes to bugfixes, have we fixed the cause or the symptom?
 
 ## 5. Documentation and comments
 
