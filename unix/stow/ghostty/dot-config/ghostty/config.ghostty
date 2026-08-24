@@ -28,3 +28,4 @@ keybind = all:alt+¨=text:~
 keybind = all:shift+alt+7=text:\\
 keybind = all:shift+alt+8=text:{
 keybind = all:shift+alt+9=text:}
+keybind = global:ctrl+å=toggle_quick_terminal
