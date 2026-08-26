@@ -249,10 +249,30 @@ ocsessprune() {
     return 0
   fi
 
-  local count
+  # Session rows are tiny; nearly all DB bytes are event/message/part payloads.
+  local db db_before
+  db=$HOME/.local/share/opencode/opencode.db
+  declare -A bytes=()
+  if [[ -f $db ]] && command -v sqlite3 > /dev/null; then
+    while IFS='|' read -r id sz; do bytes[$id]=$sz; done < <(
+      sqlite3 "$db" "
+        SELECT s.id,
+          COALESCE((SELECT SUM(LENGTH(e.data)) FROM event e WHERE e.aggregate_id = s.id), 0)
+          + COALESCE((SELECT SUM(LENGTH(m.data)) FROM message m WHERE m.session_id = s.id), 0)
+          + COALESCE((SELECT SUM(LENGTH(p.data)) FROM part p WHERE p.session_id = s.id), 0)
+        FROM session s;" 2> /dev/null
+    )
+  fi
+
+  local count total=0 id
   count=$(wc -l <<< "$ids" | tr -d ' ')
-  echo "Deleting $count opencode session(s) older than $duration:"
-  jq -r --argjson cutoff "$cutoff_ms" '.[] | select(.created < $cutoff) | "  - \(.title) [\(.id)]"' <<< "$json"
+  while IFS= read -r id; do ((total += ${bytes[$id]:-0})); done <<< "$ids"
+
+  echo "Deleting $count opencode session(s) older than $duration (~$(humanbytes "$total")):"
+  jq -r --argjson cutoff "$cutoff_ms" '.[] | select(.created < $cutoff) | "\(.id)\t\(.title)"' <<< "$json" |
+    while IFS=$'\t' read -r sid title; do
+      printf '  - %s [%s] (%s)\n' "$title" "$sid" "$(humanbytes "${bytes[$sid]:-0}")"
+    done
 
   local confirm
   printf "Proceed? (y/n): "
@@ -262,8 +282,7 @@ ocsessprune() {
     return 0
   fi
 
-  local rc=0 id db db_before db_after
-  db=$HOME/.local/share/opencode/opencode.db
+  local rc=0 db_after
   db_before=$(stat -f%z "$db" 2> /dev/null || stat -c%s "$db" 2> /dev/null)
 
   while IFS= read -r id; do
@@ -291,7 +310,13 @@ ocsessprune() {
   if [[ -f $db ]] && command -v sqlite3 > /dev/null && sqlite3 "$db" VACUUM; then
     db_after=$(stat -f%z "$db" 2> /dev/null || stat -c%s "$db" 2> /dev/null)
     if [[ -n $db_before && -n $db_after ]]; then
-      echo "Done ($rc failures). DB size: $(humanbytes "$db_before") -> $(humanbytes "$db_after")"
+      local freed=$((db_before - db_after))
+      if ((freed > 0)); then
+        echo "Done ($rc failures). Freed $(humanbytes "$freed") ($(humanbytes "$db_before") -> $(humanbytes "$db_after"))."
+      else
+        echo "Done ($rc failures). No space reclaimed ($(humanbytes "$db_before") -> $(humanbytes "$db_after"))."
+        echo "Deleted sessions held ~$(humanbytes "$total"); the rest is live sessions' event logs."
+      fi
     else
       echo "Done ($rc failures). VACUUM ran, size unknown (stat failed)."
     fi
