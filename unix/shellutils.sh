@@ -398,3 +398,32 @@ function installubuntuessentials() {
     gcc \
     git-delta
 }
+
+# Apply macOS defaults for terminal/nvim-first use.
+# WARN: ApplePressAndHoldEnabled=false kills the long-press accent picker.
+# WARN: undo via `defaults delete -g <key>` (see echo at end); re-running is safe.
+# Caps Lock->Escape: not scripted. Set once in System Settings > Keyboard >
+# "Modifier Keys..." (per-keyboard, survives reboot & reconnect).
+setupmac() {
+  [[ ${IS_MAC-} ]] || { echo "setupmac: macOS only" >&2; return 1; }
+
+  defaults write -g ApplePressAndHoldEnabled                -bool false
+  defaults write -g KeyRepeat                               -int  1
+  defaults write -g InitialKeyRepeat                        -int  10
+  defaults write -g NSAutomaticQuoteSubstitutionEnabled     -bool false
+  defaults write -g NSAutomaticDashSubstitutionEnabled      -bool false
+  defaults write -g NSAutomaticPeriodSubstitutionEnabled    -bool false
+  defaults write -g NSAutomaticCapitalizationEnabled        -bool false
+  defaults write -g NSAutomaticSpellingCorrectionEnabled    -bool false
+  defaults write -g NSAutomaticTextCompletionEnabled        -bool false
+  defaults write -g AppleKeyboardUIMode                     -int  2
+
+  cat << 'EOM'
+setupmac: done.
+- Full effect needs a log out & back in, or restart open apps.
+- Revert quotes/repeat/correction changes with:
+    defaults delete -g ApplePressAndHoldEnabled KeyRepeat InitialKeyRepeat AppleKeyboardUIMode NSAutomaticQuoteSubstitutionEnabled NSAutomaticDashSubstitutionEnabled NSAutomaticPeriodSubstitutionEnabled NSAutomaticCapitalizationEnabled NSAutomaticSpellingCorrectionEnabled NSAutomaticTextCompletionEnabled
+- Caps Lock->Escape: set once in System Settings > Keyboard > "Modifier Keys..."
+  (per-keyboard, survives reboot & reconnect).
+EOM
+}
