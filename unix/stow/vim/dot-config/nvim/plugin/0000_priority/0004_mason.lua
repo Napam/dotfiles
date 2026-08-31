@@ -156,6 +156,7 @@ if not Config.only_essential_plugins() then
     htmldjango = { "djlint", "jinja-lsp", "rustywind" },
     jinja = { "djlint", "jinja-lsp", "rustywind" },
     powershell = { "powershell-editor-services" },
+    xml = { "lemminx" },
   }
   local lazy_by_ft = Config.mason_lazy_by_ft
 
