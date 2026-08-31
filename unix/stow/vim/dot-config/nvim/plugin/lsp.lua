@@ -14,6 +14,45 @@ require("lazyload").on_vim_enter(function()
     capabilities = require("blink.cmp").get_lsp_capabilities(),
   })
 
+  -- HACK: workspace-diagnostics.nvim's populate_workspace_diagnostics() raw-notifies
+  -- textDocument/didOpen for every workspace file on attach (our fallback for clients
+  -- lacking workspace/diagnostic at attach time — roslyn registers pull diagnostics
+  -- only after attach). The server then holds those docs open, but nvim tracks nothing,
+  -- so opening the file for real (e.g. gd) sends a second didOpen with no didClose and
+  -- roslyn-language-server Contract.Fails (process death). Server-side, arguably bad
+  -- behavior; client-side we just dedup. Upstream nvim fix closed unmerged:
+  -- https://github.com/neovim/neovim/pull/38301
+  -- Guard at notify level so raw plugin notifies and core sends share one dedup set;
+  -- a handler-level guard misses the plugin's bypass.
+  -- WARN: patches ALL clients; must run before any client attaches (sits above
+  -- mason-lspconfig.setup for that reason). Remove once nvim guards didOpen itself.
+  local Client = require("vim.lsp.client")
+  local orig_notify = Client.notify
+  ---@diagnostic disable-next-line: duplicate-set-field
+  function Client:notify(method, params, ...)
+    if method == "textDocument/didOpen" then
+      local uri = params and params.textDocument and params.textDocument.uri
+      self._didopen_uris = self._didopen_uris or {}
+      if uri then
+        if self._didopen_uris[uri] then
+          return false
+        end
+        local sent = orig_notify(self, method, params, ...)
+        -- WARN: unmark on failed send so a later legit attempt isn't swallowed.
+        if not sent then
+          self._didopen_uris[uri] = nil
+        end
+        return sent
+      end
+    elseif method == "textDocument/didClose" then
+      local uri = params and params.textDocument and params.textDocument.uri
+      if uri and self._didopen_uris then
+        self._didopen_uris[uri] = nil
+      end
+    end
+    return orig_notify(self, method, params, ...)
+  end
+
   -- LSP allowlist derived from 0004_mason.lua's install lists — single source of truth.
   -- Exclusions live in Config.mason_lsp_exclude (server names, next to the data they guard).
   -- Allowlist form: bare `true` enables every installed pkg with a registry mapping,
