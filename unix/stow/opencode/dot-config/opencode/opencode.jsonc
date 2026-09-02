@@ -47,26 +47,6 @@
     "low": { "model": "opencode-go/deepseek-v4-flash-vision-exp", "variant": "high" },
     "med": { "model": "opencode-go/deepseek-v4-flash-vision-exp", "variant": "max" },
     "deep": { "model": "opencode-go/deepseek-v4-pro", "variant": "high" },
-    "herdr-controller": {
-      "model": "opencode-go/deepseek-v4-flash-vision-exp",
-      "variant": "high",
-      "permission": { "task": { "*": "deny" } },
-    },
-    "herdr-worker": {
-      "model": "opencode-go/deepseek-v4-flash-vision-exp",
-      "variant": "high",
-      "permission": { "task": { "*": "deny" } },
-    },
-    "agmsg-controller": {
-      "model": "opencode-go/deepseek-v4-flash-vision-exp",
-      "variant": "high",
-      "permission": { "task": { "*": "deny" } },
-    },
-    "agmsg-worker": {
-      "model": "opencode-go/deepseek-v4-flash-vision-exp",
-      "variant": "high",
-      "permission": { "task": { "*": "deny" } },
-    },
     "build": { "model": "opencode-go/deepseek-v4-flash-vision-exp" },
     "general": { "model": "opencode-go/deepseek-v4-flash-vision-exp" },
     "min": {

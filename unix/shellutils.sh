@@ -326,6 +326,119 @@ ocsessprune() {
   return $rc
 }
 
+# WARN: deletes opencode2 sessions older than DURATION via API only. Irreversible.
+ocsessprune2() {
+  local duration=${1:-} cutoff
+
+  if [[ -z $duration ]]; then
+    echo "ocsessprune2: no timeframe given. Usage: ocsessprune2 <duration>, e.g. 1w, 2 weeks, 30d, 3h" >&2
+    return 1
+  fi
+
+  # GNU date parses "1 week"; BSD date (macOS) can't, so gnuify gives us gdate (or GNU date on Linux).
+  # It does not parse shorthands like 1w/30d/3h, so expand a trailing unit letter first.
+  local datecmd spec
+  datecmd=$(gnuify date)
+  spec=$duration
+  case $spec in
+    *' '*) ;;
+    *)
+      local num=${spec%?} unit=${spec#"${spec%?}"}
+      case $unit in
+        s|m|h|d|w|y)
+          case $num in
+            ''|*[!0-9]*) ;;
+            *)
+              case $unit in
+                s) spec="$num sec" ;;
+                m) spec="$num minutes" ;;
+                h) spec="$num hours" ;;
+                d) spec="$num days" ;;
+                w) spec="$num weeks" ;;
+                y) spec="$num years" ;;
+              esac ;;
+          esac ;;
+      esac ;;
+  esac
+  if ! cutoff=$("$datecmd" -d "-$spec" +%s 2> /dev/null); then
+    echo "ocsessprune2: bad duration '$duration' (use e.g. 1w, 2 weeks, 30d)" >&2
+    return 1
+  fi
+
+  if ! command -v opencode2 > /dev/null; then
+    echo "ocsessprune2: opencode2 not found" >&2
+    return 1
+  fi
+  if ! command -v jq > /dev/null; then
+    echo "ocsessprune2: jq not found" >&2
+    return 1
+  fi
+
+  local cutoff_ms=$((cutoff * 1000))
+
+  # Page through the API; each page is {data:[...], cursor:{next}}. No sqlite.
+  local cursor="" page page_data next
+  local all_data="[]"
+  while true; do
+    if [[ -z $cursor ]]; then
+      page=$(opencode2 api get "/api/session?limit=100") || {
+        echo "ocsessprune2: session list failed" >&2
+        return 1
+      }
+    else
+      page=$(opencode2 api get "/api/session?limit=100&cursor=$cursor") || {
+        echo "ocsessprune2: session list failed" >&2
+        return 1
+      }
+    fi
+    page_data=$(jq -c '.data // []' <<< "$page") || return 1
+    all_data=$(jq -c --argjson a "$all_data" --argjson b "$page_data" -n '$a + $b') || return 1
+    next=$(jq -r '.cursor.next // empty' <<< "$page") || return 1
+    if [[ -z $next ]]; then
+      break
+    fi
+    cursor=$next
+  done
+
+  local ids
+  ids=$(jq -r --argjson cutoff "$cutoff_ms" '.[] | select(.time.created < $cutoff) | .id' <<< "$all_data") || return 1
+
+  if [[ -z $ids ]]; then
+    echo "ocsessprune2: no sessions older than $duration"
+    return 0
+  fi
+
+  local count
+  count=$(wc -l <<< "$ids" | tr -d ' ')
+  local tok_in tok_out cost
+  tok_in=$(jq --argjson cutoff "$cutoff_ms" '[.[] | select(.time.created < $cutoff) | .tokens.input // 0] | add // 0' <<< "$all_data")
+  tok_out=$(jq --argjson cutoff "$cutoff_ms" '[.[] | select(.time.created < $cutoff) | .tokens.output // 0] | add // 0' <<< "$all_data")
+  cost=$(jq --argjson cutoff "$cutoff_ms" '[.[] | select(.time.created < $cutoff) | .cost // 0] | add // 0' <<< "$all_data")
+
+  echo "Deleting $count opencode2 session(s) older than $duration (in-tokens: $tok_in, out-tokens: $tok_out, cost: \$$cost):"
+  jq -r --argjson cutoff "$cutoff_ms" '.[] | select(.time.created < $cutoff) | "\(.id)\t\(.title // "untitled")\t\(.time.created)"' <<< "$all_data" |
+    while IFS=$'\t' read -r sid title created; do
+      printf '  - %s [%s] (%s)\n' "$title" "$sid" "$("$datecmd" -d "@$((created / 1000))" +%F 2> /dev/null || echo "$created")"
+    done
+
+  local confirm
+  printf "Proceed? (y/n): "
+  read -r confirm
+  if [[ $confirm != [yY] && $confirm != [yY][eE][sS] ]]; then
+    echo "ocsessprune2: cancelled"
+    return 0
+  fi
+
+  local rc=0 id
+  while IFS= read -r id; do
+    opencode2 api delete "/api/session/$id" > /dev/null || rc=1
+  done <<< "$ids"
+
+  # API delete cascades messages server-side; no orphan SQL, no VACUUM (server owns the DB/WAL).
+  echo "Done ($rc failures). Deleted $count session(s)."
+  return $rc
+}
+
 genpass() {
   local length=${1:-16}
   local pass

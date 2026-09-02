@@ -25,8 +25,8 @@
     "session_interrupt": "escape",
     "session_compact": "<leader>c",
     "session_child_first": "<leader>j",
-    "session_child_cycle": "right,l",
-    "session_child_cycle_reverse": "left,h",
+    "session_child_cycle": "right,j",
+    "session_child_cycle_reverse": "left",
     "session_parent": "k",
 
     "stash_delete": "ctrl+d",
