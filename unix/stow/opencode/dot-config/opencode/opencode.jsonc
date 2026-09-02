@@ -1,6 +1,6 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "model": "opencode-go/deepseek-v4-flash",
+  "model": "opencode-go/deepseek-v4-flash-vision-exp",
   "default_agent": "orchestrator",
 
   // Inherited by all agents unless overridden. Agent permission blocks merge additively
@@ -37,38 +37,38 @@
   "agent": {
     // Prompts/descriptions in agents/*.md; models defined here (avoids precedence bug with OPENCODE_CONFIG)
     "orchestrator": {
-      "model": "opencode-go/deepseek-v4-flash",
+      "model": "opencode-go/deepseek-v4-flash-vision-exp",
       "variant": "high",
       "permission": {
         "task": { "*": "allow", "general": "deny" },
       },
     },
     // Kinda weird now with low and med, since deepseek v4 is both really cheap and really good
-    "low": { "model": "opencode-go/deepseek-v4-flash", "variant": "high" },
-    "med": { "model": "opencode-go/deepseek-v4-flash", "variant": "max" },
+    "low": { "model": "opencode-go/deepseek-v4-flash-vision-exp", "variant": "high" },
+    "med": { "model": "opencode-go/deepseek-v4-flash-vision-exp", "variant": "max" },
     "deep": { "model": "opencode-go/deepseek-v4-pro", "variant": "high" },
     "herdr-controller": {
-      "model": "opencode-go/deepseek-v4-flash",
+      "model": "opencode-go/deepseek-v4-flash-vision-exp",
       "variant": "high",
       "permission": { "task": { "*": "deny" } },
     },
     "herdr-worker": {
-      "model": "opencode-go/deepseek-v4-flash",
+      "model": "opencode-go/deepseek-v4-flash-vision-exp",
       "variant": "high",
       "permission": { "task": { "*": "deny" } },
     },
     "agmsg-controller": {
-      "model": "opencode-go/deepseek-v4-flash",
+      "model": "opencode-go/deepseek-v4-flash-vision-exp",
       "variant": "high",
       "permission": { "task": { "*": "deny" } },
     },
     "agmsg-worker": {
-      "model": "opencode-go/deepseek-v4-flash",
+      "model": "opencode-go/deepseek-v4-flash-vision-exp",
       "variant": "high",
       "permission": { "task": { "*": "deny" } },
     },
-    "build": { "model": "opencode-go/deepseek-v4-flash" },
-    "general": { "model": "opencode-go/deepseek-v4-flash" },
+    "build": { "model": "opencode-go/deepseek-v4-flash-vision-exp" },
+    "general": { "model": "opencode-go/deepseek-v4-flash-vision-exp" },
     "min": {
       "model": "llama-cpp-local/primary",
       "steps": 8,
