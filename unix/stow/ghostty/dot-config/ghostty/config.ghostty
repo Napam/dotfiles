@@ -21,6 +21,8 @@ macos-option-as-alt = true
 
 # Map Cmd+A to send Meta-A (Alt-A) to match the tmux prefix
 keybind = cmd+a=text:\x1ba
+# Also have ctrl+ø map to Alt-A for tmux prefix (tmux can only do ASCII input, thus map from terminal)
+keybind = ctrl+ø=text:\x1ba
 keybind = all:alt+7=text:|
 keybind = all:alt+8=text:[
 keybind = all:alt+9=text:]
