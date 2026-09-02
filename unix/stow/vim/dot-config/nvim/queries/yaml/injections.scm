@@ -21,7 +21,7 @@
       (string_scalar) @_key))
   value: (block_node
     (block_scalar) @injection.content))
-  (#any-of? @_key "args" "command" "cmds" "entrypoint" "cmd" "script" "run" "shell")
+  (#any-of? @_key "args" "command" "cmds" "entrypoint" "cmd" "script" "run" "shell" "bash" "inlineScript")
   (#set! injection.language "bash"))
 
 ; GitHub Actions `run:` with a flow scalar (single-line).
@@ -36,8 +36,20 @@
       (single_quote_scalar)
       (plain_scalar)
     ] @injection.content))
-  (#any-of? @_key "run")
+  (#any-of? @_key "run" "bash" "inlineScript")
   (#set! injection.language "bash"))
+
+; Azure Pipelines PowerShell step (`pwsh:`), PowerShell task.
+; WARN: AzureCLI/AzurePowerShell `inlineScript` is treated as bash above; its real
+; language depends on sibling `scriptType` (bash vs pscore), which injections can't read.
+((block_mapping_pair
+  key: (flow_node
+    (plain_scalar
+      (string_scalar) @_key))
+  value: (block_node
+    (block_scalar) @injection.content))
+  (#any-of? @_key "pwsh" "powershell")
+  (#set! injection.language "powershell"))
 
 ; Prometheus expr / Grafana query.
 ((block_mapping_pair
