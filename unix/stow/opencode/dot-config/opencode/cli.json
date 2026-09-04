@@ -117,7 +117,8 @@
     "timeout": 2000
   },
   "diffs": {
-    "wrap": "word"
+    "wrap": "word",
+    "view": "split"
   },
   "session": {
     "sidebar": "hide",
