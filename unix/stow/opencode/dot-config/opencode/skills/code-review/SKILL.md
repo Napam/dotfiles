@@ -2,8 +2,9 @@
 name: code-review
 description: >
   Review code against a prioritized lens — simplicity (KISS/YAGNI), semantics (naming, patterns,
-  magic constants), robustness, correctness. Use when the user asks to review code, a diff, or a
-  PR; "what could be improved"; "does this look good"; "critique"; or "audit" an implementation.
+  magic constants), robustness, correctness. Must use when the user asks to review code, a diff,
+  or a PR; "what could be improved"; "does this look good"; "critique"; or "audit" an implementation.
+  Contains user preferences, so USE THIS SKILL when asking to review code.
 ---
 
 Review the given code/diff through four lenses, in priority order. Every finding needs evidence
