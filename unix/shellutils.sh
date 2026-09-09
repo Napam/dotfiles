@@ -416,8 +416,8 @@ ocsessprune2() {
   cost=$(jq --argjson cutoff "$cutoff_ms" '[.[] | select(.time.created < $cutoff) | .cost // 0] | add // 0' <<< "$all_data")
 
   echo "Deleting $count opencode2 session(s) older than $duration (in-tokens: $tok_in, out-tokens: $tok_out, cost: \$$cost):"
-  jq -r --argjson cutoff "$cutoff_ms" '.[] | select(.time.created < $cutoff) | "\(.id)\t\(.title // "untitled")\t\(.time.created)"' <<< "$all_data" |
-    while IFS=$'\t' read -r sid title created; do
+  jq -r --argjson cutoff "$cutoff_ms" '.[] | select(.time.created < $cutoff) | "\(.id)\t\(.title // "untitled")\t\(.time.created)"' <<< "$all_data" \
+                                                                                                                                                    | while IFS=$'\t' read -r sid title created; do
       printf '  - %s [%s] (%s)\n' "$title" "$sid" "$("$datecmd" -d "@$((created / 1000))" +%F 2> /dev/null || echo "$created")"
     done
 
@@ -514,15 +514,21 @@ function installubuntuessentials() {
 
 # Apply macOS defaults for terminal/nvim-first use.
 # WARN: ApplePressAndHoldEnabled=false kills the long-press accent picker.
-# WARN: undo via `defaults delete -g <key>` (see echo at end); re-running is safe.
-# Caps Lock->Escape: not scripted. Set once in System Settings > Keyboard >
-# "Modifier Keys..." (per-keyboard, survives reboot & reconnect).
-setupmac() {
-  [[ ${IS_MAC-} ]] || { echo "setupmac: macOS only" >&2; return 1; }
+# WARN: per-app override possible; if an app still eats repeated keys:
+#       defaults write <bundle-id> ApplePressAndHoldEnabled -bool false
+# NOTE: adding a key here? add it to the revert list at the bottom too.
+# Caps Lock->Escape: not scripted on purpose. hidutil doesn't survive hot-plug,
+# and the defaults route needs per-keyboard vendor/product IDs. One GUI toggle
+# is cheaper than either.
+setupmackeyboard() {
+  if [[ ! ${IS_MAC-} ]]; then
+    echo "setupmac: macOS only" >&2
+    return 1
+  fi
 
   defaults write -g ApplePressAndHoldEnabled                -bool false
-  defaults write -g KeyRepeat                               -int  1
-  defaults write -g InitialKeyRepeat                        -int  10
+  defaults write -g KeyRepeat                               -int  2
+  defaults write -g InitialKeyRepeat                        -int  12
   defaults write -g NSAutomaticQuoteSubstitutionEnabled     -bool false
   defaults write -g NSAutomaticDashSubstitutionEnabled      -bool false
   defaults write -g NSAutomaticPeriodSubstitutionEnabled    -bool false
@@ -533,10 +539,22 @@ setupmac() {
 
   cat << 'EOM'
 setupmac: done.
+
+TODO (manual, once per keyboard):
+  Caps Lock->Escape: System Settings > Keyboard > "Modifier Keys..."
+  Survives reboot & reconnect. Nothing else here needs your input.
+
 - Full effect needs a log out & back in, or restart open apps.
-- Revert quotes/repeat/correction changes with:
-    defaults delete -g ApplePressAndHoldEnabled KeyRepeat InitialKeyRepeat AppleKeyboardUIMode NSAutomaticQuoteSubstitutionEnabled NSAutomaticDashSubstitutionEnabled NSAutomaticPeriodSubstitutionEnabled NSAutomaticCapitalizationEnabled NSAutomaticSpellingCorrectionEnabled NSAutomaticTextCompletionEnabled
-- Caps Lock->Escape: set once in System Settings > Keyboard > "Modifier Keys..."
-  (per-keyboard, survives reboot & reconnect).
+- Revert with (defaults delete takes one key at a time):
+    defaults delete -g ApplePressAndHoldEnabled
+    defaults delete -g KeyRepeat
+    defaults delete -g InitialKeyRepeat
+    defaults delete -g NSAutomaticQuoteSubstitutionEnabled
+    defaults delete -g NSAutomaticDashSubstitutionEnabled
+    defaults delete -g NSAutomaticPeriodSubstitutionEnabled
+    defaults delete -g NSAutomaticCapitalizationEnabled
+    defaults delete -g NSAutomaticSpellingCorrectionEnabled
+    defaults delete -g NSAutomaticTextCompletionEnabled
+    defaults delete -g AppleKeyboardUIMode
 EOM
 }
