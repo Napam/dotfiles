@@ -59,9 +59,9 @@ export BUN_BIN="$HOME/.bun/bin"
 [[ -d $BUN_BIN ]] && path_prepend "$BUN_BIN"
 
 [[ -d "$HOME/.jbang/bin" ]] && path_prepend "$HOME/.jbang/bin"
-
 [[ -d "$HOME/.yarn/bin" ]] && path_prepend "$HOME/.yarn/bin"
 [[ -d "$HOME/.config/yarn/global/node_modules/.bin" ]] && path_prepend "$HOME/.config/yarn/global/node_modules/.bin"
+[[ -d "$HOME/.opencode/bin" ]] && path_prepend "$HOME/.opencode/bin"
 
 if [[ ${IS_MAC-} ]] && [[ -d "$HOME/Library/pnpm" ]]; then
   export PNPM_HOME="$HOME/Library/pnpm"
