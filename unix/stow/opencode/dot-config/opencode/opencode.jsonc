@@ -44,9 +44,9 @@
       },
     },
     // Kinda weird now with low and med, since deepseek v4 is both really cheap and really good
-    "low": { "model": "opencode-go/deepseek-v4.1-flash", "variant": "high" },
-    "med": { "model": "opencode-go/deepseek-v4.1-flash", "variant": "max" },
-    "deep": { "model": "opencode-go/deepseek-v4.1-flash", "variant": "high" },
+    "low": { "model": "opencode-go/deepseek-v4.1-flash", "variant": "low" },
+    "med": { "model": "opencode-go/deepseek-v4.1-flash", "variant": "high" },
+    "deep": { "model": "opencode-go/deepseek-v4.1-flash", "variant": "max" },
     "build": { "model": "opencode-go/deepseek-v4.1-flash" },
     "general": { },
     "min": {
