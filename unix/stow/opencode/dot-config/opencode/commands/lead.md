@@ -34,12 +34,17 @@ it stays out of the commit scope unless I say otherwise.
    `## Context`. Hand-off: `## Task` / `## Context` (paths, what exists, decisions)
    / `## Constraints` (scope, style, off-limits) / `## Expected Output`.
    Parallel tracks: tell each worker other agents are editing the repo, so files
-   and check results may change under it; stay in its paths, don't revert or
-   reformat others' work, and report a conflict or failure you didn't cause as
-   `blocked` rather than fixing it.
+   and check results may change under it; include who covers which paths.
+   Stay in its paths, don't revert or reformat others' work, and report a
+   conflict or failure you didn't cause as `blocked` rather than fixing it.
    Worker report: files changed, tests run, leftovers, `STATUS: done | partial |
-   blocked` (missing = partial). `blocked`: stop that track, report, ask before
+   blocked` (missing = partial). `blocked` on a question: answer it and let the
+   track continue. `blocked` on a conflict: stop that track, report, ask before
    retrying.
+   Between spawn and integrate, check progress with `subagent-ops` (active map,
+   message list). A slow worker is fine. A silent one past its expected shape
+   gets inspected, redirected, or interrupted. If the block is dead, interrupt
+   the rest before looping back so nothing burns while ordered tracks wait.
 4. Integrate: merge, resolve conflicts. Run the check to a scratch log; read only
    the tail and failing tests. Do not proceed while it fails, max 3 repair
    attempts, then go to step 8. Past glue, spawn a worker.

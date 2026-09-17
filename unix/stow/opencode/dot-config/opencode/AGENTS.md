@@ -11,3 +11,9 @@ Write like a person, not a model.
 - State what happened, not its significance. No pivotal, landmark, game-changing.
 - Vary sentence length. Short sentences win. Concrete over vague.
 - Code comments describe current code, not history. Never explain a diff ("changed from X"). Future reader has no previous-version context.
+
+# Parallel subagents
+
+Workers in one block share a repo. At spawn, give each one a teammate summary:
+who else runs alongside it and which paths each covers. That alone keeps them
+from getting confused when files or check results change under them.
