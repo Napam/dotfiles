@@ -400,16 +400,24 @@ ocsessprune2() {
     cursor=$next
   done
 
-  local ids
-  ids=$(jq -r --argjson cutoff "$cutoff_ms" '.[] | select(.time.created < $cutoff) | .id' <<< "$all_data") || return 1
+  # Page order is by updated time, so a parent usually sorts before its (older-updated)
+  # children. DELETE cascades to children, so deleting a child after its parent 404s.
+  # all_ids: every old session (for count/token/cost totals). ids: roots to delete.
+  local ids all_ids
+  all_ids=$(jq -r --argjson cutoff "$cutoff_ms" '.[] | select(.time.created < $cutoff) | .id' <<< "$all_data") || return 1
+  ids=$(jq -r --argjson cutoff "$cutoff_ms" '.[] | select(.time.created < $cutoff and .parentID == null) | .id' <<< "$all_data") || return 1
 
-  if [[ -z $ids ]]; then
+  if [[ -z $all_ids ]]; then
     echo "ocsessprune2: no sessions older than $duration"
     return 0
   fi
+  if [[ -z $ids ]]; then
+    echo "ocsessprune2: no root sessions to delete (only orphaned children); nothing removed" >&2
+    return 1
+  fi
 
   local count
-  count=$(wc -l <<< "$ids" | tr -d ' ')
+  count=$(wc -l <<< "$all_ids" | tr -d ' ')
   local tok_in tok_out cost
   tok_in=$(jq --argjson cutoff "$cutoff_ms" '[.[] | select(.time.created < $cutoff) | .tokens.input // 0] | add // 0' <<< "$all_data")
   tok_out=$(jq --argjson cutoff "$cutoff_ms" '[.[] | select(.time.created < $cutoff) | .tokens.output // 0] | add // 0' <<< "$all_data")
@@ -430,11 +438,12 @@ ocsessprune2() {
   fi
 
   local rc=0 id
+  # Roots only: the server cascades delete to child sessions and their messages.
   while IFS= read -r id; do
     opencode2 api delete "/api/session/$id" > /dev/null || rc=1
   done <<< "$ids"
 
-  # API delete cascades messages server-side; no orphan SQL, no VACUUM (server owns the DB/WAL).
+  # No orphan SQL, no VACUUM (server owns the DB/WAL).
   echo "Done ($rc failures). Deleted $count session(s)."
   return $rc
 }
