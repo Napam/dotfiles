@@ -3,80 +3,74 @@
   "model": "opencode-go/deepseek-v4.1-flash",
   "default_agent": "build",
 
-  // Inherited by all agents unless overridden. Agent permission blocks merge additively
-  // on top — specify only the delta (e.g., orchestrator adds "task").
-  "permission": {
-    "edit": "allow",
-    "bash": "allow",
-    "read": {
-      "*": "allow",
-      "**/.env": "deny",
-      "**/.env.*": "deny",
-    },
-    "external_directory": {
-      "/tmp/**": "allow",
-      "~/.agents/**": "allow",
-      "~/.cache/huggingface/**": "allow",
-      "~/.cache/nvim/**": "allow",
-      "~/.cache/opencode/**": "allow",
-      "~/.cache/uv/**": "allow",
-      "~/.cargo/**": "allow",
-      "~/.claude/**": "allow",
-      "~/.config/**": "allow",
-      "~/.go/**": "allow",
-      "~/.gradle/**": "allow",
-      "~/.local/**": "allow",
-      "~/.m2/**": "allow",
-      "~/.nuget/**": "allow",
-      "~/.pub-cache/**": "allow",
-      "~/.terraform.d/**": "allow",
-    },
-    "webfetch": "allow",
-  },
+  // Narrow exceptions to V2's built-in "* allow" base. Evaluated in order, last match wins.
+  // Agent rules are appended after these; specify only the delta (e.g., orchestrator adds "subagent").
+  // WARN: no broad "* allow" here. It would land after builtin agent denies
+  // (plan/explore read-only, title/summary deny-all) and last match wins, re-enabling writes.
+  "permissions": [
+    { "action": "read", "resource": "**/.env", "effect": "deny" },
+    { "action": "read", "resource": "**/.env.*", "effect": "deny" },
+    { "action": "external_directory", "resource": "/tmp/**", "effect": "allow" },
+    { "action": "external_directory", "resource": "~/.agents/**", "effect": "allow" },
+    { "action": "external_directory", "resource": "~/.cache/huggingface/**", "effect": "allow" },
+    { "action": "external_directory", "resource": "~/.cache/nvim/**", "effect": "allow" },
+    { "action": "external_directory", "resource": "~/.cache/opencode/**", "effect": "allow" },
+    { "action": "external_directory", "resource": "~/.cache/uv/**", "effect": "allow" },
+    { "action": "external_directory", "resource": "~/.cargo/**", "effect": "allow" },
+    { "action": "external_directory", "resource": "~/.claude/**", "effect": "allow" },
+    { "action": "external_directory", "resource": "~/.config/**", "effect": "allow" },
+    { "action": "external_directory", "resource": "~/.go/**", "effect": "allow" },
+    { "action": "external_directory", "resource": "~/.gradle/**", "effect": "allow" },
+    { "action": "external_directory", "resource": "~/.local/**", "effect": "allow" },
+    { "action": "external_directory", "resource": "~/.m2/**", "effect": "allow" },
+    { "action": "external_directory", "resource": "~/.nuget/**", "effect": "allow" },
+    { "action": "external_directory", "resource": "~/.pub-cache/**", "effect": "allow" },
+    { "action": "external_directory", "resource": "~/.terraform.d/**", "effect": "allow" },
+  ],
 
-  "agent": {
+  "agents": {
     // Prompts/descriptions in agents/*.md; models defined here (avoids precedence bug with OPENCODE_CONFIG)
     "orchestrator": {
-      "model": "opencode-go/deepseek-v4.1-flash",
-      "variant": "high",
-      "permission": {
-        "task": { "*": "allow", "general": "deny" },
-      },
+      "model": "opencode-go/deepseek-v4.1-flash#high",
+      "permissions": [
+        { "action": "subagent", "resource": "*", "effect": "allow" },
+        { "action": "subagent", "resource": "general", "effect": "deny" },
+      ],
     },
     // Kinda weird now with low and med, since deepseek v4 is both really cheap and really good
-    "low": { "model": "opencode-go/deepseek-v4.1-flash", "variant": "low" },
-    "med": { "model": "opencode-go/deepseek-v4.1-flash", "variant": "high" },
-    "deep": { "model": "opencode-go/deepseek-v4.1-flash", "variant": "max" },
+    "low": { "model": "opencode-go/deepseek-v4.1-flash#low" },
+    "med": { "model": "opencode-go/deepseek-v4.1-flash#high" },
+    "deep": { "model": "opencode-go/deepseek-v4.1-flash#max" },
     "build": { "model": "opencode-go/deepseek-v4.1-flash" },
     "general": { },
     "min": {
       "model": "llama-cpp-local/primary",
       "steps": 8,
-      "permission": {
-        "task": { "*": "deny" },
-        "webfetch": "deny",
-        "todowrite": "deny",
-        "question": "deny",
-      },
+      "permissions": [
+        { "action": "subagent", "resource": "*", "effect": "deny" },
+        { "action": "webfetch", "resource": "*", "effect": "deny" },
+        { "action": "todowrite", "resource": "*", "effect": "deny" },
+        { "action": "question", "resource": "*", "effect": "deny" },
+      ],
     },
   },
 
-  "plugin": [
+  "plugins": [
     "opencode-with-claude@latest",
   ],
 
-  "provider": {
+  "providers": {
     "anthropic": {
-      "options": {
+      "settings": {
         "baseURL": "http://127.0.0.1:3456",
         "apiKey": "dummy",
       },
     },
 
     "ollama": {
-      "npm": "@ai-sdk/openai-compatible",
       "name": "local-ollama",
-      "options": {
+      "package": "aisdk:@ai-sdk/openai-compatible",
+      "settings": {
         "baseURL": "http://localhost:11434/v1",
       },
       "models": {
@@ -85,9 +79,9 @@
     },
 
     "llama-cpp-local": {
-      "npm": "@ai-sdk/openai-compatible",
       "name": "local-llama",
-      "options": {
+      "package": "aisdk:@ai-sdk/openai-compatible",
+      "settings": {
         "baseURL": "http://127.0.0.1:6700",
       },
       "models": {

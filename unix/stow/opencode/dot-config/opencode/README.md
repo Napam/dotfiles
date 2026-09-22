@@ -1,50 +1,48 @@
 # opencode config notes
 
-## Configuring model reasoning effort
+## Model variants
 
-`opencode-go/deepseek-v4-pro` exposes named **effort variants**, each mapping to a
-`reasoningEffort` value:
+Variants are named options for one model, usually reasoning effort or token budgets.
+Names come from the model's catalog metadata, so availability differs per model. An
+unknown variant fails model resolution.
 
-| variant | reasoningEffort |
-|---------|-----------------|
-| `low`   | low             |
-| `medium`| medium          |
-| `high`  | high            |
-| `max`   | max             |
+Pick a variant in the TUI with `/variants` (`variant.list`, listed only when the
+current model has variants); `variant.cycle` (`ctrl+t`) cycles them.
 
-(Verify a model's variants with `opencode models <provider> --verbose`.)
+### Per-agent
 
-### Per-agent (frontmatter)
-
-Set `variant:` in an agent's `agents/*.md` frontmatter. Applies only when the agent
-uses its configured model.
+Join the variant to the model reference with `#`. Markdown frontmatter has no separate
+`variant` key. JSON config also accepts an expanded
+`{ "providerID": ..., "model": ..., "variant": ... }` object.
 
 ```yaml
 ---
-model: opencode-go/deepseek-v4-pro
-variant: low   # less thinking; deep currently runs at medium
+model: <provider>/<model>#<variant>
 ---
 ```
 
-### Model-wide (all agents using that model)
+### Model-wide
 
-Set it in `opencode.jsonc` under `provider` → model → `options`. A per-agent
-`variant` overrides this.
+Set the default under `providers` → model → `settings`. A per-agent variant overrides
+it.
 
 ```jsonc
-"provider": {
-  "opencode-go": {
+"providers": {
+  "<provider>": {
     "models": {
-      "deepseek-v4-pro": { "options": { "reasoningEffort": "low" } }
+      "<model>": { "settings": { "reasoningEffort": "<effort>" } }
     }
   }
 }
 ```
 
+Define new variants, or replace catalog ones, in the model's `variants` array.
+
 ### Notes
 
-- `variant` only works if the model actually declares a variant by that name —
-  variants are model-defined, not free-form. Unknown values are silently ignored.
-- Other reasoning shapes for other providers: OpenAI uses `options.reasoningEffort`
-  (`minimal`/`low`/`medium`/`high`/`xhigh`); Anthropic uses
-  `options.thinking: { type: "enabled", budgetTokens: N }`.
+- The root `model` field keeps only the provider and model, not a variant. Select
+  variants on agents, commands, sessions, or one-off runs
+  (`opencode run --model <provider>/<model>#<variant> ...`).
+- Other providers use the same shape. OpenAI-compatible models take
+  `settings.reasoningEffort`. Anthropic takes
+  `settings.thinking: { "type": "enabled", "budgetTokens": N }`.
