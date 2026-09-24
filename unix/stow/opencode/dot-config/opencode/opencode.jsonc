@@ -4,7 +4,7 @@
   "default_agent": "build",
 
   // Narrow exceptions to V2's built-in "* allow" base. Evaluated in order, last match wins.
-  // Agent rules are appended after these; specify only the delta (e.g., orchestrator adds "subagent").
+  // Agent rules are appended after these; specify only the delta.
   // WARN: no broad "* allow" here. It would land after builtin agent denies
   // (plan/explore read-only, title/summary deny-all) and last match wins, re-enabling writes.
   "permissions": [
@@ -30,13 +30,6 @@
 
   "agents": {
     // Prompts/descriptions in agents/*.md; models defined here (avoids precedence bug with OPENCODE_CONFIG)
-    "orchestrator": {
-      "model": "opencode-go/deepseek-v4.1-flash#high",
-      "permissions": [
-        { "action": "subagent", "resource": "*", "effect": "allow" },
-        { "action": "subagent", "resource": "general", "effect": "deny" },
-      ],
-    },
     // Kinda weird now with low and med, since deepseek v4 is both really cheap and really good
     "low": { "model": "opencode-go/deepseek-v4.1-flash#low" },
     "med": { "model": "opencode-go/deepseek-v4.1-flash#high" },
