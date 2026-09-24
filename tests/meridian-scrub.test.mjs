@@ -1,6 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
+import { homedir } from "node:os";
+import { join } from "node:path";
 import plugin, {
   scrub,
 } from "../unix/stow/meridian/dot-config/meridian/plugins/prompt-scrub.js";
@@ -32,8 +34,8 @@ const ENV_BLOCK = [
   "Here is some useful information about the environment you are running in:",
   "<env>",
   "  Current conversation session ID: ses_abc123",
-  "  Working directory: /Users/naphat/.config/dotfiles",
-  "  Workspace root folder: /Users/naphat/.config/dotfiles",
+  "  Working directory: /workspace/project",
+  "  Workspace root folder: /workspace/project",
   "  Is directory a git repo: yes",
   "  Platform: darwin",
   "  Prefer /tmp over generic system temporary directories.",
@@ -193,9 +195,16 @@ test("env block removed", () => {
 });
 
 test("composed chain: third-party scrub first, then ours", async () => {
-  const thirdParty =
-    "/Users/naphat/.config/meridian/node_modules/" +
-    "@rynfar/meridian-plugin-opencode-scrub/dist/scrub.js";
+  const thirdParty = join(
+    homedir(),
+    ".config",
+    "meridian",
+    "node_modules",
+    "@rynfar",
+    "meridian-plugin-opencode-scrub",
+    "dist",
+    "scrub.js",
+  );
   if (!existsSync(thirdParty)) {
     assert.fail(
       `Layer-A scrub package absent: ${thirdParty}. ` +
@@ -283,7 +292,7 @@ test("onRequest never returns undefined", () => {
 });
 
 test("drift guard: identity needles in live binary", (t) => {
-  const bin = "/Users/naphat/.opencode/bin/opencode";
+  const bin = join(homedir(), ".opencode", "bin", "opencode");
   if (!existsSync(bin)) {
     t.skip("binary absent");
     return;

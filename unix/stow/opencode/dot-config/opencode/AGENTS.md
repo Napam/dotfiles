@@ -12,6 +12,10 @@ Write like a person, not a model.
 - Vary sentence length. Short sentences win. Concrete over vague.
 - Code comments describe current code, not history. Never explain a diff ("changed from X"). Future reader has no previous-version context.
 
+# Commits
+
+Before committing, check recent commit messages to infer the user's usual commit style, then follow it.
+
 # Parallel subagents
 
 Workers in one block share a repo. At spawn, give each one a teammate summary:
