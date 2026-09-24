@@ -33,7 +33,7 @@
     // Kinda weird now with low and med, since deepseek v4 is both really cheap and really good
     "low": { "model": "opencode-go/deepseek-v4.1-flash#low" },
     "med": { "model": "opencode-go/deepseek-v4.1-flash#high" },
-    "deep": { "model": "opencode-go/deepseek-v4.1-flash#max" },
+    "deep": { "model": "opencode-go/glm-5.3#max" },
     "build": { "model": "opencode-go/deepseek-v4.1-flash" },
     "general": { },
     "min": {
