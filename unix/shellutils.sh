@@ -210,140 +210,27 @@ humanbytes() {
   printf '%s%s' "$n" "$u"
 }
 
-# WARN: deletes opencode sessions older than DURATION (e.g. 1w, 2 weeks, 30d). Irreversible.
+# WARN: deletes opencode2 sessions older than DURATION via API only. Irreversible.
 ocsessprune() {
-  local duration=${1:-} cutoff
+  local duration=${1:-} cutoff now spec
 
   if [[ -z $duration ]]; then
     echo "ocsessprune: no timeframe given. Usage: ocsessprune <duration>, e.g. 1w, 2 weeks, 30d, 3h" >&2
     return 1
   fi
 
-  # GNU date parses "1 week"; BSD date (macOS) can't, so gnuify gives us gdate (or GNU date on Linux).
-  local datecmd
-  datecmd=$(gnuify date)
-  if ! cutoff=$("$datecmd" -d "-$duration" +%s 2> /dev/null); then
-    echo "ocsessprune: bad duration '$duration' (use e.g. 1w, 2 weeks, 30d)" >&2
-    return 1
-  fi
-
-  if ! command -v opencode > /dev/null; then
-    echo "ocsessprune: opencode not found" >&2
-    return 1
-  fi
-  if ! command -v jq > /dev/null; then
-    echo "ocsessprune: jq not found" >&2
-    return 1
-  fi
-
-  local cutoff_ms json ids
-  cutoff_ms=$((cutoff * 1000))
-  if ! json=$(opencode session list --format json); then
-    echo "ocsessprune: opencode session list failed" >&2
-    return 1
-  fi
-  ids=$(jq -r --argjson cutoff "$cutoff_ms" '.[] | select(.created < $cutoff) | .id' <<< "$json") || return 1
-
-  if [[ -z $ids ]]; then
-    echo "ocsessprune: no sessions older than $duration"
-    return 0
-  fi
-
-  # Session rows are tiny; nearly all DB bytes are event/message/part payloads.
-  local db db_before
-  db=$HOME/.local/share/opencode/opencode.db
-  declare -A bytes=()
-  if [[ -f $db ]] && command -v sqlite3 > /dev/null; then
-    while IFS='|' read -r id sz; do bytes[$id]=$sz; done < <(
-      sqlite3 "$db" "
-        SELECT s.id,
-          COALESCE((SELECT SUM(LENGTH(e.data)) FROM event e WHERE e.aggregate_id = s.id), 0)
-          + COALESCE((SELECT SUM(LENGTH(m.data)) FROM message m WHERE m.session_id = s.id), 0)
-          + COALESCE((SELECT SUM(LENGTH(p.data)) FROM part p WHERE p.session_id = s.id), 0)
-        FROM session s;" 2> /dev/null
-    )
-  fi
-
-  local count total=0 id
-  count=$(wc -l <<< "$ids" | tr -d ' ')
-  while IFS= read -r id; do ((total += ${bytes[$id]:-0})); done <<< "$ids"
-
-  echo "Deleting $count opencode session(s) older than $duration (~$(humanbytes "$total")):"
-  jq -r --argjson cutoff "$cutoff_ms" '.[] | select(.created < $cutoff) | "\(.id)\t\(.title)"' <<< "$json" |
-    while IFS=$'\t' read -r sid title; do
-      printf '  - %s [%s] (%s)\n' "$title" "$sid" "$(humanbytes "${bytes[$sid]:-0}")"
-    done
-
-  local confirm
-  printf "Proceed? (y/n): "
-  read -r confirm
-  if [[ $confirm != [yY] && $confirm != [yY][eE][sS] ]]; then
-    echo "ocsessprune: cancelled"
-    return 0
-  fi
-
-  local rc=0 db_after
-  db_before=$(stat -f%z "$db" 2> /dev/null || stat -c%s "$db" 2> /dev/null)
-
-  while IFS= read -r id; do
-    opencode session delete "$id" > /dev/null || rc=1
-  done <<< "$ids"
-
-  # CLI can't list subagent sessions, so clean orphaned ones (parent already gone) via sqlite.
-  # WARN: if opencode changes the schema, the count query fails -> treated as 0, nothing wiped.
-  local orphans
-  orphans=0
-  if [[ -f $db ]] && command -v sqlite3 > /dev/null; then
-    orphans=$(sqlite3 "$db" "SELECT COUNT(*) FROM session WHERE parent_id IS NOT NULL AND parent_id NOT IN (SELECT id FROM session);" 2> /dev/null)
-    if ((orphans > 0)); then
-      if sqlite3 "$db" "
-        PRAGMA foreign_keys=ON;
-        DELETE FROM event_sequence WHERE aggregate_id IN (SELECT id FROM session WHERE parent_id IS NOT NULL AND parent_id NOT IN (SELECT id FROM session));
-        DELETE FROM session WHERE parent_id IS NOT NULL AND parent_id NOT IN (SELECT id FROM session);"; then
-        echo "Removed $orphans orphaned subagent session(s)."
-      else
-        echo "ocsessprune: orphan subagent cleanup failed (schema changed?). Skipping." >&2
-      fi
-    fi
-  fi
-
-  if [[ -f $db ]] && command -v sqlite3 > /dev/null && sqlite3 "$db" VACUUM; then
-    db_after=$(stat -f%z "$db" 2> /dev/null || stat -c%s "$db" 2> /dev/null)
-    if [[ -n $db_before && -n $db_after ]]; then
-      local freed=$((db_before - db_after))
-      if ((freed > 0)); then
-        echo "Done ($rc failures). Freed $(humanbytes "$freed") ($(humanbytes "$db_before") -> $(humanbytes "$db_after"))."
-      else
-        echo "Done ($rc failures). No space reclaimed ($(humanbytes "$db_before") -> $(humanbytes "$db_after"))."
-        echo "Deleted sessions held ~$(humanbytes "$total"); the rest is live sessions' event logs."
-      fi
-    else
-      echo "Done ($rc failures). VACUUM ran, size unknown (stat failed)."
-    fi
-  else
-    echo "Done ($rc failures). VACUUM skipped (sqlite3 missing, db not found, or vacuum failed). Run 'sqlite3 ~/.local/share/opencode/opencode.db VACUUM;' manually."
-  fi
-  return $rc
-}
-
-# WARN: deletes opencode2 sessions older than DURATION via API only. Irreversible.
-ocsessprune2() {
-  local duration=${1:-} cutoff
-
-  if [[ -z $duration ]]; then
-    echo "ocsessprune2: no timeframe given. Usage: ocsessprune2 <duration>, e.g. 1w, 2 weeks, 30d, 3h" >&2
-    return 1
-  fi
-
-  # GNU date parses "1 week"; BSD date (macOS) can't, so gnuify gives us gdate (or GNU date on Linux).
-  # It does not parse shorthands like 1w/30d/3h, so expand a trailing unit letter first.
-  local datecmd spec
+  local datecmd num unit
   datecmd=$(gnuify date)
   spec=$duration
   case $spec in
+    *' ago') spec=${spec% ago} ;;
+    *ago) spec=${spec%ago} ;;
+  esac
+  case $spec in
     *' '*) ;;
     *)
-      local num=${spec%?} unit=${spec#"${spec%?}"}
+      num=${spec%?}
+      unit=${spec#"${spec%?}"}
       case $unit in
         s|m|h|d|w|y)
           case $num in
@@ -360,39 +247,59 @@ ocsessprune2() {
           esac ;;
       esac ;;
   esac
+
+  if ! "$datecmd" -d "1 day" +%s > /dev/null 2>&1; then
+    echo "ocsessprune: GNU date is required; install coreutils (gdate on macOS)" >&2
+    return 1
+  fi
   if ! cutoff=$("$datecmd" -d "-$spec" +%s 2> /dev/null); then
-    echo "ocsessprune2: bad duration '$duration' (use e.g. 1w, 2 weeks, 30d)" >&2
+    echo "ocsessprune: bad duration '$duration' (use e.g. 1w, 2 weeks, 30d)" >&2
+    return 1
+  fi
+  now=$("$datecmd" +%s) || return 1
+  if ((cutoff >= now)); then
+    echo "ocsessprune: duration must be greater than zero" >&2
     return 1
   fi
 
   if ! command -v opencode2 > /dev/null; then
-    echo "ocsessprune2: opencode2 not found" >&2
+    echo "ocsessprune: opencode2 not found" >&2
     return 1
   fi
   if ! command -v jq > /dev/null; then
-    echo "ocsessprune2: jq not found" >&2
+    echo "ocsessprune: jq not found" >&2
     return 1
   fi
 
   local cutoff_ms=$((cutoff * 1000))
+  local active active_ids
+  if ! active=$(opencode2 api get "/api/session/active"); then
+    echo "ocsessprune: active session list failed" >&2
+    return 1
+  fi
+  if ! active_ids=$(jq -ce '.data | if type == "object" then keys else error("active response has no data object") end' <<< "$active" 2> /dev/null); then
+    echo "ocsessprune: invalid active session response" >&2
+    return 1
+  fi
 
-  # Page through the API; each page is {data:[...], cursor:{next}}. No sqlite.
-  local cursor="" page page_data next
-  local all_data="[]"
+  local cursor="" page page_data next all_pages=""
   while true; do
     if [[ -z $cursor ]]; then
-      page=$(opencode2 api get "/api/session?limit=100") || {
-        echo "ocsessprune2: session list failed" >&2
+      page=$(opencode2 api get "/api/session?limit=100&order=asc") || {
+        echo "ocsessprune: session list failed" >&2
         return 1
       }
     else
-      page=$(opencode2 api get "/api/session?limit=100&cursor=$cursor") || {
-        echo "ocsessprune2: session list failed" >&2
+      page=$(opencode2 api get "/api/session?limit=100&order=asc&cursor=$cursor") || {
+        echo "ocsessprune: session list failed" >&2
         return 1
       }
     fi
-    page_data=$(jq -c '.data // []' <<< "$page") || return 1
-    all_data=$(jq -c --argjson a "$all_data" --argjson b "$page_data" -n '$a + $b') || return 1
+    if ! page_data=$(jq -c 'if (.data | type) == "array" then .data else error("session response has no data array") end' <<< "$page" 2> /dev/null); then
+      echo "ocsessprune: invalid session list response" >&2
+      return 1
+    fi
+    all_pages+="$page_data"$'\n'
     next=$(jq -r '.cursor.next // empty' <<< "$page") || return 1
     if [[ -z $next ]]; then
       break
@@ -400,52 +307,110 @@ ocsessprune2() {
     cursor=$next
   done
 
-  # Page order is by updated time, so a parent usually sorts before its (older-updated)
-  # children. DELETE cascades to children, so deleting a child after its parent 404s.
-  # all_ids: every old session (for count/token/cost totals). ids: roots to delete.
-  local ids all_ids
-  all_ids=$(jq -r --argjson cutoff "$cutoff_ms" '.[] | select(.time.created < $cutoff) | .id' <<< "$all_data") || return 1
-  ids=$(jq -r --argjson cutoff "$cutoff_ms" '.[] | select(.time.created < $cutoff and .parentID == null) | .id' <<< "$all_data") || return 1
-
-  if [[ -z $all_ids ]]; then
-    echo "ocsessprune2: no sessions older than $duration"
-    return 0
+  local all_data selected ids
+  if ! all_data=$(jq -s -c 'add // []' <<< "$all_pages"); then
+    echo "ocsessprune: failed to combine session pages" >&2
+    return 1
   fi
-  if [[ -z $ids ]]; then
-    echo "ocsessprune2: no root sessions to delete (only orphaned children); nothing removed" >&2
+  if ! selected=$(jq -c --argjson cutoff "$cutoff_ms" --argjson active "$active_ids" '
+    def root_of($sessions; $id):
+      ($sessions | map(select(.id == $id)) | .[0]) as $session
+      | if $session == null then null
+        elif (($session.parentID // null) == null
+          or ([$sessions[] | select(.id == $session.parentID)] | length == 0)) then $session.id
+        else root_of($sessions; $session.parentID)
+        end;
+    . as $sessions
+    | ($sessions
+       | map({session: ., root: root_of($sessions; .id)})
+       | group_by(.root)
+       | map({
+           session: ((map(select(.session.parentID == null))[0] // .[0]).session),
+           root: .[0].root,
+           latest: (map(.session | (.time.updated // .time.created // 0)) | max // 0),
+           child_count: (length - 1),
+           members: map(.session),
+           cost: (map(.session.cost // 0) | add // 0)
+         })
+       | map(. as $group
+           | ([$group.members[].id] as $member_ids
+              | . + {active: any($active[]; . as $active_id
+                  | ($member_ids | index($active_id) != null))}))
+       | map(select(.root != null and .latest < $cutoff and .active == false)))
+       | sort_by(.latest)
+  ' <<< "$all_data"); then
+    echo "ocsessprune: failed to select sessions" >&2
     return 1
   fi
 
-  local count
-  count=$(wc -l <<< "$all_ids" | tr -d ' ')
-  local tok_in tok_out cost
-  tok_in=$(jq --argjson cutoff "$cutoff_ms" '[.[] | select(.time.created < $cutoff) | .tokens.input // 0] | add // 0' <<< "$all_data")
-  tok_out=$(jq --argjson cutoff "$cutoff_ms" '[.[] | select(.time.created < $cutoff) | .tokens.output // 0] | add // 0' <<< "$all_data")
-  cost=$(jq --argjson cutoff "$cutoff_ms" '[.[] | select(.time.created < $cutoff) | .cost // 0] | add // 0' <<< "$all_data")
+  if [[ $(jq 'length' <<< "$selected") == 0 ]]; then
+    echo "ocsessprune: no inactive sessions older than $duration"
+    return 0
+  fi
+  ids=$(jq -r '.[].root' <<< "$selected") || return 1
 
-  echo "Deleting $count opencode2 session(s) older than $duration (in-tokens: $tok_in, out-tokens: $tok_out, cost: \$$cost):"
-  jq -r --argjson cutoff "$cutoff_ms" '.[] | select(.time.created < $cutoff) | "\(.id)\t\(.title // "untitled")\t\(.time.created)"' <<< "$all_data" \
-                                                                                                                                                    | while IFS=$'\t' read -r sid title created; do
-      printf '  - %s [%s] (%s)\n' "$title" "$sid" "$("$datecmd" -d "@$((created / 1000))" +%F 2> /dev/null || echo "$created")"
-    done
+  local cutoff_date
+  cutoff_date=$("$datecmd" -d "@$cutoff" +%F) || return 1
+  local root_count child_count cost tok_in tok_out tok_cache_read tok_cache_write
+  root_count=$(jq 'length' <<< "$selected") || return 1
+  child_count=$(jq '[.[].child_count] | add // 0' <<< "$selected") || return 1
+  cost=$(jq '[.[].members[]? | .cost // 0] | add // 0' <<< "$selected") || return 1
+  tok_in=$(jq '[.[].members[]? | .tokens.input // 0] | add // 0' <<< "$selected") || return 1
+  tok_out=$(jq '[.[].members[]? | .tokens.output // 0] | add // 0' <<< "$selected") || return 1
+  tok_cache_read=$(jq '[.[].members[]? | .tokens.cache.read // 0] | add // 0' <<< "$selected") || return 1
+  tok_cache_write=$(jq '[.[].members[]? | .tokens.cache.write // 0] | add // 0' <<< "$selected") || return 1
+
+  jq -r --arg home "$HOME" --arg cutoff_date "$cutoff_date" \
+    --argjson root_count "$root_count" --argjson child_count "$child_count" \
+    --argjson cost "$cost" --argjson tok_in "$tok_in" --argjson tok_out "$tok_out" \
+    --argjson tok_cache_read "$tok_cache_read" --argjson tok_cache_write "$tok_cache_write" '
+    def money: ((. // 0) * 100 | round / 100);
+    def home_dir:
+      if . == null or . == "" then "(no directory)"
+      elif $home != "" and startswith($home) then "~" + ltrimstr($home)
+      else .
+      end;
+    def clean_title:
+      ((. // "") | tostring | gsub("[\\t\\r\\n]"; " ") | if . == "" then "untitled" else . end);
+    "Will delete \($root_count) root session(s) and \($child_count) child session(s) inactive since \($cutoff_date):",
+    (.[] |
+      "  - " + (.session.title | clean_title)
+      + " [" + .session.id + "] last " + ((.latest / 1000) | strftime("%F"))
+      + " created " + ((.session.time.created / 1000) | strftime("%F"))
+      + " " + (.session.location.directory | home_dir)
+      + ", +\(.child_count) subagent(s), $" + ((.cost | money) | tostring)),
+    (if length > 30 then "  ... and \(length - 30) more" else empty end),
+    "Total: cost $" + (($cost | money) | tostring)
+      + ", tokens in " + ($tok_in | tostring)
+      + ", out " + ($tok_out | tostring)
+      + ", cache read " + ($tok_cache_read | tostring)
+      + ", cache write " + ($tok_cache_write | tostring)
+  ' <<< "$selected"
 
   local confirm
-  printf "Proceed? (y/n): "
+  printf "Proceed? [y/N]: "
   read -r confirm
   if [[ $confirm != [yY] && $confirm != [yY][eE][sS] ]]; then
-    echo "ocsessprune2: cancelled"
+    echo "ocsessprune: cancelled"
     return 0
   fi
 
-  local rc=0 id
-  # Roots only: the server cascades delete to child sessions and their messages.
+  local deleted=0 failed=0 id failure
   while IFS= read -r id; do
-    opencode2 api delete "/api/session/$id" > /dev/null || rc=1
+    if failure=$(opencode2 api delete "/api/session/$id" 2>&1 < /dev/null); then
+      deleted=$((deleted + 1))
+    else
+      failed=$((failed + 1))
+      echo "ocsessprune: failed to delete $id${failure:+: $failure}" >&2
+    fi
   done <<< "$ids"
 
-  # No orphan SQL, no VACUUM (server owns the DB/WAL).
-  echo "Done ($rc failures). Deleted $count session(s)."
-  return $rc
+  if ((failed == 0)); then
+    echo "Deleted $deleted root session(s) and their child sessions."
+    return 0
+  fi
+  echo "Deleted $deleted root session(s); $failed failed."
+  return 1
 }
 
 genpass() {
