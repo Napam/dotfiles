@@ -1,7 +1,7 @@
 ---
 name: subagent-ops
 description: >
-  Inspect and steer in-flight opencode2 subagents via the opencode2 CLI and API.
+  Inspect and steer in-flight opencode subagents via the opencode CLI and API.
   Use when asked to check what a running subagent is doing, redirect one with
   new instructions, interrupt one, switch its agent or model, answer a child's
   question, collect results from parallel workers, or diagnose a stuck or failed
@@ -10,9 +10,9 @@ description: >
 ---
 
 Manipulation of running subagents only. Spawning and delegation are covered by
-opencode2 itself. This skill starts after launch.
+opencode itself. This skill starts after launch.
 
-All calls go through `opencode2 api METHOD /path`. Auth is handled. Raw curl
+All calls go through `opencode api METHOD /path`. Auth is handled. Raw curl
 gets 401. Replace `$S` with the child session ID, `$P` with the parent ID.
 
 WARN: touch only sessions you own. Before prompting, interrupting, or deleting,
@@ -24,18 +24,18 @@ subagents belong to someone else. Leave them alone.
 The `subagent` tool returns the child ID at launch. Keep it. If lost:
 
 ```sh
-opencode2 api GET "/api/session?parentID=$P" | jq -r '.data[] | [.id, .agent, .title] | @tsv'
-opencode2 api GET /api/session/active | jq -r '.data | keys[]'  # live sessions only
+opencode api GET "/api/session?parentID=$P" | jq -r '.data[] | [.id, .agent, .title] | @tsv'
+opencode api GET /api/session/active | jq -r '.data | keys[]'  # live sessions only
 ```
 
-`opencode2 session list` shows roots. The API list without a filter returns
+`opencode session list` shows roots. The API list without a filter returns
 roots and children. Filter with `?parentID=$P`.
 
 ## Inspect state
 
 ```sh
-opencode2 api GET "/api/session/$S" | jq '.data | {agent, model, tokens, cost}'
-opencode2 api GET "/api/session/$S/message" | jq -r '.data[] | "\(.type) [\(.agent // "-")]"'
+opencode api GET "/api/session/$S" | jq '.data | {agent, model, tokens, cost}'
+opencode api GET "/api/session/$S/message" | jq -r '.data[] | "\(.type) [\(.agent // "-")]"'
 ```
 
 `message.list` is newest-first. A running tool call shows
@@ -54,7 +54,7 @@ session directory does not work. The working directory is not in `ps` output.
 ## Steer a running session
 
 ```sh
-opencode2 api POST "/api/session/$S/prompt" -d '{"text":"New instructions."}' | jq -r '.data.delivery'
+opencode api POST "/api/session/$S/prompt" -d '{"text":"New instructions."}' | jq -r '.data.delivery'
 ```
 
 A prompt sent while a tool runs does not interrupt it. It queues behind the
@@ -83,8 +83,8 @@ cannot ask questions. `build` has `question * allow`. Agents with no
 messages. List first for the form ID and field keys:
 
 ```sh
-opencode2 api GET "/api/session/$S/form" | jq '.data[] | {id, title, fields}'
-opencode2 api POST "/api/session/$S/form/<formID>/reply" -d '{"answer":{"q0":"Blue"}}'
+opencode api GET "/api/session/$S/form" | jq '.data[] | {id, title, fields}'
+opencode api POST "/api/session/$S/form/<formID>/reply" -d '{"answer":{"q0":"Blue"}}'
 ```
 
 Reply returns empty on success. Re-list forms to confirm it settled. The agent
@@ -96,16 +96,16 @@ Both return 204. Nothing runs until the next turn, so no spend happens at
 switch time:
 
 ```sh
-opencode2 api POST "/api/session/$S/agent" -d '{"agent":"explore"}'
-opencode2 api POST "/api/session/$S/model" -d '{"model":{"providerID":"opencode-go","id":"glm-5.3-flash"}}'
+opencode api POST "/api/session/$S/agent" -d '{"agent":"explore"}'
+opencode api POST "/api/session/$S/model" -d '{"model":{"providerID":"opencode-go","id":"glm-5.3-flash"}}'
 ```
 
-Confirm model IDs with `opencode2 models` first. IDs go stale.
+Confirm model IDs with `opencode models` first. IDs go stale.
 
 ## Interrupt
 
 ```sh
-opencode2 api POST "/api/session/$S/interrupt"
+opencode api POST "/api/session/$S/interrupt"
 ```
 
 Returns `{"interrupted":true}`. Kills the running process. The tool call is
@@ -127,8 +127,8 @@ prompt convention, not API behavior. Then pull detail. The newest message is
 not always an assistant message, so filter:
 
 ```sh
-opencode2 api GET "/api/session/$S/message" | jq '[.data[] | select(.type=="assistant")] | first'
-opencode2 api GET "/api/experimental/session/$S/export" | jq '.data.info | {cost, tokens, outcome}'
+opencode api GET "/api/session/$S/message" | jq '[.data[] | select(.type=="assistant")] | first'
+opencode api GET "/api/experimental/session/$S/export" | jq '.data.info | {cost, tokens, outcome}'
 ```
 
 `GET /api/session/$S/context` returns post-compaction messages only. For full
@@ -137,7 +137,7 @@ history, page `message.list`.
 ## Compact a long-running child
 
 ```sh
-opencode2 api POST "/api/session/$S/compact" -d '{}'
+opencode api POST "/api/session/$S/compact" -d '{}'
 ```
 
 Returns 200 with `{"data": ...}`. Wait for the run to finish (foreground return
@@ -154,7 +154,7 @@ live. Treat empty tool output as suspect. Re-check with an independent command.
 ## Cleanup
 
 ```sh
-opencode2 api DELETE "/api/session/$S"
+opencode api DELETE "/api/session/$S"
 ```
 
 Delete removes the session and its child sessions.
