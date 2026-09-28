@@ -132,5 +132,8 @@
   },
   "debug": {
     "devtools": false
-  }
+  },
+  "plugins": [
+    "opencode-vim@latest"
+  ]
 }
