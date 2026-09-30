@@ -139,7 +139,7 @@ readwhich() {
   readlink -f "$(which "$1")"
 }
 
-# Adapter for MacOS — returns gnu variant if available (gsed, gxargs, etc.)
+# Adapter for MacOS: returns gnu variant if available (gsed, gxargs, etc.)
 gnuify() {
   if command -v "g$1" > /dev/null; then
     echo "g$1"
@@ -199,7 +199,7 @@ gitclean() {
   fi
 }
 
-# WARN: deletes opencode sessions older than DURATION via API only. Irreversible.
+# WARN: deletes opencode sessions older than DURATION via `opencode session delete`. Irreversible.
 ocsessprune() {
   local duration=$* cutoff now spec
 
@@ -383,7 +383,7 @@ ocsessprune() {
   local ids deleted=0 failed=0 id failure
   ids=$(jq -r '.[].session.id' <<< "$selected") || return 1
   while IFS= read -r id; do
-    if failure=$(opencode api delete "/api/session/$id" 2>&1 < /dev/null); then
+    if failure=$(opencode session delete "$id" 2>&1 < /dev/null); then
       deleted=$((deleted + 1))
     else
       failed=$((failed + 1))

@@ -29,10 +29,11 @@ it stays out of the commit scope unless I say otherwise.
    they need. From the map, split the goal into tracks, mark ordered vs parallel,
    write the plan file. A single fix within the glue bound: do it directly, run the
    check to a scratch log, then go to step 5.
-3. Spawn workers: one fresh `general` per parallel track, one block. Ordered tracks
-   spawn after the prior integrates; loop back. Feed the recon map into
-   `## Context`. Hand-off: `## Task` / `## Context` (paths, what exists, decisions)
-   / `## Constraints` (scope, style, off-limits) / `## Expected Output`.
+3. Spawn workers in background mode: one fresh `general` per parallel track, one
+   block. Ordered tracks spawn after the prior integrates; loop back. Feed the
+   recon map into `## Context`. Hand-off: `## Task` / `## Context` (paths, what
+   exists, decisions) / `## Constraints` (scope, style, off-limits) /
+   `## Expected Output`.
    Parallel tracks: tell each worker other agents are editing the repo, so files
    and check results may change under it; include who covers which paths.
    Stay in its paths, don't revert or reformat others' work, and report a
@@ -41,13 +42,18 @@ it stays out of the commit scope unless I say otherwise.
    blocked` (missing = partial). `blocked` on a question: answer it and let the
    track continue. `blocked` on a conflict: stop that track, report, ask before
    retrying.
-   Between spawn and integrate, check progress with `subagent-ops` (active map,
-   message list). A slow worker is fine. A silent one past its expected shape
-   gets inspected, redirected, or interrupted. If the block is dead, interrupt
-   the rest before looping back so nothing burns while ordered tracks wait.
+   Workers report on completion, so waiting is the normal path. A slow worker is
+   fine. When a report from another worker, or my message, wakes you and one
+   worker is well past its expected scope or duration, with no report and no
+   visible progress, `subagent-ops` can inspect it once, then steer it
+   by re-invoking the `subagent` tool with its sessionID and a follow-up
+   prompt (pass `background: true` unless you want that run's report now),
+   or interrupt.
+   If the block is dead, interrupt the rest before looping back so nothing
+   burns while ordered tracks wait.
 4. Integrate: merge, resolve conflicts. Run the check to a scratch log; read only
    the tail and failing tests. Do not proceed while it fails, max 3 repair
-   attempts, then go to step 8. Past glue, spawn a worker.
+   attempts here, then go to step 8. Past glue, spawn a worker.
 5. Verify. Record a tree hash over tracked and untracked files (temp
    `GIT_INDEX_FILE`: `read-tree HEAD`, `add -A`, `write-tree`). Spawn a fresh
    `general` reviewer on the chosen model, loading `code-review` (fix section off:
@@ -63,12 +69,14 @@ it stays out of the commit scope unless I say otherwise.
    worker; don't read them. Reuse a worker session when it helps; on reuse prepend
    `## Continuation Context` (done, findings delta, remains). Else fresh. Re-run
    the check and repeat step 5. Budget: a round is steps 4-5, max 6; per round, 3
-   repair attempts and 2 void retries, neither consuming a round. Exhausted void
-   retries mean no trustworthy verdict: stop and report.
+   repair attempts in this step and 2 void retries in step 5, neither consuming a
+   round. Step 4 keeps its own 3. Exhausted void retries mean no trustworthy
+   verdict: stop and report.
 7. Exit. `FIX FIRST` goes to step 6. On `SHIP` with nits: snapshot (`git stash
    create` or a temp commit), hand that round's nits to a worker, have it run the
-   check before reporting, no review after; if the check fails, send it back once,
-   else restore. On `NEEDS DISCUSSION`: don't stop or ask; take the safer option,
+   check before reporting, no review after; if the check fails, send it back
+   once, and if it still fails, restore the snapshot. On `NEEDS DISCUSSION`:
+   don't stop or ask; take the safer option,
    apply the smallest fix (a worker past glue), re-run the check, and list it under
    "for your review". If rounds run out, stop and report. Never report success on a
    red check.
