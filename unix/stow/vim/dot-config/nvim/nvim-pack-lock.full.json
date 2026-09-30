@@ -1,7 +1,7 @@
 {
   "plugins": {
     "SchemaStore.nvim": {
-      "rev": "411163b2be396495c76788a016cb1354f1e8acd0",
+      "rev": "82037f0534e303c3bb39472340fd23b9c46ab528",
       "src": "https://github.com/b0o/SchemaStore.nvim"
     },
     "async.nvim": {
@@ -46,7 +46,7 @@
       "src": "https://github.com/folke/flash.nvim"
     },
     "flutter-tools.nvim": {
-      "rev": "dafe5fe3a68b67516a68e82193372baea3979aca",
+      "rev": "8b139a870eae9520fc3e8473820b82bc1b210bcf",
       "src": "https://github.com/nvim-flutter/flutter-tools.nvim"
     },
     "friendly-snippets": {
@@ -54,7 +54,7 @@
       "src": "https://github.com/rafamadriz/friendly-snippets"
     },
     "gitsigns.nvim": {
-      "rev": "070a5d7b985546cc57e1fc61e5bc507fecac6045",
+      "rev": "fd780920613e541cbdfac41bf711583ed49f9249",
       "src": "https://github.com/lewis6991/gitsigns.nvim"
     },
     "go-impl.nvim": {
@@ -66,7 +66,7 @@
       "src": "https://github.com/maxandron/goplements.nvim"
     },
     "grug-far.nvim": {
-      "rev": "11595bf747edc270bce2069d1020502ad4ae56cf",
+      "rev": "bbde8ef5ae46ceee2c3bd8b21fc048c5f8ffbfc0",
       "src": "https://github.com/MagicDuck/grug-far.nvim"
     },
     "kanagawa.nvim": {
@@ -94,7 +94,7 @@
       "src": "https://github.com/zapling/mason-lock.nvim"
     },
     "mason-lspconfig.nvim": {
-      "rev": "b3298993d55fa194279b5eb9dbfb3a43da65cadf",
+      "rev": "00b5473cca4db5b410ff4bae724e3b6e21f2687f",
       "src": "https://github.com/mason-org/mason-lspconfig.nvim"
     },
     "mason.nvim": {
@@ -102,15 +102,15 @@
       "src": "https://github.com/mason-org/mason.nvim"
     },
     "mini.icons": {
-      "rev": "f642e3ba8c12afbc8f32f6d77ef6597eac56786f",
+      "rev": "f916635dc5ae2f479fbb9ab8184bb9444b62e86c",
       "src": "https://github.com/nvim-mini/mini.icons"
     },
     "mini.pairs": {
-      "rev": "b1c5a726921b7a8c9321e9a7a208aa0571de5810",
+      "rev": "03eb1f0062a2cee5314d1ac3939246e4bb21352e",
       "src": "https://github.com/nvim-mini/mini.pairs"
     },
     "multicursor.nvim": {
-      "rev": "704b99f10a72cc05d370cfeb294ff83412a8ab55",
+      "rev": "c574bfc1f7e63dfea3e64b8453c9f7c660127238",
       "src": "https://github.com/jake-stewart/multicursor.nvim"
     },
     "neopyter": {
@@ -130,11 +130,11 @@
       "src": "https://github.com/kndndrj/nvim-dbee"
     },
     "nvim-lint": {
-      "rev": "3d55c8f67c6ae5c15e1042571e107c7a3d5c5f4e",
+      "rev": "f6230a5c06ba59e6059c14637f1dbe29a7978b9b",
       "src": "https://github.com/mfussenegger/nvim-lint"
     },
     "nvim-lspconfig": {
-      "rev": "a9bb4d5f4276aa5cddc015faa3ecc5a7b5a26b14",
+      "rev": "45a3a444b710511c39abca3b60bb6e23a21e3de5",
       "src": "https://github.com/neovim/nvim-lspconfig"
     },
     "nvim-surround": {
@@ -142,7 +142,7 @@
       "src": "https://github.com/kylechui/nvim-surround"
     },
     "nvim-treesitter": {
-      "rev": "728e031f6b11d03d1f0708b7dc4fb0f1d9c8a137",
+      "rev": "29212d826054bb2948fa9d3a99eca9bf6a050eb2",
       "src": "https://github.com/nvim-treesitter/nvim-treesitter",
       "version": "'main'"
     },
@@ -156,7 +156,7 @@
       "src": "https://github.com/refractalize/oil-git-status.nvim"
     },
     "oil.nvim": {
-      "rev": "b73018b75affd13fa38e2fc94ef753b465f770d7",
+      "rev": "d3733d933833a0e59b813ecec99341527adf0c28",
       "src": "https://github.com/stevearc/oil.nvim"
     },
     "one-small-step-for-vimkind": {
@@ -164,7 +164,7 @@
       "src": "https://github.com/jbyuki/one-small-step-for-vimkind"
     },
     "opencode.nvim": {
-      "rev": "06770e2e3618b82703e3e7af1f2d5dc67bde0002",
+      "rev": "e7643e9efc878876bb9c68da6cf30c45d6c34e5a",
       "src": "https://github.com/nickjvandyke/opencode.nvim"
     },
     "persistence.nvim": {
@@ -180,7 +180,7 @@
       "src": "https://github.com/ThePrimeagen/refactoring.nvim"
     },
     "render-markdown.nvim": {
-      "rev": "640a3ec6d538bad17c328be373c7cad0293d9589",
+      "rev": "8e8795368391036643b622875a6da6a51bcd33f4",
       "src": "https://github.com/MeanderingProgrammer/render-markdown.nvim"
     },
     "roslyn.nvim": {
