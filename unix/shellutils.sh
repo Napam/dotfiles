@@ -15,25 +15,32 @@ alias edithosts='sudo vim /etc/hosts'
 update() {
   local rc=0 ran=0
 
+  # WARN: no && chains between steps. One broken repo (apt exits 100) or tap
+  # would skip every later upgrade.
   if command -v brew &> /dev/null; then
     ran=1
     echo "==> brew"
-    brew update && brew bundle -g && brew upgrade -y && brew cleanup && brew autoremove || rc=1
+    brew update || rc=1
+    brew bundle -g || rc=1
+    brew upgrade -y || rc=1
+    brew cleanup || rc=1
+    brew autoremove || rc=1
   fi
 
   if command -v apt-get &> /dev/null; then
     ran=1
     echo "==> apt-get"
-    sudo apt-get update \
-      && sudo apt-get dist-upgrade -y \
-      && sudo apt-get autoremove -y \
-      && sudo apt-get autoclean || rc=1
+    sudo apt-get update || rc=1
+    sudo apt-get dist-upgrade -y || rc=1
+    sudo apt-get autoremove -y || rc=1
+    sudo apt-get autoclean || rc=1
   fi
 
   if command -v dnf &> /dev/null; then
     ran=1
     echo "==> dnf"
-    sudo dnf upgrade --refresh -y && sudo dnf autoremove -y || rc=1
+    sudo dnf upgrade --refresh -y || rc=1
+    sudo dnf autoremove -y || rc=1
   fi
 
   if command -v mise &> /dev/null; then
@@ -65,10 +72,18 @@ refresh() {
 # bounty + 7.5 (lunch hours)
 bountyplusharvest() { bounty | awk -F ':>>' '/currBalance/ {print $1, $NF + 7.5}'; }
 bountyplus()        { bounty | awk -F'[: ]' '{decimal=($4 + ($5 / 60)) + 7.5; HH=int(decimal); MM=(decimal-HH)*60; print HH":"MM}'; }
-xbounty()           { XLEDGER_API_KEY=$(pass apikeys/xledger) bounty; }
+xbounty() {
+  local key
+  key=$(pass apikeys/xledger) || return 1
+  XLEDGER_API_KEY=$key bounty
+}
 xbountyplus()       { xbounty | awk -F': ' '{print "xbountyplus: " $2 + 7.5}'; }
 
 readysubs() {
+  [[ -d Subs ]] || {
+    echo "readysubs: no Subs dir" >&2
+    return 1
+  }
   find Subs -maxdepth 2 | sort -r \
     | awk -F/ 'tolower($NF)~/english/{a[$2]=$0} END{for(key in a){print a[key]; print key".srt"}}' \
     | while IFS= read -r eng && IFS= read -r srt; do
@@ -149,14 +164,15 @@ gnuify() {
 }
 
 daystony() {
-  local datecmd nydate nysec now ndays
+  local datecmd year nydate nysec now ndays
   datecmd=$(gnuify date)
-  nydate=$(($( "$datecmd" +%Y) + 1))/01/01
+  year=$("$datecmd" +%Y) || return 1
+  nydate=$((year + 1))/01/01
   if ! nysec=$("$datecmd" -d "$nydate" +%s 2> /dev/null); then
     echo "daystony: date -d not supported (install coreutils)" >&2
     return 1
   fi
-  now=$("$datecmd" +%s)
+  now=$("$datecmd" +%s) || return 1
   ndays=$(((nysec - now + 86399) / 86400))
   echo "Days to new year: $ndays"
 }
@@ -181,8 +197,7 @@ splitlines() {
 
 gitclean() {
   echo "Pruning stale tracking branches"
-  git remote prune origin
-
+  git remote prune origin || return 1
   local todelete confirm
   todelete=$(git branch -v | awk '$3~/\[gone\]/ {print $1}')
   if [[ -z $todelete ]]; then
@@ -442,8 +457,10 @@ ocsessprune() {
 genpass() {
   local length=${1:-16}
   local pass
-  pass=$(openssl rand -base64 $((length * 2)) | tr -d '/=+\n' | cut -c1-"$length")
-  echo "$pass"
+  pass=$(openssl rand -base64 $((length * 2))) || return 1
+  pass=${pass//[\/=+]/}
+  pass=${pass//$'\n'/}
+  echo "${pass:0:$length}"
 }
 
 localrctemplate() {

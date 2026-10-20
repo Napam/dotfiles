@@ -18,7 +18,7 @@ source "$HOME/.config/dotfiles/unix/shellutils.sh"
 init_mise() {
   [[ -n ${_mise_activated-} ]] && return 0
 
-  local bin
+  local bin c
   bin=$(command -v mise)
   if [[ -z $bin ]]; then
     for c in "$HOME/.local/bin/mise" /opt/homebrew/bin/mise /usr/local/bin/mise; do
@@ -30,7 +30,9 @@ init_mise() {
   fi
 
   [[ -n $bin ]] || return 1
-  eval "$("$bin" activate "$_RC_SHELL")"
+  local out
+  out=$("$bin" activate "$_RC_SHELL") || return 1
+  eval "$out"
   _mise_activated=1
 }
 
