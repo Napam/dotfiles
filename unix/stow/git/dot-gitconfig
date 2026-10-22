@@ -35,3 +35,5 @@
 	clean = git-lfs clean -- %f
 [gpg "ssh"]
 	allowedSignersFile = ~/.ssh/allowed_signers
+[init]
+	defaultBranch = main
