@@ -89,14 +89,6 @@ require("lazyload").on_vim_enter(function()
   end
   require("mason-lspconfig").setup({ automatic_enable = servers })
 
-  vim.filetype.add({
-    extension = {
-      jinja = "htmldjango",
-      jinja2 = "htmldjango",
-      j2 = "htmldjango",
-    },
-  })
-
   -- Codelens opt-in per-buffer; enable globally so attached clients render it.
   vim.lsp.codelens.enable(true)
 

@@ -18,6 +18,14 @@ return {
   name = "jinja_lsp",
   cmd = { "jinja-lsp" },
   filetypes = { "jinja", "rust", "python", "htmldjango" },
+  -- jinja-lsp resolves {% extends %}/{% include %} against this directory and
+  -- indexes backend context variables from src/. Paths are relative to cwd,
+  -- which Neovim sets to root_dir.
+  init_options = {
+    templates = "./templates",
+    backend = { "./src" },
+    lang = "rust",
+  },
   root_dir = function(bufnr, on_dir)
     local fname = vim.api.nvim_buf_get_name(bufnr)
     local root = vim.fs.root(fname, { "jinja-lsp.toml", "pyproject.toml", ".git" })
@@ -27,10 +35,14 @@ return {
   end,
   handlers = {
     ["textDocument/publishDiagnostics"] = function(_, result, ctx)
+      -- jinja-lsp only learns context variables from minijinja's context!{}
+      -- macro. Templates rendered from #[derive(Serialize)] structs then report
+      -- their top-level variables as "Undefined variable". tests/render.rs
+      -- renders every template under Strict undefined behavior, so drop that
+      -- warning class and keep the rest.
       if result and result.diagnostics then
         result.diagnostics = vim.tbl_filter(function(d)
           return not d.message:match("Undefined variable")
-            and not d.message:match("Variable is defined in other file")
         end, result.diagnostics)
       end
       vim.lsp.handlers["textDocument/publishDiagnostics"](_, result, ctx)
