@@ -187,4 +187,20 @@ require("lazyload").on_vim_enter(function()
       end
     end,
   })
+
+  -- lspconfig has no rust filetype for Tailwind. Attach it per buffer for maud
+  -- views in projects that use Tailwind; see lua/tailwind.lua.
+  local tailwind = require("tailwind")
+  local group = vim.api.nvim_create_augroup("tailwind-maud", { clear = true })
+  local attach = function(args)
+    tailwind.attach(args.buf)
+  end
+  vim.api.nvim_create_autocmd("FileType", { group = group, pattern = "rust", callback = attach })
+  -- BufWritePost matches the file name, not the filetype, so it needs a glob.
+  vim.api.nvim_create_autocmd("BufWritePost", { group = group, pattern = "*.rs", callback = attach })
+  for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+    if vim.api.nvim_buf_is_loaded(buf) and vim.bo[buf].filetype == "rust" then
+      tailwind.attach(buf)
+    end
+  end
 end)
