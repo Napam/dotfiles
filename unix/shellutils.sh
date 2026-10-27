@@ -520,13 +520,42 @@ color16() {
   done
 }
 
-function installubuntuessentials() {
-  sudo apt install \
-    mise \
-    unzip \
-    stow \
-    gcc \
-    git-delta
+# Base packages for a fresh Ubuntu 26.04+ or Fedora 44+ box. Re-runnable:
+# package managers skip what is already installed.
+# mise comes from its distro repo so apt/dnf upgrade it like any other package.
+installlinuxessentials() {
+  local pkgs=(
+    ca-certificates curl fzf gcc git git-delta jq lsof make
+    openssl pass python3 ripgrep rsync stow tmux tree unzip wget zstd
+  )
+  local id='' ver='' pm=''
+
+  if [[ -r /etc/os-release ]]; then
+    id=$(. /etc/os-release && printf '%s' "$ID")
+    ver=$(. /etc/os-release && printf '%s' "${VERSION_ID%%.*}")
+  fi
+
+  if [[ $id == ubuntu && ${ver:-0} -ge 26 ]]; then
+    pm=apt-get
+  elif [[ $id == fedora && ${ver:-0} -ge 44 ]]; then
+    pm=dnf
+  else
+    echo "installlinuxessentials: needs Ubuntu 26.04+ or Fedora 44+ (found ${id:-unknown} ${ver:-?})" >&2
+    return 1
+  fi
+
+  echo "==> $pm: ${pkgs[*]} mise"
+  if [[ $pm == apt-get ]]; then
+    # mise is not in Ubuntu's archive; its PPA is the apt route for 26.04+
+    sudo apt-get update || return 1
+    sudo apt-get install -y "${pkgs[@]}" software-properties-common || return 1
+    sudo add-apt-repository -y ppa:jdxcode/mise || return 1
+    sudo apt-get update || return 1
+    sudo apt-get install -y mise || return 1
+  else
+    sudo dnf copr enable -y jdxcode/mise || return 1
+    sudo dnf install -y "${pkgs[@]}" mise || return 1
+  fi
 }
 
 # Apply macOS defaults for terminal/nvim-first use.
