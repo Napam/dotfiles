@@ -25,16 +25,27 @@ if Config.only_essential_plugins() then return end
 Per-profile. Both committed:
 
 ```
-nvim-pack-lock.full.json        52 plugins
-nvim-pack-lock.essentials.json  25 plugins
+nvim-pack-lock.full.json        54 plugins
+nvim-pack-lock.essentials.json  26 plugins
 nvim-pack-lock.json             runtime, gitignored
 ```
 
+WARN: the lockfile is the profile's real plugin set. At the first
+`vim.pack.add()` call, `vim.pack` installs every plugin in the lockfile, even
+ones whose `plugin/` file was gated. A full-only entry left in the essentials
+lock gets installed on a bare machine. `vim.pack.add()` gating only controls
+what is loaded, not what the lockfile installs.
+
 Init.lua shim (see `lua/packlock.lua`):
 
-- **Startup**: copy `nvim-pack-lock.<profile>.json` → `nvim-pack-lock.json` unconditionally. Picks up profile switches; previous session's `VimLeavePre` already flushed runtime → committed, so no data lost.
-- **`PackChanged`** (debounced 200ms): copy runtime → current profile lock, then merge shared-plugin revs into the other profile's lock. Cross-sync keeps shared plugins on identical revs across profiles.
+- **Startup**: build `nvim-pack-lock.json` from the active profile lock, then valid entries for already-installed plugins from the other profile lock, then from the previous runtime lock. Picks up profile switches without making `vim.pack` repair those extras on every startup.
+- **`PackChanged`** (debounced 200ms): write the runtime entries that are in the committed profile lock or active this session to the current profile lock, then merge runtime revs into the other profile's lock. Cross-sync keeps shared plugins on identical revs across profiles.
 - **`VimLeavePre`**: flush pending debounce + final sync. Catches anything missed.
+- **Stale check**: 10s after `VimEnter`, warn about plugins in the profile lock that no `vim.pack.add()` registered. They still install on a fresh machine. `:Pack` tags installed ones `stale`; if no config adds them, `D` removes the directory and the lock entry. Uninstalled ones never show in `:Pack`; delete their entry from the committed lock by hand. Adds behind a callback that may never fire (parser install) register up front with `load = false` so they do not show up here.
+
+Lock writes go through a temp file + rename, so a crash mid-write keeps the old lock.
+
+WARN: `R` (restore) runs raw `git checkout`. `vim.pack` keeps the pre-restore revs in memory and has no API to reload them, so the shim pins the restored revs over its lock writes until `vim.pack` changes that plugin or nvim restarts.
 
 Result: `:Pack update` updates plugins → autocmd writes back → `git diff` shows lock change → commit.
 
@@ -51,7 +62,7 @@ Profile switch: just relaunch with/without `LOCAL_NVIM_PLUGIN_MODE=ALL`. Startup
 :PackLockSyncTo <profile>  " manually sync overlapping plugins from other profile's lock
 ```
 
-UI keymaps: `U` update all, `u` update under cursor, `C` check remote, `R` restore all to lockfile revs, `X` clean non-active, `D` delete under cursor, `L` log, `<CR>` toggle details, `]]`/`[[` jump plugins, `?` help, `q`/`<Esc>` close.
+UI keymaps: `U` update all, `u` update under cursor, `C` check remote, `R` restore all to lockfile revs, `X` clean non-active (skips plugins in the other profile's lock), `D` delete under cursor (extra confirm for other-profile plugins), `L` log, `<CR>` toggle details, `]]`/`[[` jump plugins, `?` help, `q`/`<Esc>` close.
 
 WARN: `vim.pack.update()` opens confirm tab. Lock written on `:w`. Close without `:w` → no checkout, no lock update. Use `:Pack!` variant to skip.
 

@@ -4,3 +4,4 @@ nvim-pack-lock.json
 # mason versions, but have it locally in case
 # something goes really wrong or something
 mason-lock.json
+nvim-pack-lock*.tmp

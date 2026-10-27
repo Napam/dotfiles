@@ -457,6 +457,7 @@ require("lazyload").on_vim_enter(function()
 
     local remaining = #entries
     local restored, skipped, errors = 0, 0, 0
+    local restored_revs = {}
 
     -- WARN: copy the committed lockfile verbatim to runtime rather than
     -- rebuilding from vim.pack.get(), so the runtime is byte-for-byte
@@ -481,6 +482,9 @@ require("lazyload").on_vim_enter(function()
       -- must still run BEFORE resume_sync to avoid the next PackChanged
       -- clobbering the committed lockfile with pre-restore runtime state.
       local sync_ok, sync_err = pcall(sync_runtime_from_committed)
+      -- WARN: pin before resume_sync; vim.pack still holds the pre-restore revs
+      -- and would write them back on its next lock write.
+      packlock.pin_revs(restored_revs)
       packlock.resume_sync()
       local cross_ok, cross_err = pcall(packlock.sync_cross_profile)
       if not sync_ok then
@@ -521,6 +525,10 @@ require("lazyload").on_vim_enter(function()
     local function checkout(entry, path)
       vim.system({ "git", "-C", path, "checkout", "--quiet", entry.rev }, { text = true }, function(res)
         vim.schedule(function()
+          -- Record before the cancel check: HEAD moved even if the UI closed.
+          if res.code == 0 then
+            restored_revs[entry.name] = entry.rev
+          end
           if state.check_id ~= my_check_id then
             one_done()
             return
@@ -609,12 +617,32 @@ require("lazyload").on_vim_enter(function()
     end
   end
 
+  --- Committed lock membership. `own` entries that are not active are stale
+  --- (they still install on fresh machines); `other` entries are needed when
+  --- the other profile runs. err is set when the other lock exists but cannot
+  --- be read, so callers can refuse to treat its plugins as unowned.
+  ---@return table own, table other, string|nil err
+  local function lock_owners()
+    local packlock = require("packlock")
+    local own = packlock.read_lock(packlock.profile_lock())
+    local other_path = packlock.other_profile_lock()
+    local other, other_err = packlock.read_lock(other_path)
+    local err = nil
+    if not other and vim.uv.fs_lstat(other_path) then
+      err = other_path .. ": " .. tostring(other_err)
+    end
+    return (own and own.plugins) or {}, (other and other.plugins) or {}, err
+  end
+
   local function build_content()
     local plugins = vim.pack.get(nil, { info = false })
+    local packlock = require("packlock")
+    local own_lock, other_lock, lock_err = lock_owners()
 
     local loaded = {}
     local not_loaded = {}
     for _, p in ipairs(plugins) do
+      p.rev = packlock.pinned_rev(p.spec.name) or p.rev
       if p.active then
         table.insert(loaded, p)
       else
@@ -670,8 +698,9 @@ require("lazyload").on_vim_enter(function()
       add("   u       Update plugin under cursor (opens confirm tab; :w to apply)", "PackUiHelp")
       add("   C       Check remote for new commits", "PackUiHelp")
       add("   R       Restore all plugins to revisions in lockfile", "PackUiHelp")
-      add("   X       Clean non-active plugins", "PackUiHelp")
+      add("   X       Clean non-active plugins (keeps other profile's lock entries)", "PackUiHelp")
       add("   D       Delete plugin under cursor (non-active only)", "PackUiHelp")
+      add("   stale   Tag: in this profile's lock but not added (yet); installs on fresh machines", "PackUiHelp")
       add("   L       Open update log file", "PackUiHelp")
       add("   <CR>    Toggle plugin details", "PackUiHelp")
       add("   ]]      Jump to next plugin", "PackUiHelp")
@@ -687,7 +716,7 @@ require("lazyload").on_vim_enter(function()
 
     -- Format: '   %s %s%s%s' => 3 spaces, icon, 1 space, name, pad, version
     -- Byte offsets: icon at 3, name at 3 + #icon_bytes + 1
-    local function render_plugin(p, icon, hl_group)
+    local function render_plugin(p, icon, hl_group, note, note_hl)
       local name = p.spec.name
       local pad = string.rep(" ", max_name - #name + 2)
       local version = get_version_str(p)
@@ -721,18 +750,23 @@ require("lazyload").on_vim_enter(function()
           and #unreleased > 0
           and string.format("  ⚠ %d breaking unreleased", #unreleased)
         or ""
+      local note_str = note and ("  " .. note) or ""
       local line = string.format(
-        "   %s %s%s%s%s%s%s",
+        "   %s %s%s%s%s%s%s%s",
         icon,
         name,
         pad,
         ver_display,
         update_str,
         unreleased_count_str,
-        unreleased_str
+        unreleased_str,
+        note_str
       )
       local lnum_cur = #lines
       add(line)
+      if #note_str > 0 then
+        add_hl(lnum_cur, #line - #note_str, #line, note_hl or "PackUiDetail")
+      end
 
       local icon_bytes = #icon
       local icon_start = 3
@@ -823,8 +857,21 @@ require("lazyload").on_vim_enter(function()
     if #not_loaded > 0 then
       add("")
       add(string.format(" Not Loaded (%d)", #not_loaded), "PackUiSectionHeader")
+      if lock_err then
+        add("   cannot read " .. lock_err .. "; profile tags incomplete", "PackUiBreaking")
+      end
+      local other = packlock.other_profile()
       for _, p in ipairs(not_loaded) do
-        render_plugin(p, "○", "PackUiPluginNotLoaded")
+        local name = p.spec.name
+        local tags = {}
+        if own_lock[name] then
+          tags[#tags + 1] = "stale: in " .. Config.profile .. " lock"
+        end
+        if other_lock[name] then
+          tags[#tags + 1] = other
+        end
+        local note = #tags > 0 and ("[" .. table.concat(tags, ", ") .. "]") or nil
+        render_plugin(p, "○", "PackUiPluginNotLoaded", note, own_lock[name] and "PackUiBreaking" or nil)
       end
     end
 
@@ -960,23 +1007,31 @@ require("lazyload").on_vim_enter(function()
       end
     end, opts)
 
+    -- WARN: skip plugins in the other profile's lock. On a machine that runs
+    -- both profiles, cleaning them in essentials would delete full's plugins.
     vim.keymap.set("n", "X", function()
-      local to_clean = vim
-        .iter(vim.pack.get(nil, { info = false }))
-        :filter(function(x)
-          return not x.active
-        end)
-        :map(function(x)
-          return x.spec.name
-        end)
-        :totable()
+      local _, other_lock, lock_err = lock_owners()
+      if lock_err then
+        vim.notify("vim.pack: clean aborted, cannot read " .. lock_err, vim.log.levels.ERROR)
+        return
+      end
+      local to_clean, kept = {}, {}
+      for _, p in ipairs(vim.pack.get(nil, { info = false })) do
+        if not p.active then
+          table.insert(other_lock[p.spec.name] and kept or to_clean, p.spec.name)
+        end
+      end
+      local kept_msg = #kept > 0
+          and string.format("\n\nKeeping %d plugin(s) in the %s lock.", #kept, require("packlock").other_profile())
+        or ""
 
       if #to_clean == 0 then
-        vim.notify("vim.pack: nothing to clean", vim.log.levels.INFO)
+        vim.notify("vim.pack: nothing to clean" .. kept_msg, vim.log.levels.INFO)
         return
       end
 
-      local msg = string.format("Remove %d non-active plugin(s)?\n\n%s", #to_clean, table.concat(to_clean, "\n"))
+      local msg =
+        string.format("Remove %d non-active plugin(s)?\n\n%s%s", #to_clean, table.concat(to_clean, "\n"), kept_msg)
       local choice = vim.fn.confirm(msg, "&Yes\n&No", 2, "Question")
       if choice == 1 then
         close()
@@ -1006,7 +1061,20 @@ require("lazyload").on_vim_enter(function()
         return
       end
 
-      local choice = vim.fn.confirm(string.format("Delete plugin %s?", name), "&Yes\n&No", 2, "Question")
+      local _, other_lock, lock_err = lock_owners()
+      if lock_err then
+        vim.notify("vim.pack: delete aborted, cannot read " .. lock_err, vim.log.levels.ERROR)
+        return
+      end
+      local prompt = string.format("Delete plugin %s?", name)
+      if other_lock[name] then
+        prompt = string.format(
+          "%s is in the %s lock; that profile will reinstall it. Delete anyway?",
+          name,
+          require("packlock").other_profile()
+        )
+      end
+      local choice = vim.fn.confirm(prompt, "&Yes\n&No", 2, "Question")
       if choice == 1 then
         close()
         local del_ok, err = pcall(vim.pack.del, { name })

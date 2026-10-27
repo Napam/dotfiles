@@ -21,16 +21,17 @@ require("lazyload").on_vim_enter(function()
   -- WARN: go-impl calls vim.treesitter.query.parse("go", ...) at module-load
   -- (helper.lua, top-level), so go parser must be installed+loadable before
   -- require("go-impl"). Deferred into the async install completion callback;
-  -- fires immediately when the parser is already installed.
+  -- fires immediately when the parser is already installed. Registered up front
+  -- with load=false so packlock's stale check does not flag it when the parser
+  -- install is slow or fails.
   if Config.use_treesitter_parser then
+    vim.pack.add({ { src = "https://github.com/fang2hou/go-impl.nvim" } }, { load = false })
     Config.ts.ensure_parser("go", nil, function(ok)
       if not ok then
         return
       end
-      vim.pack.add({
-        { src = "https://github.com/fang2hou/go-impl.nvim" },
-        { src = "https://github.com/MunifTanjim/nui.nvim" },
-      })
+      vim.pack.add({ { src = "https://github.com/MunifTanjim/nui.nvim" } })
+      vim.cmd.packadd("go-impl.nvim")
       require("go-impl").setup({
         picker = "snacks",
         insert = {
