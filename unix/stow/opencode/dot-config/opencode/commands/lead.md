@@ -81,6 +81,4 @@ it stays out of the commit scope unless I say otherwise.
    "for your review". If rounds run out, stop and report. Never report success on a
    red check.
 8. Report tracks, files touched, check result, unresolved findings (paths),
-   decisions for my review, and anything declined with a reason. Then ask via
-   `question` whether to commit and what scope. On yes: stage that scope, one
-   commit, concise message, no push. No commit on a no or a red check.
+   decisions for my review, and anything declined with a reason.
