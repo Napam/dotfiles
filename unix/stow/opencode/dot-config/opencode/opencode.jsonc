@@ -48,18 +48,7 @@
     },
   },
 
-  "plugins": [
-    "opencode-with-claude@latest",
-  ],
-
   "providers": {
-    "anthropic": {
-      "settings": {
-        "baseURL": "http://127.0.0.1:3456",
-        "apiKey": "dummy",
-      },
-    },
-
     "ollama": {
       "name": "local-ollama",
       "package": "aisdk:@ai-sdk/openai-compatible",
