@@ -1,11 +1,11 @@
 {
   "plugins": {
     "SchemaStore.nvim": {
-      "rev": "cc6302a0957806dfc0f2687f1f35ee9652686101",
+      "rev": "a7a40007c34b784585811dace3b7e1cc16669228",
       "src": "https://github.com/b0o/SchemaStore.nvim"
     },
     "async.nvim": {
-      "rev": "734e3386dbdf8b60492c16d488bc4e372fdd658c",
+      "rev": "028d843a892b4920d8306216369aeee9fbcebae5",
       "src": "https://github.com/lewis6991/async.nvim"
     },
     "blink-go-import.nvim": {
@@ -22,7 +22,7 @@
       "src": "https://github.com/akinsho/bufferline.nvim"
     },
     "claudecode.nvim": {
-      "rev": "9c11940c1aabd94db580816b58d1784d1992df17",
+      "rev": "af04fbf9c27c5c06b4d1ff022b551aa94e1df4aa",
       "src": "https://github.com/coder/claudecode.nvim"
     },
     "colorful-winsep.nvim": {
@@ -54,7 +54,7 @@
       "src": "https://github.com/rafamadriz/friendly-snippets"
     },
     "gitsigns.nvim": {
-      "rev": "1e9d0fbfe7ff848bc402d2c2e2854fb4eff2dce7",
+      "rev": "4bcd99167c265f135886b282baad77afe06206b2",
       "src": "https://github.com/lewis6991/gitsigns.nvim"
     },
     "go-impl.nvim": {
@@ -94,7 +94,7 @@
       "src": "https://github.com/zapling/mason-lock.nvim"
     },
     "mason-lspconfig.nvim": {
-      "rev": "cd6c64d85c9871aaf759d26f2371029d6d674a48",
+      "rev": "3a5cd6d562a01f6829a35ae761dc383264ea452b",
       "src": "https://github.com/mason-org/mason-lspconfig.nvim"
     },
     "mason.nvim": {
@@ -134,7 +134,7 @@
       "src": "https://github.com/mfussenegger/nvim-lint"
     },
     "nvim-lspconfig": {
-      "rev": "d8d2fda7aae57030452ce8cd6e770b1eb704514e",
+      "rev": "cc404d425c7752f56b8eaa269107be44d888ea51",
       "src": "https://github.com/neovim/nvim-lspconfig"
     },
     "nvim-surround": {
@@ -142,7 +142,7 @@
       "src": "https://github.com/kylechui/nvim-surround"
     },
     "nvim-treesitter": {
-      "rev": "a9c4e1457e2e59f1b82c8f78dcdb3b2517555200",
+      "rev": "610734c5d3e59761d5f79318d120633374537fa5",
       "src": "https://github.com/nvim-treesitter/nvim-treesitter",
       "version": "'main'"
     },
