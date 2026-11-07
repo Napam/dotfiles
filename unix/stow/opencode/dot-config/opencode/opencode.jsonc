@@ -73,4 +73,18 @@
       },
     },
   },
+  "mcp": {
+    "servers": {
+      "browse": {
+        "type": "local",
+        "command": [
+          "/Users/naphat/.local/bin/browse",
+          "mcp"
+        ],
+        "environment": {
+          "OPENCODE_BROWSER_RUNTIME": "auto-update"
+        }
+      }
+    }
+  },
 }
