@@ -79,9 +79,11 @@ Format per finding:
 [blocker] S3 · path/to/file.md:42 · drops the error then returns nil
 ```
 
-`blocker` | `should` | `nit` — the lens tag (S0–S5) says what kind of problem; severity says what
-to act on. Group by lens (S0→S4), then highest severity first. Give the concrete fix. Only include
-findings you'd defend.
+`blocker` | `should` | `nit`: the lens tag (S0–S5) says what kind of problem; severity
+says what to act on. Group by lens (S0→S4), then highest severity first. Give the
+concrete fix. A `blocker` names the failure it causes: the input or state, then the
+wrong output or crash. A `should` or `nit` names the cost it removes, in one clause.
+No concrete consequence, no finding. Only include findings you'd defend.
 
 ## Fixing
 
