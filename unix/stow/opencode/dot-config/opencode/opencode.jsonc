@@ -78,7 +78,7 @@
       "browse": {
         "type": "local",
         "command": [
-          "/Users/naphat/.local/bin/browse",
+          "browse",
           "mcp"
         ],
         "environment": {
