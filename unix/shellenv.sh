@@ -47,7 +47,7 @@ path_append()  { case ":$PATH:" in *":$1:"*) ;; *) PATH="$PATH:$1" ;; esac  }
 [[ -d /snap/bin ]] && path_prepend /snap/bin
 # bob-managed nvim — must precede brew/usr nvim
 [[ -d "$HOME/.local/share/bob/nvim-bin" ]] && path_prepend "$HOME/.local/share/bob/nvim-bin"
-path_append "$HOME/.local/bin"
+path_prepend "$HOME/.local/bin"
 
 # Expose mason binaries as globally runnable programs.
 path_append "$HOME/.local/share/nvim/mason/bin"
