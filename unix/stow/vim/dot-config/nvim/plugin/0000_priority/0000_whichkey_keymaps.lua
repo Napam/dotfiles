@@ -51,10 +51,6 @@ end, { desc = "Opencode select" })
 map("n", "<leader>al", function()
   require("opencode").list()
 end, { desc = "Opencode list" })
-map("n", "<leader>acc", "<cmd>ClaudeCode<cr>", { desc = "Toggle ClaudeCode" })
-map("n", "<leader>acm", "<cmd>ClaudeCodeSelectModel<cr>", { desc = "Select model" })
-map("n", "<leader>acs", "<cmd>ClaudeCodeSend<cr>", { desc = "Send to ClaudeCode" })
-
 map("n", "<leader>fb", function()
   Snacks.picker.buffers()
 end, { desc = "Find in buffers" })
@@ -175,7 +171,6 @@ end, { desc = "Copy project-relative path" })
 
 require("which-key").add({
   { "<leader>a", group = "AI" },
-  { "<leader>ac", group = "ClaudeCode" },
   { "<leader>f", group = "Find" },
   { "<leader>g", group = "Git" },
   { "<leader>l", group = "LSP" },
